@@ -39,8 +39,74 @@ const stats = ref([
   },
 ]);
 
-const recentBookings = ref([]);
-const topCustomers = ref([]);
+const recentBookings = ref([
+  {
+    id: 1,
+    customerName: "Emma Thompson",
+    date: "March 15, 2024",
+    time: "2:00 PM",
+    type: "Portrait Session",
+    status: "Confirmed",
+    price: "Contact for price"
+  },
+  {
+    id: 2,
+    customerName: "James Wilson",
+    date: "March 14, 2024",
+    time: "10:30 AM",
+    type: "Family Session",
+    status: "Pending",
+    price: "Contact for price"
+  },
+  {
+    id: 3,
+    customerName: "Sarah Parker",
+    date: "March 13, 2024",
+    time: "4:00 PM",
+    type: "Wedding Session",
+    status: "Confirmed",
+    price: "Contact for price"
+  }
+]);
+
+const upcomingSessions = ref([
+  {
+    id: 1,
+    customerName: "Oliver Brown",
+    date: "March 20, 2024",
+    time: "11:00 AM",
+    type: "Family Portrait",
+    status: "Confirmed",
+    location: "Central Park"
+  },
+  {
+    id: 2,
+    customerName: "Sophie Miller",
+    date: "March 21, 2024",
+    time: "3:30 PM",
+    type: "Engagement",
+    status: "Confirmed",
+    location: "Beach Side"
+  },
+  {
+    id: 3,
+    customerName: "Lucas Davis",
+    date: "March 22, 2024",
+    time: "10:00 AM",
+    type: "Graduation",
+    status: "Pending",
+    location: "University Campus"
+  },
+  {
+    id: 4,
+    customerName: "Isabella White",
+    date: "March 23, 2024",
+    time: "2:00 PM",
+    type: "Maternity",
+    status: "Confirmed",
+    location: "Studio"
+  }
+]);
 
 // Format date helper
 const formatDate = (date) => {
@@ -169,7 +235,7 @@ const fetchDashboardData = async () => {
     
     // Update stats
     if (data) {
-      const { stats: apiStats, recentBookings: recent, topCustomers: top, chartData: apiChartData } = data;
+      const { stats: apiStats, recentBookings: recent, upcomingSessions: upcoming, chartData: apiChartData } = data;
       
       // Update stats array
       stats.value[0].stat = apiStats.totalBookings.toString();
@@ -205,19 +271,15 @@ const fetchDashboardData = async () => {
         price: "Contact for price",
       }));
 
-      // Update top customers
-      topCustomers.value = top.map((customer) => ({
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        totalBookings: customer.total_bookings,
-        totalSpent: "Contact for details",
-        lastBooking: formatDate(customer.latest_booking),
-        avatar: customer.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase(),
+      // Update upcoming sessions
+      upcomingSessions.value = upcoming.map((session) => ({
+        id: session.id,
+        customerName: session.name,
+        date: formatDate(session.booking_date),
+        time: new Date(session.booking_date).toLocaleTimeString(),
+        type: session.theme || "N/A",
+        status: session.status,
+        location: session.location || "TBD",
       }));
 
       // Update chart data
@@ -589,55 +651,56 @@ const getChangeColor = (type) => {
         </ul>
       </div>
 
-      <!-- Top Customers -->
+      <!-- Upcoming Sessions -->
       <div class="bg-white shadow rounded-lg">
         <div class="p-6 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-medium text-gray-900">Top Customers</h2>
-              <p class="mt-1 text-sm text-gray-500">Most valuable clients</p>
+              <h2 class="text-lg font-medium text-gray-900">Upcoming Sessions</h2>
+              <p class="mt-1 text-sm text-gray-500">Next 7 days</p>
             </div>
             <NuxtLink
-              to="/dashboard/contacts"
+              to="/dashboard/bookings"
               class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              View All
+              View Calendar
             </NuxtLink>
           </div>
         </div>
         <ul role="list" class="divide-y divide-gray-200">
           <li
-            v-for="customer in topCustomers"
-            :key="customer.id"
+            v-for="session in upcomingSessions"
+            :key="session.id"
             class="p-6 hover:bg-gray-50 transition-colors duration-150"
           >
             <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div class="h-10 w-10 flex-shrink-0">
-                  <div
-                    class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center"
-                  >
-                    <span class="text-blue-600 font-medium">{{
-                      customer.avatar
-                    }}</span>
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-900">
-                    {{ customer.name }}
-                  </p>
-                  <p class="text-sm text-gray-500">{{ customer.email }}</p>
-                </div>
-              </div>
-              <div class="flex flex-col items-end">
+              <div>
                 <p class="text-sm font-medium text-gray-900">
-                  {{ customer.totalSpent }}
+                  {{ session.customerName }}
                 </p>
-                <p class="text-sm text-gray-500">
-                  {{ customer.totalBookings }} bookings
+                <div class="flex items-center mt-1">
+                  <p class="text-sm text-gray-500">{{ session.type }}</p>
+                  <span class="mx-2 text-gray-500">·</span>
+                  <p class="text-sm text-gray-500">
+                    {{ session.date }} at {{ session.time }}
+                  </p>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                  📍 {{ session.location }}
                 </p>
+              </div>
+              <div>
+                <span
+                  class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  :class="getStatusColor(session.status)"
+                >
+                  {{ session.status }}
+                </span>
               </div>
             </div>
+          </li>
+          <li v-if="upcomingSessions.length === 0" class="p-6 text-center">
+            <p class="text-sm text-gray-500">No upcoming sessions in the next 7 days</p>
           </li>
         </ul>
       </div>

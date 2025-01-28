@@ -44,18 +44,23 @@ watch(search, async (newValue) => {
 
 // Status mapping for better filtering
 const statusMap = {
-  1: "Paid",
-  2: "Pending",
-  3: "Cancelled",
-  4: "Completed",
+  payment: {
+    1: "Pending",
+    2: "Partial",
+    3: "Paid",
+  },
+  session: {
+    1: "Pending",
+    2: "Completed",
+  },
 };
 
 const statuses = [
   { value: "all", label: "All Statuses" },
-  { value: "Pending", label: "Pending" },
+  { value: "Pending", label: "Payment Pending" },
+  { value: "Partial", label: "Partial Payment" },
   { value: "Paid", label: "Paid" },
-  { value: "Cancelled", label: "Cancelled" },
-  { value: "Completed", label: "Completed" },
+  { value: "Completed", label: "Session Completed" },
 ];
 
 const services = [
@@ -64,9 +69,13 @@ const services = [
   { value: "Theme B", label: "Theme B" },
 ];
 
-// Enhanced filtered bookings computation
+// Add sorting state
+const sortBy = ref("created_date");
+const sortOrder = ref("desc");
+
+// Enhanced filtered bookings computation with sorting
 const filteredBookings = computed(() => {
-  return bookings.value.filter((booking) => {
+  let filtered = bookings.value.filter((booking) => {
     // Search match with debouncing
     const searchMatch =
       !debouncedSearch.value ||
@@ -105,7 +114,57 @@ const filteredBookings = computed(() => {
 
     return searchMatch && statusMatch && serviceMatch && dateMatch;
   });
+
+  // Apply sorting
+  return filtered.sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortBy.value) {
+      case "payment_status":
+        // Compare payment status using the statusMap
+        comparison = (statusMap.payment[a.status] || "").localeCompare(
+          statusMap.payment[b.status] || ""
+        );
+        break;
+      case "session_status":
+        // Compare session status using the statusMap
+        comparison = (statusMap.session[a.session_status] || "").localeCompare(
+          statusMap.session[b.session_status] || ""
+        );
+        break;
+      case "created_date":
+        comparison = new Date(a.created_date) - new Date(b.created_date);
+        break;
+      case "session":
+        // Compare session dates, if dates are equal then compare times
+        const aDate = new Date(a.session_date);
+        const bDate = new Date(b.session_date);
+        if (aDate.getTime() === bDate.getTime()) {
+          // If dates are equal, compare times
+          const [aHours, aMinutes] = a.session_time.split(":").map(Number);
+          const [bHours, bMinutes] = b.session_time.split(":").map(Number);
+          comparison = aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+        } else {
+          comparison = aDate - bDate;
+        }
+        break;
+      default:
+        comparison = 0;
+    }
+
+    return sortOrder.value === "desc" ? -comparison : comparison;
+  });
 });
+
+// Add sorting function
+const toggleSort = (column) => {
+  if (sortBy.value === column) {
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+  } else {
+    sortBy.value = column;
+    sortOrder.value = "desc";
+  }
+};
 
 // Add active filters count
 const activeFiltersCount = computed(() => {
@@ -218,6 +277,9 @@ const getBookings = async () => {
   isLoading.value = true;
   try {
     const resp = await $fetch("/api/booking/get-bookings");
+
+    console.log("resp:", resp);
+
     bookings.value = resp;
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -400,6 +462,131 @@ const sendReceiptEmail = async () => {
   }
 };
 
+// Add new refs for session rescheduling
+const showRescheduleModal = ref(false);
+const selectedDate = ref("");
+const selectedTime = ref("");
+const isRescheduling = ref(false);
+
+// Add confirmation modal state
+const showConfirmationModal = ref(false);
+const confirmationMessage = ref('');
+const confirmationAction = ref(() => {});
+const confirmationTitle = ref('');
+
+// Function to show confirmation modal
+const showConfirmation = (title, message, action) => {
+  confirmationTitle.value = title;
+  confirmationMessage.value = message;
+  confirmationAction.value = action;
+  showConfirmationModal.value = true;
+};
+
+// Update rescheduleSession function
+const rescheduleSession = async () => {
+  if (!selectedDate.value || !selectedTime.value) {
+    alert("Please select both date and time");
+    return;
+  }
+
+  showConfirmation(
+    'Confirm Reschedule',
+    'Are you sure you want to reschedule this session?',
+    async () => {
+      isRescheduling.value = true;
+      try {
+        const response = await $fetch(
+          `/api/booking/reschedule/${selectedBooking.value.id}`,
+          {
+            method: "PUT",
+            body: {
+              session_date: selectedDate.value,
+              session_time: selectedTime.value,
+            },
+          }
+        );
+
+        if (response.success) {
+          selectedBooking.value.session_date = selectedDate.value;
+          selectedBooking.value.session_time = selectedTime.value;
+          showRescheduleModal.value = false;
+          alert("Session rescheduled successfully");
+          getBookings(); // Refresh the bookings list
+        } else {
+          throw new Error("Failed to reschedule session");
+        }
+      } catch (error) {
+        console.error("Error rescheduling session:", error);
+        alert("Failed to reschedule session. Please try again.");
+      } finally {
+        isRescheduling.value = false;
+        showConfirmationModal.value = false;
+      }
+    }
+  );
+};
+
+// Update markAsPaid function
+const markAsPaid = async (bookingId) => {
+  showConfirmation(
+    'Confirm Payment',
+    'Are you sure you want to mark this booking as paid?',
+    async () => {
+      isMarkingAsPaid.value = true;
+      try {
+        const response = await $fetch(`/api/booking/mark-paid/${bookingId}`, {
+          method: 'PUT'
+        });
+
+        if (response.success) {
+          selectedBooking.value.status = 3; // Set status to paid
+          alert('Booking has been marked as paid successfully');
+          getBookings(); // Refresh the bookings list
+        } else {
+          throw new Error('Failed to mark booking as paid');
+        }
+      } catch (error) {
+        console.error('Error marking booking as paid:', error);
+        alert('Failed to mark booking as paid. Please try again.');
+      } finally {
+        isMarkingAsPaid.value = false;
+        showConfirmationModal.value = false;
+      }
+    }
+  );
+};
+
+// Update cancelBooking function
+const cancelBooking = async (bookingId) => {
+  showConfirmation(
+    'Confirm Cancellation',
+    'Are you sure you want to cancel this booking? This action cannot be undone.',
+    async () => {
+      isCancelling.value = true;
+      try {
+        const response = await $fetch(`/api/booking/cancel/${bookingId}`, {
+          method: 'PUT'
+        });
+
+        if (response.success) {
+          selectedBooking.value.status = 3; // Set status to cancelled
+          showModal.value = false;
+          alert('Booking has been cancelled successfully');
+          getBookings(); // Refresh the bookings list
+        } else {
+          throw new Error('Failed to cancel booking');
+        }
+      } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert('Failed to cancel booking. Please try again.');
+      } finally {
+        isCancelling.value = false;
+        showConfirmationModal.value = false;
+      }
+    }
+  );
+};
+
 onMounted(() => {
   getBookings();
 });
@@ -440,7 +627,7 @@ onMounted(() => {
     </div>
 
     <!-- Stats Grid -->
-    <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 my-5">
       <!-- Total Bookings -->
       <div class="bg-white overflow-hidden shadow-sm rounded-lg">
         <div class="p-5">
@@ -1035,15 +1222,127 @@ onMounted(() => {
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
+                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
+                  @click="toggleSort('payment_status')"
                 >
-                  Status
+                  <div class="flex items-center">
+                    Payment Status
+                    <span class="ml-2">
+                      <svg
+                        :class="{
+                          'h-4 w-4 transition-transform': true,
+                          'transform rotate-180':
+                            sortBy === 'payment_status' && sortOrder === 'desc',
+                          'text-[#3C2A21]': sortBy === 'payment_status',
+                          'text-gray-400 group-hover:text-[#3C2A21]':
+                            sortBy !== 'payment_status',
+                        }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    </span>
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
+                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
+                  @click="toggleSort('session_status')"
                 >
-                  Created
+                  <div class="flex items-center">
+                    Session Status
+                    <span class="ml-2">
+                      <svg
+                        :class="{
+                          'h-4 w-4 transition-transform': true,
+                          'transform rotate-180':
+                            sortBy === 'session_status' && sortOrder === 'desc',
+                          'text-[#3C2A21]': sortBy === 'session_status',
+                          'text-gray-400 group-hover:text-[#3C2A21]':
+                            sortBy !== 'session_status',
+                        }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
+                  @click="toggleSort('created_date')"
+                >
+                  <div class="flex items-center">
+                    Created
+                    <span class="ml-2">
+                      <svg
+                        :class="{
+                          'h-4 w-4 transition-transform': true,
+                          'transform rotate-180':
+                            sortBy === 'created_date' && sortOrder === 'desc',
+                          'text-[#3C2A21]': sortBy === 'created_date',
+                          'text-gray-400 group-hover:text-[#3C2A21]':
+                            sortBy !== 'created_date',
+                        }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
+                  @click="toggleSort('session')"
+                >
+                  <div class="flex items-center">
+                    Session
+                    <span class="ml-2">
+                      <svg
+                        :class="{
+                          'h-4 w-4 transition-transform': true,
+                          'transform rotate-180':
+                            sortBy === 'session' && sortOrder === 'desc',
+                          'text-[#3C2A21]': sortBy === 'session',
+                          'text-gray-400 group-hover:text-[#3C2A21]':
+                            sortBy !== 'session',
+                        }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    </span>
+                  </div>
                 </th>
                 <th
                   scope="col"
@@ -1091,42 +1390,66 @@ onMounted(() => {
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="{
-                      'bg-yellow-100 text-yellow-800': booking.status === 2,
-                      'bg-green-100 text-green-800': booking.status === 1,
-                      'bg-red-100 text-red-800': booking.status === 3,
-                      'bg-blue-100 text-blue-800': booking.status === 4,
-                    }"
-                  >
-                    <span class="flex items-center">
-                      <span
-                        class="h-1.5 w-1.5 rounded-full mr-1.5"
-                        :class="{
-                          'bg-yellow-500': booking.status === 2,
-                          'bg-green-500': booking.status === 1,
-                          'bg-red-500': booking.status === 3,
-                          'bg-blue-500': booking.status === 4,
-                        }"
-                      ></span>
-                      {{
-                        booking.status === 1
-                          ? "Paid"
-                          : booking.status === 2
-                          ? "Pending"
-                          : booking.status === 3
-                          ? "Cancelled"
-                          : booking.status === 4
-                          ? "Completed"
-                          : "Unknown"
-                      }}
+                  <div class="space-y-2">
+                    <span
+                      class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      :class="{
+                        'bg-yellow-100 text-yellow-800': booking.status === 1,
+                        'bg-blue-100 text-blue-800': booking.status === 2,
+                        'bg-green-100 text-green-800': booking.status === 3,
+                      }"
+                    >
+                      <span class="flex items-center">
+                        <span
+                          class="h-1.5 w-1.5 rounded-full mr-1.5"
+                          :class="{
+                            'bg-yellow-500': booking.status === 1,
+                            'bg-blue-500': booking.status === 2,
+                            'bg-green-500': booking.status === 3,
+                          }"
+                        ></span>
+                        {{ statusMap.payment[booking.status] || "Unknown" }}
+                      </span>
                     </span>
-                  </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="space-y-2">
+                    <span
+                      class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      :class="{
+                        'bg-yellow-100 text-yellow-800':
+                          booking.session_status === 1,
+                        'bg-green-100 text-green-800':
+                          booking.session_status === 2,
+                      }"
+                    >
+                      <span class="flex items-center">
+                        <span
+                          class="h-1.5 w-1.5 rounded-full mr-1.5"
+                          :class="{
+                            'bg-yellow-500': booking.session_status === 1,
+                            'bg-green-500': booking.session_status === 2,
+                          }"
+                        ></span>
+                        {{
+                          statusMap.session[booking.session_status] || "Unknown"
+                        }}
+                      </span>
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-[#3C2A21]">
                     {{ formatDate(booking.created_date) }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    {{ formatTime(booking.session_time) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-[#3C2A21]">
+                    {{ formatDate(booking.session_date) }}
                   </div>
                   <div class="text-xs text-gray-500">
                     {{ formatTime(booking.session_time) }}
@@ -1455,7 +1778,14 @@ onMounted(() => {
                     Close
                   </button>
                   <button
-                    v-if="selectedBooking.status === 2"
+                    v-if="selectedBooking?.session_status === 1"
+                    @click="showRescheduleModal = true"
+                    class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors"
+                  >
+                    Reschedule Session
+                  </button>
+                  <button
+                    v-if="selectedBooking?.status === 1 || selectedBooking?.status === 2"
                     @click="markAsPaid(selectedBooking?.id)"
                     :disabled="isMarkingAsPaid"
                     class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
@@ -1484,6 +1814,37 @@ onMounted(() => {
                       Processing...
                     </span>
                     <span v-else>Mark as Paid</span>
+                  </button>
+                  <button
+                    v-if="selectedBooking?.status === 1 || selectedBooking?.status === 2"
+                    @click="cancelBooking(selectedBooking?.id)"
+                    :disabled="isCancelling"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                  >
+                    <span v-if="isCancelling" class="flex items-center">
+                      <svg
+                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"
+                        ></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Cancelling...
+                    </span>
+                    <span v-else>Cancel Booking</span>
                   </button>
                 </div>
               </div>
@@ -1749,6 +2110,224 @@ onMounted(() => {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Reschedule Modal -->
+    <Transition
+      enter-active-class="ease-out duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showRescheduleModal"
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-20"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="ease-out duration-300"
+      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+      leave-active-class="ease-in duration-200"
+      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+    >
+      <div
+        v-if="showRescheduleModal"
+        class="fixed inset-0 z-30 overflow-y-auto"
+      >
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+        >
+          <div
+            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+          >
+            <!-- Modal Header -->
+            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-[#3C2A21]">
+                  Reschedule Session
+                </h3>
+                <button
+                  @click="showRescheduleModal = false"
+                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="px-6 py-4">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-[#3C2A21] mb-1">
+                    New Session Date
+                  </label>
+                  <input
+                    type="date"
+                    v-model="selectedDate"
+                    class="block w-full rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
+                    :min="new Date().toISOString().split('T')[0]"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-[#3C2A21] mb-1">
+                    New Session Time
+                  </label>
+                  <input
+                    type="time"
+                    v-model="selectedTime"
+                    class="block w-full rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+              <button
+                @click="showRescheduleModal = false"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+              >
+                Cancel
+              </button>
+              <button
+                @click="rescheduleSession"
+                :disabled="isRescheduling || !selectedDate || !selectedTime"
+                class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
+              >
+                <span v-if="isRescheduling" class="flex items-center">
+                  <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Rescheduling...
+                </span>
+                <span v-else>Confirm Reschedule</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Add Confirmation Modal -->
+    <Transition
+      enter-active-class="ease-out duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showConfirmationModal"
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="ease-out duration-300"
+      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+      leave-active-class="ease-in duration-200"
+      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+    >
+      <div
+        v-if="showConfirmationModal"
+        class="fixed inset-0 z-50 overflow-y-auto"
+      >
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+        >
+          <div
+            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+          >
+            <!-- Modal Header -->
+            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-[#3C2A21]">
+                  {{ confirmationTitle }}
+                </h3>
+                <button
+                  @click="showConfirmationModal = false"
+                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="px-6 py-4">
+              <p class="text-sm text-gray-600">
+                {{ confirmationMessage }}
+              </p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+              <button
+                @click="showConfirmationModal = false"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+              >
+                Cancel
+              </button>
+              <button
+                @click="confirmationAction"
+                class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>

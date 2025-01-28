@@ -53,9 +53,7 @@
           class="bg-white rounded-2xl sm:rounded-[32px] shadow-xl shadow-[#3C2A21]/10 overflow-hidden"
         >
           <!-- Header with Steps -->
-          <div
-            class="relative bg-white px-4 sm:px-6 py-6 sm:py-8 border-[#3C2A21]/10"
-          >
+          <div class="relative bg-white px-4 sm:px-6 py-6 sm:py-8 border-[#3C2A21]/10">
             <h1
               class="text-lg sm:text-2xl font-semibold text-[#3C2A21] text-center mb-6 sm:mb-10 font-playfair"
             >
@@ -65,18 +63,14 @@
             <!-- Mobile Step Indicator -->
             <div class="block sm:hidden mb-4">
               <div class="flex items-center justify-center space-x-2">
-                <span class="text-sm text-[#3C2A21]"
-                  >Step {{ currentStep }} of {{ steps.length }}</span
-                >
-                <span class="text-sm text-[#3C2A21]/60"
-                  >- {{ steps[currentStep - 1].label }}</span
-                >
+                <span class="text-sm text-[#3C2A21]">Step {{ currentStep }} of {{ steps.length }}</span>
+                <span class="text-sm text-[#3C2A21]/60">- {{ steps[currentStep - 1].label }}</span>
               </div>
               <!-- Progress bar for mobile -->
               <div class="mt-2 h-1 bg-[#3C2A21]/20 rounded-full">
                 <div
                   class="h-1 bg-[#3C2A21] rounded-full transition-all duration-500"
-                  :style="{ width: (currentStep / steps.length) * 100 + '%' }"
+                  :style="{ width: ((currentStep) / steps.length) * 100 + '%' }"
                 ></div>
               </div>
             </div>
@@ -86,17 +80,12 @@
               <div class="max-w-2xl mx-auto">
                 <div class="relative flex items-center justify-between">
                   <!-- Progress Line -->
-                  <div
-                    class="absolute left-0 top-1/2 w-full h-0.5 -translate-y-1/2"
-                  >
-                    <div
-                      class="absolute inset-0 bg-[#3C2A21]/20 rounded-full"
-                    ></div>
+                  <div class="absolute left-0 top-1/2 w-full h-0.5 -translate-y-1/2">
+                    <div class="absolute inset-0 bg-[#3C2A21]/20 rounded-full"></div>
                     <div
                       class="absolute inset-0 rounded-full bg-[#3C2A21] transition-all duration-500 ease-out"
                       :style="{
-                        width:
-                          ((currentStep - 1) / (steps.length - 1)) * 100 + '%',
+                        width: ((currentStep - 1) / (steps.length - 1)) * 100 + '%',
                       }"
                     ></div>
                   </div>
@@ -112,10 +101,8 @@
                           currentStep >= step.number
                             ? 'bg-[#3C2A21] text-white shadow-lg shadow-[#3C2A21]/20'
                             : 'bg-white text-[#3C2A21]/60 border-2 border-[#3C2A21]/20',
-                          step.number <= currentStep + 1 &&
-                            'cursor-pointer hover:scale-105',
-                          step.number > currentStep + 1 &&
-                            'cursor-not-allowed opacity-60',
+                          step.number <= currentStep + 1 && 'cursor-pointer hover:scale-105',
+                          step.number > currentStep + 1 && 'cursor-not-allowed opacity-60',
                         ]"
                       >
                         <div class="relative flex items-center justify-center">
@@ -138,16 +125,10 @@
                           </span>
                         </div>
                       </button>
-                      <div
-                        class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-max"
-                      >
+                      <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-max">
                         <span
                           class="text-xs whitespace-nowrap font-playfair"
-                          :class="
-                            currentStep >= step.number
-                              ? 'text-[#3C2A21]'
-                              : 'text-[#3C2A21]/60'
-                          "
+                          :class="currentStep >= step.number ? 'text-[#3C2A21]' : 'text-[#3C2A21]/60'"
                         >
                           {{ step.label }}
                         </span>
@@ -165,13 +146,11 @@
               <!-- Step 1: Session (Select Date & Time) -->
               <div v-show="currentStep === 1" key="step1" class="space-y-6">
                 <div class="max-w-sm mx-auto">
-                  <h2
-                    class="text-base sm:text-lg font-semibold text-gray-900 mb-4 font-playfair"
-                  >
+                  <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 font-playfair">
                     Select Date & Time
                   </h2>
 
-                  <!-- Custom Date Picker - Optimized for mobile -->
+                  <!-- Horizontal Date Picker -->
                   <div class="bg-[#F5E6E0] rounded-xl p-4 sm:p-6">
                     <!-- Month Navigation -->
                     <div class="flex items-center justify-between mb-4">
@@ -179,18 +158,8 @@
                         @click="previousMonth"
                         class="p-2 hover:bg-white/50 rounded-lg transition-colors"
                       >
-                        <svg
-                          class="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 19l-7-7 7-7"
-                          />
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                       </button>
                       <h4 class="text-sm sm:text-base font-medium">
@@ -200,72 +169,74 @@
                         @click="nextMonth"
                         class="p-2 hover:bg-white/50 rounded-lg transition-colors"
                       >
-                        <svg
-                          class="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5l7 7-7 7"
-                          />
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
                     </div>
 
-                    <!-- Calendar Grid - Optimized for mobile -->
-                    <div class="grid grid-cols-7 gap-1 mb-4">
-                      <!-- Day Labels -->
-                      <template
-                        v-for="day in ['S', 'M', 'T', 'W', 'T', 'F', 'S']"
-                        :key="day"
+                    <!-- Scrollable Date Cards -->
+                    <div class="relative">
+                      <!-- Shadow Indicators -->
+                      <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#F5E6E0] to-transparent pointer-events-none z-10"></div>
+                      <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#F5E6E0] to-transparent pointer-events-none z-10"></div>
+                      
+                      <!-- Desktop Navigation Buttons -->
+                      <button 
+                        @click="slideDates('prev')"
+                        class="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 items-center justify-center bg-white rounded-full shadow-lg hover:bg-[#3C2A21] hover:text-white transition-all duration-200"
                       >
-                        <div
-                          class="text-center text-xs font-medium text-[#3C2A21]/60 py-2"
-                        >
-                          {{ day }}
-                        </div>
-                      </template>
-
-                      <!-- Calendar Days -->
-                      <template
-                        v-for="{
-                          date,
-                          isCurrentMonth,
-                          isSelectable,
-                        } in calendarDays"
-                        :key="date"
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button 
+                        @click="slideDates('next')"
+                        class="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 items-center justify-center bg-white rounded-full shadow-lg hover:bg-[#3C2A21] hover:text-white transition-all duration-200"
                       >
-                        <div
-                          @click="isSelectable && selectDate(date)"
-                          :class="[
-                            'aspect-square rounded-lg flex items-center justify-center text-xs sm:text-sm transition-all',
-                            isCurrentMonth
-                              ? 'hover:bg-[#3C2A21]/10'
-                              : 'text-[#3C2A21]/30',
-                            !isSelectable && 'cursor-not-allowed opacity-50',
-                            isDateSelected(date) &&
-                              'bg-[#3C2A21] text-white hover:bg-[#3C2A21]/90',
-                            isSelectable && 'cursor-pointer active:scale-95',
-                          ]"
-                        >
-                          {{ new Date(date).getDate() }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      
+                      <!-- Scrollable Container -->
+                      <div class="overflow-x-auto hide-scrollbar" ref="dateScrollContainer">
+                        <div class="flex space-x-3 py-2 px-2 min-w-min">
+                          <template v-for="day in calendarDays" :key="day.date">
+                            <button
+                              v-if="day.isCurrentMonth"
+                              @click="day.isSelectable && selectDate(day.date)"
+                              :disabled="!day.isSelectable"
+                              :class="[
+                                'flex-shrink-0 w-20 p-3 rounded-xl transition-all duration-200',
+                                isDateSelected(day.date)
+                                  ? 'bg-[#3C2A21] text-white shadow-lg'
+                                  : day.isSelectable
+                                  ? 'bg-white hover:bg-[#3C2A21]/5'
+                                  : 'bg-white/50 cursor-not-allowed opacity-50',
+                              ]"
+                            >
+                              <!-- Day Name -->
+                              <div class="text-xs font-medium mb-1">
+                                {{ new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }) }}
+                              </div>
+                              <!-- Date -->
+                              <div class="text-lg font-semibold mb-1">
+                                {{ new Date(day.date).getDate() }}
+                              </div>
+                              <!-- Event Count -->
+                              <div class="text-xs">
+                                {{ getEventCount(day.date) }} slots
+                              </div>
+                            </button>
+                          </template>
                         </div>
-                      </template>
+                      </div>
                     </div>
 
-                    <!-- Time Slots - Optimized for mobile -->
-                    <div
-                      v-if="formData.date"
-                      ref="timeSlotsSection"
-                      class="mt-4"
-                    >
-                      <h4
-                        class="text-sm font-medium text-[#3C2A21] mb-3 font-playfair"
-                      >
+                    <!-- Time Slots -->
+                    <div v-if="formData.date" ref="timeSlotsSection" class="mt-6">
+                      <h4 class="text-sm font-medium text-[#3C2A21] mb-3 font-playfair">
                         Available Time Slots
                       </h4>
                       <div class="grid grid-cols-2 gap-2">
@@ -291,9 +262,7 @@
               <!-- Step 2: Choose Theme -->
               <div v-show="currentStep === 2" key="step2" class="space-y-6">
                 <div class="max-w-sm mx-auto">
-                  <h2
-                    class="text-base sm:text-lg font-semibold text-gray-900 mb-4 font-playfair"
-                  >
+                  <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 font-playfair">
                     Choose your theme
                   </h2>
 
@@ -317,9 +286,7 @@
                         <!-- Content -->
                         <div class="space-y-3">
                           <div>
-                            <h3
-                              class="text-lg font-semibold text-[#3C2A21] font-playfair mb-1"
-                            >
+                            <h3 class="text-lg font-semibold text-[#3C2A21] font-playfair mb-1">
                               {{ type.label }}
                             </h3>
                             <p class="text-sm text-[#3C2A21]/70">
@@ -344,11 +311,7 @@
                                     : 'bg-[#F5E6E0] text-[#3C2A21] hover:bg-[#3C2A21] hover:text-white',
                                 ]"
                               >
-                                {{
-                                  formData.sessionType === type.value
-                                    ? "Selected"
-                                    : "Select"
-                                }}
+                                {{ formData.sessionType === type.value ? "Selected" : "Select" }}
                               </button>
                             </div>
                           </div>
@@ -362,9 +325,7 @@
               <!-- Step 3: Personal Information -->
               <div v-show="currentStep === 3" key="step3" class="space-y-6">
                 <div class="max-w-sm mx-auto">
-                  <h2
-                    class="text-base sm:text-lg font-semibold text-[#3C2A21] mb-4 font-playfair"
-                  >
+                  <h2 class="text-base sm:text-lg font-semibold text-[#3C2A21] mb-4 font-playfair">
                     Tell us about yourself
                   </h2>
                   <div class="space-y-4">
@@ -381,9 +342,7 @@
                         @blur="validateField('name')"
                       />
                       <label for="name" class="form-label">Full Name</label>
-                      <p v-if="errors.name" class="form-error">
-                        {{ errors.name }}
-                      </p>
+                      <p v-if="errors.name" class="form-error">{{ errors.name }}</p>
                     </div>
 
                     <!-- Email Input -->
@@ -398,12 +357,8 @@
                         required
                         @blur="validateField('email')"
                       />
-                      <label for="email" class="form-label"
-                        >Email Address</label
-                      >
-                      <p v-if="errors.email" class="form-error">
-                        {{ errors.email }}
-                      </p>
+                      <label for="email" class="form-label">Email Address</label>
+                      <p v-if="errors.email" class="form-error">{{ errors.email }}</p>
                     </div>
 
                     <!-- Phone Input -->
@@ -419,9 +374,7 @@
                         @blur="validateField('phone')"
                       />
                       <label for="phone" class="form-label">Phone Number</label>
-                      <p v-if="errors.phone" class="form-error">
-                        {{ errors.phone }}
-                      </p>
+                      <p v-if="errors.phone" class="form-error">{{ errors.phone }}</p>
                     </div>
 
                     <!-- Address Input -->
@@ -437,9 +390,7 @@
                         @blur="validateField('address')"
                       ></textarea>
                       <label for="address" class="form-label">Address</label>
-                      <p v-if="errors.address" class="form-error">
-                        {{ errors.address }}
-                      </p>
+                      <p v-if="errors.address" class="form-error">{{ errors.address }}</p>
                     </div>
 
                     <!-- Terms & Conditions -->
@@ -474,10 +425,7 @@
                           </div>
                         </div>
                         <div class="text-sm">
-                          <label
-                            for="terms"
-                            class="text-[#3C2A21] font-playfair"
-                          >
+                          <label for="terms" class="text-[#3C2A21] font-playfair">
                             I agree to the
                             <button
                               type="button"
@@ -487,10 +435,7 @@
                               Terms and Conditions
                             </button>
                           </label>
-                          <p
-                            v-if="errors.terms"
-                            class="text-xs text-red-500 mt-1"
-                          >
+                          <p v-if="errors.terms" class="text-xs text-red-500 mt-1">
                             {{ errors.terms }}
                           </p>
                         </div>
@@ -503,61 +448,40 @@
               <!-- Step 4: Payment -->
               <div v-show="currentStep === 4" key="step4" class="space-y-6">
                 <div class="max-w-sm mx-auto">
-                  <h2
-                    class="text-base sm:text-lg font-semibold text-[#3C2A21] mb-4 font-playfair"
-                  >
+                  <h2 class="text-base sm:text-lg font-semibold text-[#3C2A21] mb-4 font-playfair">
                     Complete your booking
                   </h2>
 
                   <!-- Session Summary -->
                   <div class="bg-[#F5E6E0] rounded-xl p-4 sm:p-6 mb-6">
-                    <h3
-                      class="text-base font-medium text-[#3C2A21] mb-4 font-playfair"
-                    >
+                    <h3 class="text-base font-medium text-[#3C2A21] mb-4 font-playfair">
                       Booking Summary
                     </h3>
                     <div class="space-y-3">
                       <div class="flex justify-between items-center">
-                        <span class="text-sm text-[#3C2A21]/70"
-                          >Session Type</span
-                        >
+                        <span class="text-sm text-[#3C2A21]/70">Session Type</span>
                         <span class="text-sm font-medium text-[#3C2A21]">
-                          {{
-                            formData.sessionType === "wedding"
-                              ? "Wedding Photography"
-                              : "Event Photography"
-                          }}
+                          {{ formData.sessionType === "wedding" ? "Wedding Photography" : "Event Photography" }}
                         </span>
                       </div>
                       <div class="flex justify-between items-center">
-                        <span class="text-sm text-[#3C2A21]/70"
-                          >Date & Time</span
-                        >
+                        <span class="text-sm text-[#3C2A21]/70">Date & Time</span>
                         <span class="text-sm font-medium text-[#3C2A21]">
-                          {{ formatDate(formData.date) }} at
-                          {{ formData.timeSlot }}
+                          {{ formatDate(formData.date) }} at {{ formData.timeSlot }}
                         </span>
                       </div>
                       <div class="pt-3 mt-3 border-t border-[#3C2A21]/10">
                         <div class="space-y-2">
-                          <div
-                            class="flex justify-between items-center text-[#3C2A21]/70"
-                          >
+                          <div class="flex justify-between items-center text-[#3C2A21]/70">
                             <span class="text-sm">Total Package Price</span>
                             <span class="text-sm">{{ sessionPrice }}</span>
                           </div>
                           <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-[#3C2A21]"
-                              >Deposit Amount (Required)</span
-                            >
-                            <span
-                              class="text-base font-semibold text-[#3C2A21]"
-                              >{{ depositAmount }}</span
-                            >
+                            <span class="text-sm font-medium text-[#3C2A21]">Deposit Amount (Required)</span>
+                            <span class="text-base font-semibold text-[#3C2A21]">{{ depositAmount }}</span>
                           </div>
                           <p class="text-xs text-[#3C2A21]/70 mt-2">
-                            * Balance payment will be required on the day of the
-                            session
+                            * Balance payment will be required on the day of the session
                           </p>
                         </div>
                       </div>
@@ -566,28 +490,18 @@
 
                   <!-- Payment Method Selection -->
                   <div class="space-y-4">
-                    <h3
-                      class="text-base font-medium text-[#3C2A21] mb-3 font-playfair"
-                    >
+                    <h3 class="text-base font-medium text-[#3C2A21] mb-3 font-playfair">
                       Select Payment Method
                     </h3>
 
                     <!-- Online Banking -->
-                    <div
-                      class="p-4 rounded-xl border-2 border-[#3C2A21] bg-[#3C2A21]/5 cursor-pointer active:scale-98 transition-transform"
-                    >
+                    <div class="p-4 rounded-xl border-2 border-[#3C2A21] bg-[#3C2A21]/5 cursor-pointer active:scale-98 transition-transform">
                       <div class="flex items-center">
-                        <div
-                          class="w-4 h-4 rounded-full border-2 border-[#3C2A21] bg-[#3C2A21] mr-3 flex items-center justify-center"
-                        >
+                        <div class="w-4 h-4 rounded-full border-2 border-[#3C2A21] bg-[#3C2A21] mr-3 flex items-center justify-center">
                           <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
                         </div>
                         <div>
-                          <h4
-                            class="text-sm font-medium text-[#3C2A21] font-playfair"
-                          >
-                            FPX Online Banking
-                          </h4>
+                          <h4 class="text-sm font-medium text-[#3C2A21] font-playfair">FPX Online Banking</h4>
                           <p class="text-xs text-[#3C2A21]/70 mt-0.5">
                             Pay securely with your online banking account
                           </p>
@@ -596,20 +510,12 @@
                     </div>
 
                     <!-- Credit/Debit Card (Disabled) -->
-                    <div
-                      class="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                    >
+                    <div class="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed">
                       <div class="flex items-center">
-                        <div
-                          class="w-4 h-4 rounded-full border-2 border-gray-300 mr-3"
-                        ></div>
+                        <div class="w-4 h-4 rounded-full border-2 border-gray-300 mr-3"></div>
                         <div>
-                          <h4 class="text-sm font-medium text-gray-400">
-                            Credit / Debit Card
-                          </h4>
-                          <p class="text-xs text-gray-400 mt-0.5">
-                            Currently unavailable
-                          </p>
+                          <h4 class="text-sm font-medium text-gray-400">Credit / Debit Card</h4>
+                          <p class="text-xs text-gray-400 mt-0.5">Currently unavailable</p>
                         </div>
                       </div>
                     </div>
@@ -620,9 +526,7 @@
           </div>
 
           <!-- Navigation Footer -->
-          <div
-            class="px-4 sm:px-6 py-4 sm:py-6 bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] flex justify-between items-center"
-          >
+          <div class="px-4 sm:px-6 py-4 sm:py-6 bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] flex justify-between items-center">
             <button
               v-if="currentStep > 1"
               @click="currentStep--"
@@ -726,35 +630,21 @@
           aria-modal="true"
         >
           <!-- Background overlay -->
-          <div
-            class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-          ></div>
+          <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
           <div class="flex min-h-screen items-center justify-center p-4">
             <!-- Modal panel -->
-            <div
-              class="relative transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all w-full max-w-lg"
-            >
+            <div class="relative transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all w-full max-w-lg">
               <!-- Header -->
-              <div
-                class="border-b border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex items-center justify-between"
-              >
-                <h3
-                  class="text-base sm:text-lg font-semibold text-[#3C2A21]"
-                  id="modal-title"
-                >
+              <div class="border-b border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex items-center justify-between">
+                <h3 class="text-base sm:text-lg font-semibold text-[#3C2A21]" id="modal-title">
                   Terms and Conditions
                 </h3>
                 <button
                   @click="showTerms = false"
                   class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors p-2"
                 >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -770,72 +660,40 @@
                 <div class="space-y-6 text-[#3C2A21]">
                   <!-- Booking & Payment -->
                   <section>
-                    <h4
-                      class="text-sm sm:text-base font-semibold mb-3 font-playfair"
-                    >
+                    <h4 class="text-sm sm:text-base font-semibold mb-3 font-playfair">
                       1. Booking & Payment
                     </h4>
                     <div class="space-y-2 text-xs sm:text-sm">
-                      <p>
-                        • A deposit payment is required to secure your booking
-                        date.
-                      </p>
+                      <p>• A deposit payment is required to secure your booking date.</p>
                       <p>• For Wedding Photography: RM500 deposit</p>
                       <p>• For Event Photography: RM300 deposit</p>
-                      <p>
-                        • The remaining balance must be paid on the day of the
-                        session before the shoot begins.
-                      </p>
-                      <p>
-                        • Deposits are non-refundable but transferable to
-                        another date (subject to availability).
-                      </p>
+                      <p>• The remaining balance must be paid on the day of the session before the shoot begins.</p>
+                      <p>• Deposits are non-refundable but transferable to another date (subject to availability).</p>
                     </div>
                   </section>
 
                   <!-- Cancellation & Rescheduling -->
                   <section>
-                    <h4
-                      class="text-sm sm:text-base font-semibold mb-3 font-playfair"
-                    >
+                    <h4 class="text-sm sm:text-base font-semibold mb-3 font-playfair">
                       2. Cancellation & Rescheduling
                     </h4>
                     <div class="space-y-2 text-xs sm:text-sm">
-                      <p>
-                        • Cancellations made 30 days or more before the session:
-                        50% deposit refund
-                      </p>
-                      <p>
-                        • Cancellations made less than 30 days before the
-                        session: No refund
-                      </p>
-                      <p>
-                        • Rescheduling is allowed once, subject to availability
-                      </p>
-                      <p>
-                        • Rescheduling must be requested at least 14 days before
-                        the session
-                      </p>
+                      <p>• Cancellations made 30 days or more before the session: 50% deposit refund</p>
+                      <p>• Cancellations made less than 30 days before the session: No refund</p>
+                      <p>• Rescheduling is allowed once, subject to availability</p>
+                      <p>• Rescheduling must be requested at least 14 days before the session</p>
                     </div>
                   </section>
 
                   <!-- Image Rights & Delivery -->
                   <section>
-                    <h4
-                      class="text-sm sm:text-base font-semibold mb-3 font-playfair"
-                    >
+                    <h4 class="text-sm sm:text-base font-semibold mb-3 font-playfair">
                       3. Image Rights & Delivery
                     </h4>
                     <div class="space-y-2 text-xs sm:text-sm">
                       <p>• The photographer retains copyright of all images</p>
-                      <p>
-                        • Images may be used for portfolio and marketing
-                        purposes
-                      </p>
-                      <p>
-                        • High-resolution digital images will be delivered via
-                        online gallery
-                      </p>
+                      <p>• Images may be used for portfolio and marketing purposes</p>
+                      <p>• High-resolution digital images will be delivered via online gallery</p>
                       <p>• Wedding photos: Delivery within 4-6 weeks</p>
                       <p>• Event photos: Delivery within 2-3 weeks</p>
                     </div>
@@ -843,34 +701,21 @@
 
                   <!-- Session Guidelines -->
                   <section>
-                    <h4
-                      class="text-sm sm:text-base font-semibold mb-3 font-playfair"
-                    >
+                    <h4 class="text-sm sm:text-base font-semibold mb-3 font-playfair">
                       4. Session Guidelines
                     </h4>
                     <div class="space-y-2 text-xs sm:text-sm">
                       <p>• Please arrive on time for your session</p>
-                      <p>
-                        • The photographer reserves the right to leave after 30
-                        minutes of waiting
-                      </p>
-                      <p>
-                        • Additional hours can be added on the day at RM200 per
-                        hour
-                      </p>
-                      <p>
-                        • Weather contingency plans will be discussed prior to
-                        outdoor sessions
-                      </p>
+                      <p>• The photographer reserves the right to leave after 30 minutes of waiting</p>
+                      <p>• Additional hours can be added on the day at RM200 per hour</p>
+                      <p>• Weather contingency plans will be discussed prior to outdoor sessions</p>
                     </div>
                   </section>
                 </div>
               </div>
 
               <!-- Footer -->
-              <div
-                class="border-t border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex justify-end"
-              >
+              <div class="border-t border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex justify-end">
                 <button
                   @click="showTerms = false"
                   class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] transition-colors active:scale-95"
@@ -1023,42 +868,19 @@ const currentYear = computed(() => {
 const calendarDays = computed(() => {
   const year = currentDate.value.getFullYear();
   const month = currentDate.value.getMonth();
-
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-
-  const days = [];
+  const lastDay = new Date(year, month + 1, 0).getDate();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Add previous month's days
-  for (let i = 0; i < firstDay.getDay(); i++) {
-    const date = new Date(year, month, -i);
-    days.unshift({
-      date: date.toISOString().split("T")[0],
-      isCurrentMonth: false,
-      isSelectable: false,
-    });
-  }
-
+  const days = [];
+  
   // Add current month's days
-  for (let i = 1; i <= lastDay.getDate(); i++) {
+  for (let i = 1; i <= lastDay; i++) {
     const date = new Date(year, month, i);
     days.push({
-      date: date.toISOString().split("T")[0],
+      date: date.toISOString().split('T')[0],
       isCurrentMonth: true,
-      isSelectable: date >= today,
-    });
-  }
-
-  // Add next month's days
-  const remainingDays = 42 - days.length; // 6 rows × 7 days
-  for (let i = 1; i <= remainingDays; i++) {
-    const date = new Date(year, month + 1, i);
-    days.push({
-      date: date.toISOString().split("T")[0],
-      isCurrentMonth: false,
-      isSelectable: false,
+      isSelectable: date >= today
     });
   }
 
@@ -1460,9 +1282,47 @@ const toggleMusic = () => {
   }
   isMusicPlaying.value = !isMusicPlaying.value;
 };
+
+// Add function to get event count for a date
+function getEventCount(date) {
+  // This is a mock function - replace with actual event counting logic
+  const dateObj = new Date(date);
+  const day = dateObj.getDate();
+  
+  // For demo purposes, generate random number of events (2-8) for each date
+  // In production, this should come from your backend
+  return Math.floor(Math.random() * 7) + 2;
+}
+
+// Add new refs and functions for slide dates
+const dateScrollContainer = ref(null);
+const slideDates = (direction) => {
+  if (!dateScrollContainer.value) return;
+
+  const container = dateScrollContainer.value;
+  const cardWidth = 92; // 80px (w-20) + 12px (space-x-3)
+  const visibleCards = Math.floor(container.offsetWidth / cardWidth);
+  const scrollAmount = cardWidth * Math.max(1, Math.floor(visibleCards / 2));
+
+  if (direction === 'prev') {
+    container.scrollLeft -= scrollAmount;
+  } else if (direction === 'next') {
+    container.scrollLeft += scrollAmount;
+  }
+};
 </script>
 
 <style lang="scss" scoped>
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth; /* Add smooth scrolling */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease-in-out;

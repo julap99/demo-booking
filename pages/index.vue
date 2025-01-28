@@ -143,8 +143,8 @@ onMounted(() => {
 });
 
 const navigateToBooking = () => {
-  console.log('Attempting navigation to book-a-session');
-  navigateTo('/book-a-session');
+  console.log("Attempting navigation to book-a-session");
+  navigateTo("/book-a-session");
 };
 </script>
 
@@ -516,8 +516,6 @@ const navigateToBooking = () => {
         </NuxtLink>
       </div>
     </div>
-
-    <!-- Footer -->
   </div>
 </template>
 

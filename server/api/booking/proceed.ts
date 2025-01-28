@@ -15,6 +15,8 @@ interface BookingFormData {
   termsAccepted: boolean;
   // Session Details
   theme: string;
+  theme_price: number;
+  theme_deposit: number;
   date: string;
   time: string;
 }
@@ -64,15 +66,32 @@ function isValidTime(timeStr: string): boolean {
   return regex.test(timeStr);
 }
 
+// Generate receipt number
+function generateReceiptNumber(): string {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000000);
+  return `R${timestamp}${random}`;
+}
+
 export default defineEventHandler(async (event) => {
   try {
     // Get body from request
     const body: BookingFormData = await readBody(event);
     console.log("Body:", body);
-    const { name, email, phone, address, theme, date, time } = body;
+    const {
+      name,
+      email,
+      phone,
+      address,
+      theme,
+      theme_price,
+      theme_deposit,
+      date,
+      time,
+    } = body;
 
     // Validate required fields
-    if (!name || !email || !phone || !address || !theme || !date || !time) {
+    if (!name || !email || !phone || !theme || !date || !time) {
       throw createError({
         statusCode: 400,
         message: "Missing required fields",
@@ -121,6 +140,9 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // Renerate ref number
+    const receiptNumber = generateReceiptNumber();
+
     // Use transaction to ensure data consistency
     const result = await knex.transaction(async (trx) => {
       // Create the booking
@@ -130,9 +152,13 @@ export default defineEventHandler(async (event) => {
         user_phoneno: phone,
         user_address: address,
         theme: theme,
+        theme_price: theme_price,
+        theme_deposit: theme_deposit,
         session_date: date,
         session_time: time,
+        payment_ref_number: receiptNumber,
         status: 2,
+        session_status: 1,
         created_date: new Date(),
       });
 
@@ -160,13 +186,13 @@ export default defineEventHandler(async (event) => {
       theme: result.theme,
       session_date: result.session_date,
       session_time: result.session_time,
-      user_address: result.user_address
+      user_address: result.user_address,
     });
 
     // Create Google Calendar event
     const calendarResult = await createCalendarEvent(result);
     if (!calendarResult.success) {
-      console.error('Failed to create calendar event:', calendarResult.error);
+      console.error("Failed to create calendar event:", calendarResult.error);
     }
 
     return {
@@ -175,10 +201,12 @@ export default defineEventHandler(async (event) => {
       message: "Booking proceeded successfully",
       data: {
         ...result,
-        calendarEvent: calendarResult.success ? {
-          eventId: calendarResult.eventId,
-          eventUrl: calendarResult.htmlLink
-        } : null
+        calendarEvent: calendarResult.success
+          ? {
+              eventId: calendarResult.eventId,
+              eventUrl: calendarResult.htmlLink,
+            }
+          : null,
       },
     };
   } catch (error: unknown) {

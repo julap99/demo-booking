@@ -73,8 +73,14 @@
               >
                 Console
               </NuxtLink>
+              <!-- <NuxtLink
+                to="/book-a-session/test2"
+                class="bg-[#C4A484] text-white px-4 py-2 rounded-lg hover:bg-[#B4917C] text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+              >
+                Test Session
+              </NuxtLink> -->
               <NuxtLink
-                to="/book-a-session"
+                to="/book-a-session/test2"
                 class="bg-[#C4A484] text-white px-4 py-2 rounded-lg hover:bg-[#B4917C] text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
               >
                 Book a Session
@@ -171,17 +177,21 @@
           <div class="flex items-center px-4 space-x-4">
             <NuxtLink
               to="/login"
-              class="text-gray-700 hover:text-[#C4A484] px-3 py-2 text-base font-medium transition-colors duration-200"
-              @click="isMobileMenuOpen = false"
+              class="border border-[#C4A484] rounded-lg text-[#C4A484] hover:text-[#C4A484] px-3 py-2 text-sm font-medium transition-colors duration-200"
             >
-              Sign In
+              Console
             </NuxtLink>
-            <NuxtLink
-              to="/register"
-              class="bg-[#C4A484] text-white px-4 py-2 rounded-lg hover:bg-[#B4917C] text-base font-medium transition-colors duration-200"
-              @click="isMobileMenuOpen = false"
+            <!-- <NuxtLink
+              to="/book-a-session/test2"
+              class="bg-[#C4A484] text-white px-4 py-2 rounded-lg hover:bg-[#B4917C] text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
             >
-              Get Started
+              Test Session
+            </NuxtLink> -->
+            <NuxtLink
+              to="/book-a-session/test2"
+              class="bg-[#C4A484] text-white px-4 py-2 rounded-lg hover:bg-[#B4917C] text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              Book a Session
             </NuxtLink>
           </div>
         </div>

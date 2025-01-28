@@ -1,121 +1,354 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] py-12"
+    class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] py-6 sm:py-12"
   >
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-12">
+        <el-skeleton :rows="10" animated />
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-white rounded-[20px] p-8 text-center">
+        <svg
+          class="w-16 h-16 mx-auto mb-4 text-red-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <h2 class="text-xl font-bold text-[#3C2A21] mb-2">
+          Error Loading Receipt
+        </h2>
+        <p class="text-[#3C2A21]/70 mb-6">{{ error }}</p>
+        <NuxtLink to="/book-a-session" class="btn btn-primary">
+          Return to Booking
+        </NuxtLink>
+      </div>
+
       <!-- Receipt Card -->
       <div
-        class="bg-white rounded-[32px] shadow-xl shadow-[#3C2A21]/10 overflow-hidden"
+        v-else-if="bookingData"
+        class="bg-white rounded-[20px] sm:rounded-[32px] shadow-xl shadow-[#3C2A21]/10 overflow-hidden relative"
       >
+        <!-- Decorative Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#3C2A21] to-[#5C4033]"
+        ></div>
+        <div class="absolute top-2 right-4 text-xs text-[#3C2A21]/50">
+          {{ new Date().toLocaleDateString() }}
+        </div>
+
         <!-- Receipt Content -->
-        <div class="p-8" ref="receiptContent">
+        <div class="p-4 sm:p-8" ref="receiptContent">
           <!-- Header -->
-          <div class="text-center mb-12">
-            <h1 class="text-3xl font-bold text-[#3C2A21] font-playfair mb-2">
-              Booking Confirmation
-            </h1>
-            <p class="text-[#3C2A21]/70 text-lg">
-              Receipt #{{ receiptNumber }}
-            </p>
-            <div class="flex justify-center mt-6">
-              <div
-                class="px-6 py-3 bg-green-50 text-green-600 rounded-lg text-base font-medium"
+          <div class="text-center mb-8 sm:mb-12">
+            <div class="mb-6">
+              <svg
+                class="w-16 h-16 mx-auto mb-4 text-[#3C2A21]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h1
+                class="text-2xl sm:text-3xl font-bold text-[#3C2A21] font-playfair mb-2"
+              >
+                Booking Confirmation
+              </h1>
+              <p class="text-[#3C2A21]/70 text-base sm:text-lg font-medium">
+                Receipt #{{ bookingData?.id || "N/A" }}
+              </p>
+              <p class="text-[#3C2A21]/70 text-base sm:text-lg font-medium">
+                Payment Date: {{ formatDatetime(bookingData?.created_date) }}
+              </p>
+            </div>
+            <div class="flex justify-center">
+              <div
+                class="px-4 sm:px-6 py-2 sm:py-3 bg-green-50 text-green-600 rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
+              >
+                <svg
+                  class="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
                 Payment Successful
               </div>
             </div>
           </div>
 
           <!-- Customer Details -->
-          <div class="mb-12">
-            <div class="grid grid-cols-2 gap-8">
-              <div>
+          <div class="mb-8 sm:mb-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+              <div class="bg-[#F5E6E0]/30 p-4 rounded-xl">
                 <h3
-                  class="text-base font-medium text-[#3C2A21]/70 mb-4 font-playfair"
+                  class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-3 font-playfair flex items-center"
                 >
+                  <svg
+                    class="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
                   Customer Details
                 </h3>
-                <p class="text-lg text-[#3C2A21] mb-2">
-                  {{ bookingData.name }}
-                </p>
-                <p class="text-[#3C2A21]">{{ bookingData.email }}</p>
-                <p class="text-[#3C2A21]">{{ bookingData.phone }}</p>
-              </div>
-              <div class="text-right">
-                <h3
-                  class="text-base font-medium text-[#3C2A21]/70 mb-4 font-playfair"
+                <p
+                  class="text-base sm:text-lg text-[#3C2A21] mb-2 font-medium capitalize"
                 >
+                  {{ bookingData?.user_fullname || "N/A" }}
+                </p>
+                <p
+                  class="text-sm sm:text-base text-[#3C2A21] mb-1 flex items-center"
+                >
+                  <svg
+                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {{ bookingData?.user_email || "N/A" }}
+                </p>
+                <p
+                  class="text-sm sm:text-base text-[#3C2A21] flex items-center"
+                >
+                  <svg
+                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                  {{ bookingData?.user_phoneno || "N/A" }}
+                </p>
+              </div>
+              <div class="bg-[#F5E6E0]/30 p-4 rounded-xl">
+                <h3
+                  class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-3 font-playfair flex items-center"
+                >
+                  <svg
+                    class="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
                   Booking Date
                 </h3>
-                <p class="text-lg text-[#3C2A21] mb-2">
-                  {{ formatDate(bookingData.date) }}
+                <p class="text-base sm:text-lg text-[#3C2A21] mb-2 font-medium">
+                  {{ formatDate(bookingData?.session_date) }}
                 </p>
-                <p class="text-[#3C2A21]">{{ bookingData.timeSlot }}</p>
+                <p
+                  class="text-sm sm:text-base text-[#3C2A21] flex items-center"
+                >
+                  <svg
+                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {{ bookingData?.session_time || "N/A" }}
+                </p>
               </div>
             </div>
           </div>
 
           <!-- Session Details -->
-          <div class="border-t border-[#3C2A21]/10 pt-8 mb-12">
+          <div class="border-t border-[#3C2A21]/10 pt-6 sm:pt-8 mb-8 sm:mb-12">
             <h3
-              class="text-base font-medium text-[#3C2A21]/70 mb-6 font-playfair"
+              class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-4 sm:mb-6 font-playfair flex items-center"
             >
+              <svg
+                class="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
               Session Details
             </h3>
-            <div class="space-y-4">
+            <div class="space-y-4 bg-[#F5E6E0]/30 p-4 rounded-xl">
               <div class="flex justify-between items-center">
-                <span class="text-lg text-[#3C2A21]">{{
-                  bookingData.sessionType === "wedding"
-                    ? "Wedding Photography"
-                    : "Event Photography"
+                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                  bookingData.theme
                 }}</span>
-                <span class="text-lg text-[#3C2A21]">{{ sessionPrice }}</span>
+                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                  formatPrice(bookingData?.theme_price || 0)
+                }}</span>
               </div>
-              <div class="flex justify-between items-center text-[#3C2A21]">
-                <span>Location</span>
-                <span>{{ bookingData.location }}</span>
+              <div
+                class="flex justify-between items-center text-sm sm:text-base text-[#3C2A21]"
+              >
+                <span class="flex items-center">
+                  <svg
+                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Location
+                </span>
+                <span>{{ bookingData.user_address || "N/A" }}</span>
               </div>
             </div>
           </div>
 
           <!-- Payment Details -->
-          <div class="border-t border-[#3C2A21]/10 pt-8">
-            <div class="space-y-4">
-              <div class="flex justify-between items-center">
+          <div class="border-t border-[#3C2A21]/10 pt-6 sm:pt-8">
+            <div class="space-y-4 bg-[#F5E6E0]/30 p-4 rounded-xl">
+              <div
+                class="flex justify-between items-center text-sm sm:text-base"
+              >
                 <span class="text-[#3C2A21]/70">Total Package Price</span>
-                <span class="text-lg text-[#3C2A21]">{{ sessionPrice }}</span>
+                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                  formatPrice(bookingData?.theme_price || 0)
+                }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-lg font-medium text-[#3C2A21]"
+                <span class="text-base sm:text-lg font-medium text-[#3C2A21]"
                   >Deposit Paid</span
                 >
-                <span class="text-xl font-semibold text-[#3C2A21]">{{
-                  depositAmount
+                <span class="text-lg sm:text-xl font-semibold text-green-600">{{
+                  formatPrice(bookingData?.theme_deposit || 0)
                 }}</span>
               </div>
               <div
                 class="flex justify-between items-center pt-4 border-t border-dashed border-[#3C2A21]/10"
               >
-                <span class="text-[#3C2A21]/70">Balance Due</span>
-                <span class="text-lg text-[#3C2A21]">{{
-                  formatPrice(balanceAmount)
+                <span class="text-[#3C2A21]/70 text-sm sm:text-base"
+                  >Balance Due</span
+                >
+                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                  formatPrice(bookingData?.theme_price - bookingData?.theme_deposit || 0)
                 }}</span>
               </div>
             </div>
           </div>
 
           <!-- Notes -->
-          <div class="mt-12 space-y-2 text-sm text-[#3C2A21]/70">
-            <p>* Balance payment is due on the day of the session</p>
-            <p>* Please keep this receipt for your records</p>
+          <div
+            class="mt-8 sm:mt-12 space-y-2 text-xs sm:text-sm text-[#3C2A21]/70 bg-[#F5E6E0]/20 p-4 rounded-xl"
+          >
+            <div class="flex items-start space-x-2">
+              <svg
+                class="w-4 h-4 text-[#3C2A21]/50 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p>Balance payment is due on the day of the session</p>
+            </div>
+            <div class="flex items-start space-x-2">
+              <svg
+                class="w-4 h-4 text-[#3C2A21]/50 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p>Please keep this receipt for your records</p>
+            </div>
           </div>
         </div>
 
         <!-- Actions -->
         <div
-          class="border-t border-[#3C2A21]/10 px-8 py-6 bg-[#F5E6E0] flex justify-between items-center"
+          class="border-t border-[#3C2A21]/10 p-4 sm:px-8 sm:py-6 bg-[#F5E6E0] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
         >
-          <NuxtLink to="/" class="btn btn-secondary">
+          <NuxtLink
+            to="/"
+            class="w-full sm:w-auto btn btn-secondary flex justify-center items-center"
+          >
             <svg
               class="w-4 h-4 mr-2"
               fill="none"
@@ -134,7 +367,7 @@
 
           <button
             @click="downloadReceipt"
-            class="flex items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#3C2A21] to-[#5C4033] hover:from-[#5C4033] hover:to-[#7B5544] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-all duration-200 transform hover:scale-[1.02]"
+            class="w-full sm:w-auto flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#3C2A21] to-[#5C4033] hover:from-[#5C4033] hover:to-[#7B5544] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-all duration-200 transform hover:scale-[1.02]"
           >
             <svg
               class="w-4 h-4 mr-2"
@@ -168,6 +401,10 @@ definePageMeta({
 const route = useRoute();
 const router = useRouter();
 
+// Add loading and error states
+const isLoading = ref(true);
+const error = ref(null);
+
 // Add ref for html2pdf instance
 const html2pdf = ref(null);
 const receiptContent = ref(null);
@@ -179,22 +416,22 @@ onMounted(async () => {
 
     // If no booking data is available, redirect to booking page
     if (!route.query.booking) {
-      router.push("/book-a-session");
+      error.value = "No booking reference found";
+      isLoading.value = false;
+      return;
     }
-  } catch (error) {
-    console.error("Failed to load html2pdf:", error);
+
+    await getReceiptDetail();
+  } catch (err) {
+    console.error("Failed to load html2pdf:", err);
+    error.value = "Failed to initialize receipt generation";
+  } finally {
+    isLoading.value = false;
   }
 });
 
 // Get booking data from route query
-const bookingData = computed(() => {
-  try {
-    return JSON.parse(decodeURIComponent(route.query.booking || "{}"));
-  } catch (error) {
-    console.error("Failed to parse booking data:", error);
-    return {};
-  }
-});
+const bookingData = ref(null);
 
 const receiptNumber = computed(() => route.query.receipt || "");
 
@@ -214,19 +451,23 @@ const sessionTypes = [
   },
 ];
 
-// Computed values
+// Computed values with null checks
 const sessionType = computed(() =>
-  sessionTypes.find((type) => type.value === bookingData.value.sessionType)
+  bookingData.value?.sessionType
+    ? sessionTypes.find((type) => type.value === bookingData.value.sessionType)
+    : null
 );
 
-const sessionPrice = computed(() => formatPrice(sessionType.value?.price || 0));
+const sessionPrice = computed(() =>
+  sessionType.value ? formatPrice(sessionType.value.price) : "N/A"
+);
 
 const depositAmount = computed(() =>
-  formatPrice(sessionType.value?.deposit || 0)
+  sessionType.value ? formatPrice(sessionType.value.deposit) : "N/A"
 );
 
-const balanceAmount = computed(
-  () => (sessionType.value?.price || 0) - (sessionType.value?.deposit || 0)
+const balanceAmount = computed(() =>
+  sessionType.value ? sessionType.value.price - sessionType.value.deposit : 0
 );
 
 // Helper functions
@@ -238,12 +479,24 @@ const formatPrice = (amount) => {
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString("en-US", {
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleDateString("en-MY", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
+  });
+};
+
+const formatDatetime = (dateString) => {
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleString("en-MY", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 };
 
@@ -262,7 +515,35 @@ const downloadReceipt = async () => {
     jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
   };
 
-  html2pdf.value().set(opt).from(element).save();
+  try {
+    await html2pdf.value().set(opt).from(element).save();
+  } catch (err) {
+    console.error("Failed to generate PDF:", err);
+    error.value = "Failed to generate PDF receipt";
+  }
+};
+
+const getReceiptDetail = async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+
+    const response = await $fetch("/api/booking/receipt-detail", {
+      query: { receiptNumber: route.query.booking },
+    });
+
+    if (!response?.data) {
+      throw new Error("Invalid response from server");
+    }
+
+    bookingData.value = response.data;
+  } catch (err) {
+    console.error("Failed to fetch receipt detail:", err);
+    error.value = "Failed to load receipt details. Please try again later.";
+    bookingData.value = null;
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -279,5 +560,11 @@ const downloadReceipt = async () => {
 
 .btn-secondary {
   @apply text-[#3C2A21] bg-white border border-[#3C2A21]/20 hover:bg-[#F5E6E0] focus:ring-[#3C2A21];
+}
+
+@media print {
+  .btn {
+    display: none;
+  }
 }
 </style>

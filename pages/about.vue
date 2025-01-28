@@ -8,7 +8,7 @@ const team = [
     bio: "With over 10 years of experience in wedding and portrait photography, Iman leads our creative team with passion and dedication.",
   },
   {
-    name: "Atiff Thahir",
+    name: "Ammar Hamzi",
     role: "Senior Photographer",
     image:
       "https://media-kul2-1.cdn.whatsapp.net/v/t61.24694-24/258884766_602910400763975_8487380759821989872_n.jpg?ccb=11-4&oh=01_Q5AaIC51lWbdKhbPVcsiJR2Kdr6SCHGXTRotj2SP5sApxqt8&oe=67887B31&_nc_sid=5e03e0&_nc_cat=103",
