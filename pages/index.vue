@@ -144,7 +144,7 @@ onMounted(() => {
 
 const navigateToBooking = () => {
   console.log("Attempting navigation to book-a-session");
-  navigateTo("/book-a-session");
+  navigateTo("/book-a-session/test2");
 };
 </script>
 

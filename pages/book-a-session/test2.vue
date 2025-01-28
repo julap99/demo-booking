@@ -161,9 +161,9 @@
 
           <!-- Form Content -->
           <div class="px-4 sm:px-6 py-6 sm:py-8">
-            <TransitionGroup name="fade">
+            <div>
               <!-- Step 1: Session (Select Date & Time) -->
-              <div v-show="currentStep === 1" key="step1" class="space-y-6">
+              <div v-show="currentStep === 1" class="space-y-6">
                 <div class="max-w-sm mx-auto">
                   <h1 class="text-2xl font-bold text-[#1a1a1a] mb-2">
                     Pick a date & time
@@ -876,7 +876,7 @@
                   </div>
                 </div>
               </div>
-            </TransitionGroup>
+            </div>
           </div>
 
           <!-- Navigation Footer -->
@@ -885,7 +885,7 @@
           >
             <button
               v-if="currentStep > 1"
-              @click="currentStep--"
+              @click="previousStep"
               class="btn btn-secondary text-sm"
             >
               <svg
@@ -1609,6 +1609,14 @@ const validateStep = (step) => {
 const nextStep = () => {
   if (validateStep(currentStep.value)) {
     currentStep.value++;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+const previousStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
 
@@ -1705,6 +1713,7 @@ const goToStep = (stepNumber) => {
   if (stepNumber <= currentStep.value || stepNumber === currentStep.value + 1) {
     if (validateStep(currentStep.value)) {
       currentStep.value = stepNumber;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 };
@@ -1881,16 +1890,7 @@ const selectedTheme = computed(() => {
   }
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease-in-out;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* Remove fade transition styles */
 
 .form-group {
   @apply relative;
