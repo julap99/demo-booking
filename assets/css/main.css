@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 
+/* Importing Theme */
+@import './theme.css';
+
+
 /* html, body {
   background-color: #DDB892;
   margin: 0;
@@ -13,8 +17,8 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background-color: #DDB892; /* Fallback color */
-  background-image: linear-gradient(to bottom right, #F5E6E0, #E6CCB2, #DDB892);
+  background-color: var(--color-bg-primary); /* Fallback color */
+  background-image: linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary));
 }
 
 @layer base {
@@ -45,15 +49,15 @@ html, body {
   }
 
   .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+    @apply btn bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] focus:ring-[var(--color-primary-light)];
   }
 
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-blue-500;
+    @apply btn bg-[var(--color-bg-light)] text-[var(--color-text-primary)] border-[var(--color-border-primary)] hover:bg-[var(--color-bg-secondary)] focus:ring-[var(--color-primary-light)];
   }
 
   .form-input {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm;
+    @apply block w-full rounded-md border-[var(--color-border-primary)] shadow-sm focus:border-[var(--color-primary-light)] focus:ring-[var(--color-primary-light)] sm:text-sm;
   }
 
   .form-label {

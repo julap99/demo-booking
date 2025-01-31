@@ -597,8 +597,8 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Booking Management</h1>
-        <p class="mt-1 text-sm text-gray-600">
+        <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Booking Management</h1>
+        <p class="mt-1 text-sm text-[var(--color-text-primary)]">
           View and manage all photography session bookings
         </p>
       </div>
@@ -612,14 +612,14 @@ onMounted(() => {
       <div
         v-for="i in 4"
         :key="i"
-        class="bg-white overflow-hidden shadow-sm rounded-lg animate-pulse"
+        class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg animate-pulse"
       >
         <div class="p-5">
           <div class="flex items-center space-x-4">
-            <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+            <div class="w-8 h-8 bg-[var(--color-bg-primary)] rounded-full"></div>
             <div class="flex-1">
-              <div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+              <div class="h-4 bg-[var(--color-bg-primary)] rounded w-1/2 mb-2"></div>
+              <div class="h-6 bg-[var(--color-bg-primary)] rounded w-1/4"></div>
             </div>
           </div>
         </div>
@@ -629,12 +629,12 @@ onMounted(() => {
     <!-- Stats Grid -->
     <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 my-5">
       <!-- Total Bookings -->
-      <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg
-                class="h-6 w-6 text-gray-400"
+                class="h-6 w-6 text-[var(--color-text-primary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -649,11 +649,11 @@ onMounted(() => {
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">
+                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
                   Total Bookings
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-gray-900">
+                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
                     {{ stats.total }}
                   </div>
                 </dd>
@@ -664,12 +664,12 @@ onMounted(() => {
       </div>
 
       <!-- Pending Bookings -->
-      <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg
-                class="h-6 w-6 text-yellow-400"
+                class="h-6 w-6 text-[var(--color-text-primary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -684,11 +684,11 @@ onMounted(() => {
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">
+                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
                   Pending Bookings
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-gray-900">
+                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
                     {{ stats.pending }}
                   </div>
                 </dd>
@@ -699,12 +699,12 @@ onMounted(() => {
       </div>
 
       <!-- Confirmed Bookings -->
-      <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg
-                class="h-6 w-6 text-green-400"
+                class="h-6 w-6 text-[var(--color-text-primary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -719,11 +719,11 @@ onMounted(() => {
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">
+                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
                   Confirmed Bookings
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-gray-900">
+                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
                     {{ stats.confirmed }}
                   </div>
                 </dd>
@@ -734,12 +734,12 @@ onMounted(() => {
       </div>
 
       <!-- Total Revenue -->
-      <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
         <div class="p-5">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg
-                class="h-6 w-6 text-blue-400"
+                class="h-6 w-6 text-[var(--color-text-primary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -754,11 +754,11 @@ onMounted(() => {
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">
+                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
                   Total Revenue
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-gray-900">
+                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
                     {{ formatCurrency(stats.revenue) }}
                   </div>
                 </dd>
@@ -770,11 +770,11 @@ onMounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <div class="bg-white shadow-sm rounded-lg">
+    <div class="bg-[var(--color-bg-secondary)] shadow-sm rounded-lg">
       <!-- Search and Filters -->
-      <div class="bg-white rounded-lg shadow-sm">
+      <div class="bg-[var(--color-bg-secondary)] rounded-lg shadow-sm">
         <!-- Quick Search and Filter Toggle -->
-        <div class="p-4 border-b border-gray-200">
+        <div class="p-4 border-b border-[var(--color-border-primary)]">
           <div
             class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0"
           >
@@ -784,7 +784,7 @@ onMounted(() => {
                   class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                 >
                   <svg
-                    class="h-5 w-5 text-gray-400"
+                    class="h-5 w-5 text-[var(--color-text-primary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -870,12 +870,12 @@ onMounted(() => {
         <!-- Advanced Filters -->
         <div
           v-show="showFilters"
-          class="p-4 border-b border-gray-200 bg-[#F5E6E0]"
+          class="p-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]"
         >
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Status Filter -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
                 >Status</label
               >
               <div class="relative">

@@ -163,13 +163,13 @@ const createChart = () => {
 
   // Create gradient for bookings
   const bookingsGradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-  bookingsGradient.addColorStop(0, 'rgba(120, 83, 64, 0.2)');
-  bookingsGradient.addColorStop(1, 'rgba(120, 83, 64, 0)');
+  bookingsGradient.addColorStop(0, 'var(--color-primary)');
+  bookingsGradient.addColorStop(1, 'rgba(var(--color-primary), 0)');
 
   // Create gradient for customers
   const customersGradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-  customersGradient.addColorStop(0, 'rgba(188, 170, 164, 0.2)');
-  customersGradient.addColorStop(1, 'rgba(188, 170, 164, 0)');
+  customersGradient.addColorStop(0, 'var(--color-bg-secondary)');
+  customersGradient.addColorStop(1, 'rgba(var(--color-bg-secondary), 0)');
 
   // Create new chart
   chart.value = new Chart(ctx, {
@@ -180,7 +180,7 @@ const createChart = () => {
         {
           label: 'Bookings',
           data: selectedTimeSeriesData.value.bookings,
-          borderColor: 'rgb(120, 83, 64)',
+          borderColor: 'var(--color-primary)',
           backgroundColor: bookingsGradient,
           borderWidth: 2.5,
           fill: true,
@@ -189,8 +189,8 @@ const createChart = () => {
           pointHoverRadius: 6,
           pointBackgroundColor: 'white',
           pointHoverBackgroundColor: 'white',
-          pointBorderColor: 'rgb(120, 83, 64)',
-          pointHoverBorderColor: 'rgb(120, 83, 64)',
+          pointBorderColor: 'var(--color-primary)',
+          pointHoverBorderColor: 'var(--color-primary)',
           pointBorderWidth: 2,
           pointHoverBorderWidth: 2,
           yAxisID: 'y',
@@ -199,7 +199,7 @@ const createChart = () => {
         {
           label: 'Customers',
           data: selectedTimeSeriesData.value.customers,
-          borderColor: 'rgb(188, 170, 164)',
+          borderColor: 'var(--color-bg-secondary)',
           backgroundColor: customersGradient,
           borderWidth: 2.5,
           fill: true,
@@ -208,8 +208,8 @@ const createChart = () => {
           pointHoverRadius: 6,
           pointBackgroundColor: 'white',
           pointHoverBackgroundColor: 'white',
-          pointBorderColor: 'rgb(188, 170, 164)',
-          pointHoverBorderColor: 'rgb(188, 170, 164)',
+          pointBorderColor: 'var(--color-bg-secondary)',
+          pointHoverBorderColor: 'var(--color-bg-secondary)',
           pointBorderWidth: 2,
           pointHoverBorderWidth: 2,
           yAxisID: 'y1',
@@ -476,18 +476,18 @@ const chartOptions = {
 const getStatusColor = (status) => {
   switch (status) {
     case "Confirmed":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 text-[var(--color-success)]";
     case "Pending":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 text-[var(--color-warning)]";
     case "Cancelled":
-      return "bg-red-100 text-red-800";
+      return "bg-red-100 text-[var(--color-error)]";
     default:
       return "bg-gray-100 text-gray-800";
   }
 };
 
 const getChangeColor = (type) => {
-  return type === "increase" ? "text-green-600" : "text-red-600";
+  return type === "increase" ? "text-[var(--color-success)]" : "text-[var(--color-error)]";
 };
 </script>
 
@@ -512,10 +512,10 @@ const getChangeColor = (type) => {
           <!-- Icon and Title -->
           <div class="flex items-center">
             <div
-              class="flex items-center justify-center w-12 h-12 rounded-lg bg-[#F5E6E0]"
+              class="flex items-center justify-center w-12 h-12 rounded-lg bg-[var(--color-bg-primary)]"
             >
               <svg 
-                class="w-6 h-6 text-[#785340]" 
+                class="w-6 h-6 text-[var(--color-primary)]" 
                 xmlns="http://www.w3.org/2000/svg" 
                 fill="none" 
                 viewBox="0 0 24 24" 
@@ -583,7 +583,7 @@ const getChangeColor = (type) => {
           <!-- Progress Bar (optional visual element) -->
           <div class="mt-4 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
             <div 
-              class="h-full bg-[#785340] rounded-full" 
+              class="h-full bg-[var(--color-primary)] rounded-full" 
               :style="{ 
                 width:
                   item.changeType === 'increase'
@@ -710,13 +710,13 @@ const getChangeColor = (type) => {
     <div class="bg-white shadow rounded-lg p-6">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-lg font-medium text-gray-900">Monthly Overview</h2>
-          <p class="mt-1 text-sm text-gray-500">Bookings and revenue trends</p>
+          <h2 class="text-lg font-medium text-[var(--color-text-primary)]">Monthly Overview</h2>
+          <p class="mt-1 text-sm text-[var(--color-text-muted)]">Bookings and revenue trends</p>
         </div>
         <div class="flex items-center space-x-4">
           <select 
             v-model="timeRange"
-            class="rounded-lg border-gray-300 text-sm focus:ring-[#785340] focus:border-[#785340]"
+            class="rounded-lg border-gray-300 text-sm focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
           >
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>

@@ -47,7 +47,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] py-12 px-4 sm:px-6 lg:px-8"
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--color-bg-primary)] via-[var(--color-bg-secondary)] to-[var(--color-bg-tertiary)] py-12 px-4 sm:px-6 lg:px-8"
   >
     <div
       class="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-10 rounded-2xl shadow-xl"
@@ -56,7 +56,7 @@ onMounted(async () => {
       <div>
         <div class="flex justify-center">
           <div
-            class="w-20 h-20 bg-gradient-to-br from-[#3C2A21] to-[#5C4033] rounded-full flex items-center justify-center transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+            class="w-20 h-20 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] rounded-full flex items-center justify-center transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
           >
             <svg
               class="w-12 h-12 text-white"
@@ -80,11 +80,11 @@ onMounted(async () => {
           </div>
         </div>
         <h2
-          class="mt-6 text-center text-3xl font-extrabold text-[#3C2A21] font-playfair"
+          class="mt-6 text-center text-3xl font-extrabold text-[var(--color-text-primary)] font-playfair"
         >
           Welcome back
         </h2>
-        <p class="mt-2 text-center text-sm text-[#3C2A21]/70">
+        <p class="mt-2 text-center text-sm text-[var(--color-text-primary)]/70">
           Please sign in to your account
         </p>
       </div>
@@ -102,7 +102,7 @@ onMounted(async () => {
           <div class="flex">
             <div class="flex-shrink-0">
               <svg
-                class="h-5 w-5 text-red-400"
+                class="h-5 w-5 text-[var(--color-error)]"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -114,7 +114,7 @@ onMounted(async () => {
               </svg>
             </div>
             <div class="ml-3">
-              <p class="text-sm text-red-800">{{ error }}</p>
+              <p class="text-sm text-[var(--color-error)]">{{ error }}</p>
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ onMounted(async () => {
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-5">
           <div>
-            <label for="username" class="block text-sm font-medium text-[#3C2A21]"
+            <label for="username" class="block text-sm font-medium text-[var(--color-text-primary)]"
               >Username</label
             >
             <div class="mt-1 relative rounded-lg shadow-sm">
@@ -132,7 +132,7 @@ onMounted(async () => {
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
                 <svg
-                  class="h-5 w-5 text-[#3C2A21]/40"
+                  class="h-5 w-5 text-[var(--color-text-primary)]/40"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -150,7 +150,7 @@ onMounted(async () => {
                 type="text"
                 autocomplete="username"
                 required
-                class="appearance-none block w-full pl-10 pr-3 py-2.5 border border-[#3C2A21]/20 rounded-lg shadow-sm placeholder-[#3C2A21]/40 focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/20 focus:border-[#3C2A21] sm:text-sm transition-colors duration-200"
+                class="appearance-none block w-full pl-10 pr-3 py-2.5 border border-[var(--color-border-primary)] rounded-lg shadow-sm placeholder-[var(--color-text-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-primary)] focus:border-[var(--color-border-primary)] sm:text-sm transition-colors duration-200"
                 placeholder="Enter your username"
               />
             </div>
@@ -159,7 +159,7 @@ onMounted(async () => {
           <div>
             <label
               for="password"
-              class="block text-sm font-medium text-[#3C2A21]"
+              class="block text-sm font-medium text-[var(--color-text-primary)]"
               >Password</label
             >
             <div class="mt-1 relative rounded-lg shadow-sm">
@@ -167,7 +167,7 @@ onMounted(async () => {
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
                 <svg
-                  class="h-5 w-5 text-[#3C2A21]/40"
+                  class="h-5 w-5 text-[var(--color-text-primary)]/40"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -185,7 +185,7 @@ onMounted(async () => {
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
                 required
-                class="appearance-none block w-full pl-10 pr-10 py-2.5 border border-[#3C2A21]/20 rounded-lg shadow-sm placeholder-[#3C2A21]/40 focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/20 focus:border-[#3C2A21] sm:text-sm transition-colors duration-200"
+                  class="appearance-none block w-full pl-10 pr-10 py-2.5 border border-[var(--color-border-primary)] rounded-lg shadow-sm placeholder-[var(--color-text-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-primary)] focus:border-[var(--color-border-primary)] sm:text-sm transition-colors duration-200"
                 placeholder="••••••••"
               />
               <button
@@ -194,7 +194,7 @@ onMounted(async () => {
                 @click="showPassword = !showPassword"
               >
                 <svg
-                  class="h-5 w-5 text-[#3C2A21]/40 hover:text-[#3C2A21] transition-colors duration-200"
+                  class="h-5 w-5 text-[var(--color-text-primary)]/40 hover:text-[var(--color-text-primary)] transition-colors duration-200"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -227,9 +227,9 @@ onMounted(async () => {
               id="remember-me"
               v-model="form.remember"
               type="checkbox"
-              class="h-4 w-4 text-[#3C2A21] focus:ring-[#3C2A21]/20 border-[#3C2A21]/20 rounded transition-colors duration-200"
+              class="h-4 w-4 text-[var(--color-text-primary)] focus:ring-[var(--color-border-primary)]/20 border-[var(--color-border-primary)]/20 rounded transition-colors duration-200"
             />
-            <label for="remember-me" class="ml-2 block text-sm text-[#3C2A21]"
+            <label for="remember-me" class="ml-2 block text-sm text-[var(--color-text-primary)]"
               >Remember me</label
             >
           </div>
@@ -237,7 +237,7 @@ onMounted(async () => {
           <div class="text-sm">
             <a
               href="#"
-              class="font-medium text-[#3C2A21] hover:text-[#5C4033] transition-colors duration-200"
+              class="font-medium text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors duration-200"
             >
               Forgot password?
             </a>
@@ -248,11 +248,11 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="loading"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#3C2A21] to-[#5C4033] hover:from-[#5C4033] hover:to-[#7B5544] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-all duration-200 transform hover:scale-[1.02]"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all duration-200 transform hover:scale-[1.02]"
           >
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg
-                class="h-5 w-5 text-[#DDB892] group-hover:text-[#E6CCB2] transition-colors duration-200"
+                class="h-5 w-5 text-[var(--color-primary)] group-hover:text-[var(--color-secondary)] transition-colors duration-200"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -291,10 +291,10 @@ onMounted(async () => {
             <span v-else>Sign in</span>
           </button>
 
-          <div class="text-center text-sm text-[#3C2A21]/70 mt-4">
+          <div class="text-center text-sm text-[var(--color-text-primary)]/70 mt-4">
             <NuxtLink
               to="/"
-              class="hover:text-[#5C4033] transition-colors duration-200"
+              class="hover:text-[var(--color-primary)] transition-colors duration-200"
               >Landing Page</NuxtLink
             >
           </div>

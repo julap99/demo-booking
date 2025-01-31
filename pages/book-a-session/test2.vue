@@ -1,63 +1,22 @@
 <template>
   <div>
-    <!-- Floating Music Control - Made smaller and more subtle on mobile -->
-    <!-- <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
-      <button
-        @click="toggleMusic"
-        class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#3C2A21]/90 text-white shadow-lg hover:bg-[#3C2A21] transition-all duration-200"
-        :class="{ 'animate-pulse': isMusicPlaying }"
-      >
-        <svg
-          class="w-5 h-5 sm:w-6 sm:h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          :class="{ hidden: isMusicPlaying }"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15.536 8.464a5 5 0 010 7.072M12 9.64a3 3 0 010 4.72M14 7.97v8.05c0 1.1-.9 2-2 2H6L2 22V4l4 4h6c1.1 0 2 .9 2 2z"
-          />
-        </svg>
-        <svg
-          class="w-5 h-5 sm:w-6 sm:h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          :class="{ hidden: !isMusicPlaying }"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-          />
-        </svg>
-      </button>
-    </div> -->
-
     <div
-      class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] font-sans"
+      class="min-h-screen font-sans"
+      :style="{
+        background: `var(--gradient-background)`,
+      }"
     >
-      <div class="max-w-lg mx-auto px-4 py-4 sm:py-8">
+      <div class="max-w-2xl mx-auto px-4 py-4 sm:py-8">
         <!-- Main Card -->
         <div
-          class="bg-white rounded-2xl sm:rounded-[32px] shadow-xl shadow-[#3C2A21]/10 overflow-hidden"
+          class="bg-[var(--color-bg-white)] rounded-2xl sm:rounded-[32px] shadow-xl shadow-[var(--color-primary)]/10 overflow-hidden"
         >
           <!-- Header with Steps -->
           <div
-            class="relative bg-white px-4 sm:px-6 py-4 sm:py-6 border-[#3C2A21]/10"
+            class="relative bg-[var(--color-bg-light)] px-4 sm:px-6 py-4 sm:py-6 border-[var(--color-border-primary)]"
           >
             <h1
-              class="text-lg sm:text-2xl font-semibold text-[#3C2A21] text-center mb-6 sm:mb-10 font-playfair"
+              class="text-lg sm:text-2xl font-semibold text-[var(--color-primary)] text-center mb-6 sm:mb-10 font-playfair"
             >
               Book Your Session
             </h1>
@@ -65,17 +24,19 @@
             <!-- Mobile Step Indicator -->
             <div class="block sm:hidden mb-4">
               <div class="flex items-center justify-center space-x-2">
-                <span class="text-sm text-[#3C2A21]"
+                <span class="text-sm text-[var(--color-primary)]"
                   >Step {{ currentStep }} of {{ steps.length }}</span
                 >
-                <span class="text-sm text-[#3C2A21]/60"
+                <span class="text-sm text-[var(--color-text-muted)]"
                   >- {{ steps[currentStep - 1].label }}</span
                 >
               </div>
               <!-- Progress bar for mobile -->
-              <div class="mt-2 h-1 bg-[#3C2A21]/20 rounded-full">
+              <div
+                class="mt-2 h-1 bg-[var(--color-border-primary)] rounded-full"
+              >
                 <div
-                  class="h-1 bg-[#3C2A21] rounded-full transition-all duration-500"
+                  class="h-1 bg-[var(--color-primary)] rounded-full transition-[var(--transition-all)]"
                   :style="{ width: (currentStep / steps.length) * 100 + '%' }"
                 ></div>
               </div>
@@ -90,10 +51,10 @@
                     class="absolute left-0 top-1/2 w-full h-0.5 -translate-y-1/2"
                   >
                     <div
-                      class="absolute inset-0 bg-[#3C2A21]/20 rounded-full"
+                      class="absolute inset-0 bg-[var(--color-border-primary)] rounded-full"
                     ></div>
                     <div
-                      class="absolute inset-0 rounded-full bg-[#3C2A21] transition-all duration-500 ease-out"
+                      class="absolute inset-0 rounded-full bg-[var(--color-primary)] transition-[var(--transition-all)] ease-out"
                       :style="{
                         width:
                           ((currentStep - 1) / (steps.length - 1)) * 100 + '%',
@@ -108,10 +69,10 @@
                         @click="goToStep(step.number)"
                         :disabled="step.number > currentStep + 1"
                         :class="[
-                          'relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300',
+                          'relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-[var(--transition-all)]',
                           currentStep >= step.number
-                            ? 'bg-[#3C2A21] text-white shadow-lg shadow-[#3C2A21]/20'
-                            : 'bg-white text-[#3C2A21]/60 border-2 border-[#3C2A21]/20',
+                            ? 'bg-[var(--color-primary)] text-[var(--color-text-light)] shadow-lg shadow-[var(--color-primary)]/20'
+                            : 'bg-[var(--color-bg-light)] text-[var(--color-text-muted)] border-2 border-[var(--color-border-primary)]',
                           step.number <= currentStep + 1 &&
                             'cursor-pointer hover:scale-105',
                           step.number > currentStep + 1 &&
@@ -121,7 +82,7 @@
                         <div class="relative flex items-center justify-center">
                           <svg
                             v-if="currentStep > step.number"
-                            class="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                            class="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-text-light)]"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -145,8 +106,8 @@
                           class="text-xs whitespace-nowrap font-playfair"
                           :class="
                             currentStep >= step.number
-                              ? 'text-[#3C2A21]'
-                              : 'text-[#3C2A21]/60'
+                              ? 'text-[var(--color-primary)]'
+                              : 'text-[var(--color-text-muted)]'
                           "
                         >
                           {{ step.label }}
@@ -164,8 +125,10 @@
             <div>
               <!-- Step 1: Session (Select Date & Time) -->
               <div v-show="currentStep === 1" class="space-y-6">
-                <div class="max-w-sm mx-auto">
-                  <h1 class="text-2xl font-bold text-[#1a1a1a] mb-2">
+                <div class="max-w-2xl mx-auto">
+                  <h1
+                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+                  >
                     Pick a date & time
                   </h1>
                   <p class="text-md text-[#6b7280] mb-8">
@@ -176,7 +139,7 @@
                   <div class="relative mb-8">
                     <select
                       v-model="currentMonth"
-                      class="w-full appearance-none bg-white border-2 border-[#3C2A21]/10 hover:border-[#3C2A21]/20 rounded-2xl px-6 py-4 text-lg font-medium text-[#3C2A21] focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/10 focus:border-[#3C2A21]/20 transition-all duration-200 cursor-pointer font-playfair"
+                      class="w-full appearance-none bg-[var(--color-bg-white)] border-2 border-[var(--color-border-primary)] hover:border-[var(--color-border-primary)] rounded-2xl px-6 py-4 text-lg font-medium text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)]/20 transition-all duration-200 cursor-pointer font-playfair"
                     >
                       <option
                         v-for="(month, index) in months"
@@ -190,9 +153,11 @@
                     <div
                       class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex items-center space-x-2"
                     >
-                      <div class="h-5 w-[1px] bg-[#3C2A21]/10"></div>
+                      <div
+                        class="h-5 w-[1px] bg-[var(--color-text-primary)]/10"
+                      ></div>
                       <svg
-                        class="w-5 h-5 text-[#3C2A21]/60"
+                        class="w-5 h-5 text-[var(--color-text-primary)]/60"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -266,22 +231,22 @@
                             @click="day.isSelectable && selectDate(day.date)"
                             :disabled="!day.isSelectable"
                             :data-date="day.date"
-                            class="flex-shrink-0 w-[120px] p-4 rounded-2xl border-2 transition-all duration-200 focus:outline-none relative"
+                            class="flex-shrink-0 w-[100px] p-4 rounded-2xl border-2 transition-all duration-200 focus:outline-none relative"
                             :class="[
                               isDateSelected(day.date)
-                                ? 'border-[#3C2A21] bg-white shadow-sm'
+                                ? 'border-[var(--color-text-primary)] bg-white shadow-sm'
                                 : day.isSelectable
                                 ? 'border-gray-200 bg-white hover:border-gray-300'
                                 : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50',
                               day.isToday && !isDateSelected(day.date)
-                                ? 'border-[#3C2A21]/50'
+                                ? 'border-[var(--color-text-primary)]/50'
                                 : '',
                             ]"
                           >
                             <!-- Today Indicator -->
                             <div
                               v-if="day.isToday"
-                              class="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#3C2A21] text-white text-xs px-2 py-0.5 rounded-full"
+                              class="absolute -top-2 left-1/2 -translate-x-1/2 bg-[var(--color-text-primary)] text-white text-xs px-2 py-0.5 rounded-full"
                             >
                               Today
                             </div>
@@ -348,7 +313,7 @@
                         :class="[
                           'py-4 px-3 rounded-2xl text-center transition-all duration-200 text-base',
                           formData.timeSlot === slot
-                            ? 'bg-white border-2 border-[#3C2A21] text-[#1a1a1a] font-medium shadow-sm'
+                            ? 'bg-white border-2 border-[var(--color-text-primary)] text-[var(--color-text-primary)] font-medium shadow-sm'
                             : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-gray-300',
                         ]"
                       >
@@ -361,11 +326,13 @@
 
               <!-- Step 2: Choose Theme -->
               <div v-show="currentStep === 2" key="step2" class="space-y-6">
-                <div class="max-w-sm mx-auto">
-                  <h1 class="text-2xl font-bold text-[#1a1a1a] mb-2">
+                <div class="max-w-2xl mx-auto">
+                  <h1
+                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+                  >
                     Choose your theme
                   </h1>
-                  <p class="text-md text-[#6b7280] mb-8">
+                  <p class="text-md text-[var(--color-text-muted)] mb-8">
                     Choose your preferred studio theme asdnajk akjsdbakjsd k
                     ajsdnakjsdn akjsdn lorem
                   </p>
@@ -382,8 +349,8 @@
                         class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
                         :class="[
                           formData.sessionType === type.value
-                            ? 'ring-4 ring-[#3C2A21] ring-offset-2'
-                            : 'hover:ring-2 hover:ring-[#3C2A21]/50 hover:ring-offset-2',
+                            ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
+                            : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
                         ]"
                       >
                         <!-- Background Image -->
@@ -430,8 +397,8 @@
                                 class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                                 :class="[
                                   formData.sessionType === type.value
-                                    ? 'bg-[#3C2A21] text-white'
-                                    : 'bg-white/90 text-[#3C2A21] group-hover:bg-[#3C2A21] group-hover:text-white',
+                                    ? 'bg-[var(--color-text-primary)] text-white'
+                                    : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
                                 ]"
                               >
                                 {{
@@ -449,24 +416,23 @@
 
                   <!-- Number of Persons Selection -->
                   <div class="space-y-6 mt-8">
-                    <div class="max-w-sm mx-auto">
-                      <h3
-                        class="text-base font-medium text-[#3C2A21] mb-4 font-playfair"
+                    <div class="max-w-2xl mx-auto">
+                      <!-- <h3
+                        class="text-base font-medium text-[var(--color-text-primary)] mb-4 font-playfair"
                       >
                         Select Number of Persons
-                      </h3>
+                      </h3> -->
                       <div class="relative">
                         <select
+                          id="numberOfPax"
                           v-model="formData.numberOfPax"
-                          class="w-full appearance-none bg-white border-2 border-[#3C2A21]/10 hover:border-[#3C2A21]/20 rounded-2xl px-6 py-4 text-lg font-medium text-[#3C2A21] focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/10 focus:border-[#3C2A21]/20 transition-all duration-200 cursor-pointer font-playfair"
-                          :class="{
-                            'border-red-300 focus:ring-red-100 focus:border-red-500':
-                              errors.numberOfPax,
-                          }"
+                          class="form-input peer"
+                          :class="{ error: errors.numberOfPax }"
+                          required
                           @blur="validateField('numberOfPax')"
                         >
                           <option value="" disabled selected>
-                            Select number of persons
+                            Select an option
                           </option>
                           <option
                             v-for="option in paxOptions"
@@ -477,12 +443,17 @@
                             {{ option.label }}
                           </option>
                         </select>
+                        <label for="numberOfPax" class="form-label"
+                          >Number of persons</label
+                        >
                         <div
                           class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex items-center space-x-2"
                         >
-                          <div class="h-5 w-[1px] bg-[#3C2A21]/10"></div>
+                          <div
+                            class="h-5 w-[1px] bg-[var(--color-text-primary)]/10"
+                          ></div>
                           <svg
-                            class="w-5 h-5 text-[#3C2A21]/60"
+                            class="w-5 h-5 text-[var(--color-text-primary)]/60"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -502,23 +473,157 @@
                           {{ errors.numberOfPax }}
                         </p>
                       </div>
+
+                      <!-- Custom number of persons input -->
+                      <div v-if="formData.numberOfPax === '11'" class="mt-4">
+                        <div class="form-group">
+                          <input
+                            type="number"
+                            id="customNumberOfPax"
+                            v-model="formData.customNumberOfPax"
+                            class="form-input peer"
+                            :class="{ error: errors.customNumberOfPax }"
+                            placeholder="Enter number of persons"
+                            min="11"
+                            @blur="validateField('customNumberOfPax')"
+                          />
+                          <label for="customNumberOfPax" class="form-label"
+                            >Enter exact number of persons</label
+                          >
+                          <p
+                            v-if="errors.customNumberOfPax"
+                            class="mt-2 text-xs text-red-500"
+                          >
+                            {{ errors.customNumberOfPax }}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Step 3: Personal Information -->
+              <!-- Step 3: Add Ons -->
               <div v-show="currentStep === 3" key="step3" class="space-y-6">
-                <div class="max-w-sm mx-auto">
+                <div class="max-w-2xl mx-auto">
+                  <h1
+                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+                  >
+                    Enhance your session with add-ons
+                  </h1>
+                  <p class="text-md text-[var(--color-text-muted)] mb-6">
+                    Add any additional services you want to enhance your session
+                  </p>
+
+                  <!-- Add-ons Cards -->
+                  <div class="grid grid-cols-1 gap-3">
+                    <div
+                      v-for="addon in addOns"
+                      :key="addon.value"
+                      @click="selectAddOn(addon.value)"
+                      class="relative group"
+                      :class="[
+                        addon.available
+                          ? 'cursor-pointer'
+                          : 'cursor-not-allowed opacity-75',
+                      ]"
+                    >
+                      <div
+                        class="relative rounded-xl overflow-hidden transition-all duration-300 bg-white border"
+                        :class="[
+                          formData.addOn === addon.value
+                            ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
+                            : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]/50',
+                        ]"
+                      >
+                        <div class="flex items-center p-3">
+                          <!-- Image -->
+                          <div
+                            class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden"
+                          >
+                            <img
+                              :src="addon.image"
+                              :alt="addon.label"
+                              class="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <!-- Content -->
+                          <div class="flex-1 ml-3">
+                            <div class="flex justify-between items-start">
+                              <div>
+                                <h3
+                                  class="text-base font-medium text-[var(--color-text-primary)]"
+                                >
+                                  {{ addon.label }}
+                                </h3>
+                                <p
+                                  class="text-sm text-[var(--color-text-muted)] line-clamp-1 mt-0.5"
+                                >
+                                  <!-- {{ addon.description }} -->
+                                  {{ formatPrice(addon.price) }}
+                                </p>
+                              </div>
+                              <!-- <div class="ml-4 flex-shrink-0">
+                                <p class="text-base font-semibold text-[var(--color-text-primary)]">
+                                  {{ formatPrice(addon.price) }}
+                                </p>
+                              </div> -->
+                            </div>
+                          </div>
+
+                          <!-- Selection Indicator -->
+                          <div class="ml-4 flex-shrink-0">
+                            <div
+                              v-if="addon.available"
+                              class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                              :class="[
+                                formData.addOn === addon.value
+                                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
+                                  : 'border-[var(--color-border-primary)]',
+                              ]"
+                            >
+                              <svg
+                                v-if="formData.addOn === addon.value"
+                                class="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <span
+                              v-else
+                              class="text-xs font-medium text-[var(--color-text-muted)]"
+                            >
+                              Coming soon
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4: Personal Information -->
+              <div v-show="currentStep === 4" key="step4" class="space-y-6">
+                <div class="max-w-2xl mx-auto">
                   <!-- Selected theme preview -->
                   <div class="mb-6">
                     <!-- Preview Card -->
                     <div
-                      class="bg-white rounded-xl border border-[#3C2A21]/10 overflow-hidden"
+                      class="bg-white rounded-xl border border-[var(--color-border-primary)] overflow-hidden"
                     >
                       <!-- Theme Image and Details -->
                       <div
-                        class="flex items-center p-3 border-b border-[#3C2A21]/10"
+                        class="flex items-center p-3 border-b border-[var(--color-border-primary)]"
                       >
                         <div
                           class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
@@ -531,12 +636,40 @@
                         </div>
                         <div class="ml-3">
                           <h3
-                            class="text-base font-medium text-[#3C2A21] font-playfair"
+                            class="text-base font-medium text-[var(--color-text-primary)] font-playfair"
                           >
                             {{ selectedTheme?.label }}
                           </h3>
-                          <p class="text-xs text-[#3C2A21]/60 line-clamp-2">
+                          <p
+                            class="text-xs text-[var(--color-text-muted)] line-clamp-2"
+                          >
                             {{ selectedTheme?.description }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Add-on Details (if selected) -->
+                      <div
+                        v-if="selectedAddOn"
+                        class="flex items-center p-3 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-light)]"
+                      >
+                        <div
+                          class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0"
+                        >
+                          <img
+                            :src="selectedAddOn.image"
+                            :alt="selectedAddOn.label"
+                            class="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div class="ml-3">
+                          <h4
+                            class="text-sm font-medium text-[var(--color-text-primary)]"
+                          >
+                            {{ selectedAddOn.label }}
+                          </h4>
+                          <p class="text-xs text-[var(--color-text-muted)]">
+                            {{ formatPrice(selectedAddOn.price) }}
                           </p>
                         </div>
                       </div>
@@ -544,9 +677,11 @@
                       <!-- Booking Details -->
                       <div class="p-3 space-y-2 text-sm">
                         <!-- Date and Time -->
-                        <div class="flex items-center text-[#3C2A21]">
+                        <div
+                          class="flex items-center text-[var(--color-text-primary)]"
+                        >
                           <svg
-                            class="w-4 h-4 mr-2 text-[#3C2A21]/60"
+                            class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/60"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -565,9 +700,11 @@
                         </div>
 
                         <!-- Number of Persons -->
-                        <div class="flex items-center text-[#3C2A21]">
+                        <div
+                          class="flex items-center text-[var(--color-text-primary)]"
+                        >
                           <svg
-                            class="w-4 h-4 mr-2 text-[#3C2A21]/60"
+                            class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/60"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -579,16 +716,18 @@
                               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                             />
                           </svg>
-                          <span>{{ formData.numberOfPax }} persons</span>
+                          <span>{{ displayNumberOfPax }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <h2 class="text-2xl font-bold text-[#1a1a1a] mb-2">
+                  <h2
+                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+                  >
                     Enter your details
                   </h2>
-                  <p class="text-md text-[#6b7280] mb-8">
+                  <p class="text-md text-[var(--color-text-muted)] mb-8">
                     Please give your details bla bla akjsdbakjsd k ajsdnakjsdn
                     akjsdn lorem
                   </p>
@@ -707,13 +846,13 @@
                         <div class="text-sm">
                           <label
                             for="terms"
-                            class="text-[#3C2A21] font-playfair"
+                            class="text-[var(--color-text-primary)] font-playfair"
                           >
                             I agree to the
                             <button
                               type="button"
                               @click="showTerms = true"
-                              class="text-[#3C2A21] hover:text-[#5C4033] transition-colors font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/20 rounded"
+                              class="text-[var(--color-text-primary)] hover:text-[var(--color-primary-light)] transition-colors font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 rounded"
                             >
                               Terms and Conditions
                             </button>
@@ -731,16 +870,16 @@
                 </div>
               </div>
 
-              <!-- Step 4: Payment -->
-              <div v-show="currentStep === 4" key="step4" class="space-y-6">
-                <div class="max-w-sm mx-auto">
+              <!-- Step 5: Payment -->
+              <div v-show="currentStep === 5" key="step5" class="space-y-6">
+                <div class="max-w-2xl mx-auto">
                   <!-- Booking Summary Card -->
                   <div
-                    class="bg-white rounded-xl border border-[#3C2A21]/10 overflow-hidden mb-6"
+                    class="bg-white rounded-xl border border-[var(--color-border-primary)] overflow-hidden mb-6"
                   >
-                    <div class="p-4 bg-[#F5E6E0]">
+                    <div class="p-4 bg-[var(--color-bg-primary)]">
                       <h3
-                        class="text-base font-medium text-[#3C2A21] font-playfair"
+                        class="text-base font-medium text-[var(--color-text-primary)] font-playfair"
                       >
                         Booking Summary
                       </h3>
@@ -748,7 +887,7 @@
 
                     <!-- Theme Details -->
                     <div
-                      class="flex items-center p-3 border-b border-[#3C2A21]/10"
+                      class="flex items-center p-3 border-b border-[var(--color-border-primary)]"
                     >
                       <div
                         class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0"
@@ -760,41 +899,180 @@
                         />
                       </div>
                       <div class="ml-3">
-                        <h4 class="text-sm font-medium text-[#3C2A21]">
+                        <h4
+                          class="text-sm font-medium text-[var(--color-text-primary)]"
+                        >
                           {{ selectedTheme?.label }}
                         </h4>
-                        <p class="text-xs text-[#3C2A21]/60">
-                          {{ formData.numberOfPax }} persons
+                        <p class="text-xs text-[var(--color-text-muted)]">
+                          {{ displayNumberOfPax }}
                         </p>
-                        <p class="text-xs text-[#3C2A21]/60">
+                        <p class="text-xs text-[var(--color-text-muted)]">
                           {{ formatDate(formData.date) }} •
                           {{ formData.timeSlot }}
                         </p>
                       </div>
                     </div>
 
+                    <!-- Add-on Details (if selected) -->
+                    <div
+                      v-if="selectedAddOn"
+                      class="flex items-center p-3 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-light)]"
+                    >
+                      <div
+                        class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
+                      >
+                        <img
+                          :src="selectedAddOn.image"
+                          :alt="selectedAddOn.label"
+                          class="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div class="ml-3 flex-1">
+                        <div class="flex justify-between items-center">
+                          <h4
+                            class="text-sm font-medium text-[var(--color-text-primary)]"
+                          >
+                            {{ selectedAddOn.label }}
+                          </h4>
+                          <p class="text-sm text-[var(--color-text-primary)]">
+                            {{ formatPrice(selectedAddOn.price) }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <!-- Price Breakdown -->
                     <div class="p-3 space-y-2 text-sm">
-                      <div class="flex justify-between text-[#3C2A21]/70">
+                      <div
+                        class="flex justify-between text-[var(--color-text-muted)]"
+                      >
                         <span>Package Price</span>
                         <span>{{ sessionPrice }}</span>
                       </div>
                       <div
-                        class="flex justify-between font-medium text-[#3C2A21] pt-2 border-t border-[#3C2A21]/10"
+                        v-if="selectedAddOn"
+                        class="flex justify-between text-[var(--color-text-muted)]"
+                      >
+                        <span>Add-on: {{ selectedAddOn.label }}</span>
+                        <span>{{ formatPrice(selectedAddOn.price) }}</span>
+                      </div>
+                      <div
+                        class="flex justify-between font-medium text-[var(--color-text-primary)] pt-2 border-t border-[var(--color-border-primary)]"
+                      >
+                        <span>Total Amount</span>
+                        <span>{{ totalAmount }}</span>
+                      </div>
+                      <div
+                        class="flex justify-between font-medium text-[var(--color-text-primary)]"
                       >
                         <span>Deposit Required</span>
                         <span>{{ depositAmount }}</span>
                       </div>
-                      <p class="text-xs text-[#3C2A21]/60 pt-1">
-                        Balance payment will be collected on the session day
+                      <p class="text-xs text-[var(--color-text-muted)] pt-1">
+                        Balance payment of {{ balanceAmount }} will be collected
+                        on the session day
                       </p>
                     </div>
                   </div>
 
                   <!-- Payment Method -->
                   <div class="space-y-4">
+                    <!-- Payment Amount Selection -->
+                    <div class="mb-6">
+                      <h3
+                        class="text-base font-medium text-[var(--color-text-primary)] font-playfair mb-4"
+                      >
+                        Select Payment Amount
+                      </h3>
+                      <div class="grid grid-cols-2 gap-3">
+                        <button
+                          @click="formData.paymentType = 'deposit'"
+                          class="relative p-4 border rounded-xl text-left transition-all duration-200"
+                          :class="[
+                            formData.paymentType === 'deposit'
+                              ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
+                              : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]/50',
+                          ]"
+                        >
+                          <div class="flex justify-between items-start mb-1">
+                            <span
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              Deposit
+                            </span>
+                            <div
+                              class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                              :class="[
+                                formData.paymentType === 'deposit'
+                                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
+                                  : 'border-[var(--color-border-primary)]',
+                              ]"
+                            >
+                              <div
+                                v-if="formData.paymentType === 'deposit'"
+                                class="w-1.5 h-1.5 rounded-full bg-white"
+                              ></div>
+                            </div>
+                          </div>
+                          <p
+                            class="text-lg font-semibold text-[var(--color-text-primary)]"
+                          >
+                            {{ depositAmount }}
+                          </p>
+                          <p
+                            class="text-xs text-[var(--color-text-muted)] mt-1"
+                          >
+                            Balance of {{ balanceAmount }} to be paid on session
+                            day
+                          </p>
+                        </button>
+
+                        <button
+                          @click="formData.paymentType = 'full'"
+                          class="relative p-4 border rounded-xl text-left transition-all duration-200"
+                          :class="[
+                            formData.paymentType === 'full'
+                              ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
+                              : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]/50',
+                          ]"
+                        >
+                          <div class="flex justify-between items-start mb-1">
+                            <span
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              Full Payment
+                            </span>
+                            <div
+                              class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                              :class="[
+                                formData.paymentType === 'full'
+                                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
+                                  : 'border-[var(--color-border-primary)]',
+                              ]"
+                            >
+                              <div
+                                v-if="formData.paymentType === 'full'"
+                                class="w-1.5 h-1.5 rounded-full bg-white"
+                              ></div>
+                            </div>
+                          </div>
+                          <p
+                            class="text-lg font-semibold text-[var(--color-text-primary)]"
+                          >
+                            {{ formatPrice(totalAmount) }}
+                          </p>
+                          <p
+                            class="text-xs text-[var(--color-text-muted)] mt-1"
+                          >
+                            Save time on session day
+                          </p>
+                        </button>
+                      </div>
+                    </div>
+
                     <h3
-                      class="text-base font-medium text-[#3C2A21] font-playfair"
+                      class="text-base font-medium text-[var(--color-text-primary)] font-playfair"
                     >
                       Select Payment Method
                     </h3>
@@ -802,13 +1080,13 @@
                     <!-- FPX Option -->
                     <button class="w-full group">
                       <div
-                        class="flex items-center p-3 border-2 border-[#3C2A21] bg-[#3C2A21]/5 rounded-xl"
+                        class="flex items-center p-3 border-2 border-[var(--color-primary)] bg-[var(--color-primary)]/5 rounded-xl"
                       >
                         <div
-                          class="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-[#3C2A21]/10"
+                          class="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-[var(--color-primary)]/10"
                         >
                           <svg
-                            class="w-6 h-6 text-[#3C2A21]"
+                            class="w-6 h-6 text-[var(--color-text-primary)]"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -822,10 +1100,12 @@
                           </svg>
                         </div>
                         <div class="ml-3 text-left">
-                          <p class="text-sm font-medium text-[#3C2A21]">
+                          <p
+                            class="text-sm font-medium text-[var(--color-text-primary)]"
+                          >
                             FPX Online Banking
                           </p>
-                          <p class="text-xs text-[#3C2A21]/60">
+                          <p class="text-xs text-[var(--color-text-muted)]">
                             Pay securely with your online banking account
                           </p>
                         </div>
@@ -835,13 +1115,13 @@
                     <!-- Disabled Card Option -->
                     <div class="opacity-50 cursor-not-allowed">
                       <div
-                        class="flex items-center p-3 border-2 border-[#3C2A21]/20 rounded-xl"
+                        class="flex items-center p-3 border-2 border-[var(--color-primary)]/20 rounded-xl"
                       >
                         <div
-                          class="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-[#3C2A21]/10"
+                          class="w-12 h-12 flex items-center justify-center bg-white rounded-lg border border-[var(--color-primary)]/10"
                         >
                           <svg
-                            class="w-6 h-6 text-[#3C2A21]/60"
+                            class="w-6 h-6 text-[var(--color-text-muted)]"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -855,10 +1135,12 @@
                           </svg>
                         </div>
                         <div class="ml-3 text-left">
-                          <p class="text-sm font-medium text-[#3C2A21]/60">
+                          <p
+                            class="text-sm font-medium text-[var(--color-text-muted)]"
+                          >
                             Credit / Debit Card
                           </p>
-                          <p class="text-xs text-[#3C2A21]/60">
+                          <p class="text-xs text-[var(--color-text-muted)]">
                             Currently unavailable
                           </p>
                         </div>
@@ -867,11 +1149,17 @@
                   </div>
 
                   <!-- Terms Reminder -->
-                  <div class="mt-6 p-3 bg-[#F5E6E0]/50 rounded-xl">
-                    <p class="text-xs text-[#3C2A21]/70">
+                  <div
+                    class="mt-6 p-3 bg-[var(--color-bg-primary)]/50 rounded-xl"
+                  >
+                    <p class="text-xs text-[var(--color-text-muted)]">
                       By proceeding with the payment, you agree to our terms and
-                      conditions. The deposit is non-refundable but transferable
-                      to another date (subject to availability).
+                      conditions.
+                      {{
+                        formData.paymentType === "deposit"
+                          ? "The deposit is non-refundable but transferable to another date (subject to availability)."
+                          : "Full payment is non-refundable but transferable to another date (subject to availability)."
+                      }}
                     </p>
                   </div>
                 </div>
@@ -881,7 +1169,10 @@
 
           <!-- Navigation Footer -->
           <div
-            class="px-4 sm:px-6 py-4 sm:py-6 bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] flex justify-between items-center"
+            class="px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center"
+            :style="{
+              background: `var(--gradient-background)`,
+            }"
           >
             <button
               v-if="currentStep > 1"
@@ -921,7 +1212,7 @@
             </NuxtLink>
 
             <button
-              v-if="currentStep < 4"
+              v-if="currentStep < 5"
               @click="nextStep"
               class="btn btn-primary text-sm"
             >
@@ -997,17 +1288,17 @@
             >
               <!-- Header -->
               <div
-                class="border-b border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex items-center justify-between"
+                class="border-b border-[var(--color-border-primary)] px-4 sm:px-6 py-4 flex items-center justify-between"
               >
                 <h3
-                  class="text-base sm:text-lg font-semibold text-[#3C2A21]"
+                  class="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]"
                   id="modal-title"
                 >
                   Terms and Conditions
                 </h3>
                 <button
                   @click="showTerms = false"
-                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors p-2"
+                  class="text-[var(--color-text-primary)]/60 hover:text-[var(--color-text-primary)] transition-colors p-2"
                 >
                   <svg
                     class="w-5 h-5"
@@ -1027,7 +1318,7 @@
 
               <!-- Content -->
               <div class="px-4 sm:px-6 py-4 max-h-[60vh] overflow-y-auto">
-                <div class="space-y-6 text-[#3C2A21]">
+                <div class="space-y-6 text-[var(--color-text-primary)]">
                   <!-- Booking & Payment -->
                   <section>
                     <h4
@@ -1129,11 +1420,11 @@
 
               <!-- Footer -->
               <div
-                class="border-t border-[#3C2A21]/10 px-4 sm:px-6 py-4 flex justify-end"
+                class="border-t border-[var(--color-border-primary)] px-4 sm:px-6 py-4 flex justify-end"
               >
                 <button
                   @click="showTerms = false"
-                  class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] transition-colors active:scale-95"
+                  class="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors active:scale-95"
                 >
                   I Understand
                 </button>
@@ -1147,7 +1438,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { format } from "date-fns";
 
 // Define page meta to use empty layout
@@ -1204,11 +1495,16 @@ const steps = [
   },
   {
     number: 3,
+    label: "Add Ons",
+    description: "Enhance your session with add-ons",
+  },
+  {
+    number: 4,
     label: "Your Details",
     description: "Basic information needed for booking",
   },
   {
-    number: 4,
+    number: 5,
     label: "Payment",
     description: "Secure payment to confirm booking",
   },
@@ -1268,6 +1564,70 @@ const paxOptions = [
   { value: "3", label: "3 persons" },
   { value: "4", label: "4 persons" },
   { value: "5", label: "5 persons" },
+  { value: "6", label: "6 persons" },
+  { value: "7", label: "7 persons" },
+  { value: "8", label: "8 persons" },
+  { value: "9", label: "9 persons" },
+  { value: "10", label: "10 persons" },
+  { value: "11", label: "More than 10 persons" },
+];
+
+// Add after sessionTypes array
+const addOns = [
+  {
+    value: "frame",
+    label: "Premium Frame",
+    description:
+      "High-quality wooden frames with premium glass and elegant design. Perfect for displaying your favorite photos.",
+    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
+    price: 300,
+    available: true,
+    details: {
+      sizes: ["8x10", "11x14", "16x20", "20x24"],
+      materials: ["Premium wood", "Anti-glare glass"],
+      features: [
+        "Custom sizing available",
+        "Multiple color options",
+        "UV protection glass",
+        "Acid-free matting",
+      ],
+    },
+  },
+  {
+    value: "album",
+    label: "Deluxe Photo Album",
+    description:
+      "Premium quality photo album with thick pages and elegant cover. Currently unavailable.",
+    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
+    price: 500,
+    available: false,
+    details: {
+      sizes: ["8x8", "10x10", "12x12"],
+      materials: ["Premium leather", "Thick pages"],
+      features: [
+        "Personalized cover",
+        "Lay-flat pages",
+        "Premium printing",
+        "Gift box included",
+      ],
+    },
+  },
+  {
+    value: "video",
+    label: "Video Coverage",
+    description: "Professional video coverage of your session. Coming soon.",
+    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
+    price: 800,
+    available: false,
+    details: {
+      duration: "Same as photo session",
+      deliverables: [
+        "Edited highlight video",
+        "Raw footage",
+        "Digital delivery",
+      ],
+    },
+  },
 ];
 
 // Form state
@@ -1283,6 +1643,9 @@ const formData = ref({
   timeSlot: "",
   sessionType: "",
   numberOfPax: "",
+  customNumberOfPax: "",
+  addOn: "",
+  paymentType: "deposit", // Add this new field with default value
 });
 
 const paymentData = ref({
@@ -1479,20 +1842,24 @@ const selectTimeSlot = (slot) => {
 
 // Computed session price based on type
 const formatPrice = (amount) => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-MY", {
     style: "currency",
     currency: "MYR",
   }).format(amount);
 };
 
 const sessionPrice = computed(() => {
-  const type = sessionTypes.find((t) => t.value === formData.value.sessionType);
-  return type ? formatPrice(type.price) : formatPrice(0);
+  const selectedType = sessionTypes.find(
+    (t) => t.value === formData.value.sessionType
+  );
+  return selectedType ? formatPrice(selectedType.price) : formatPrice(0);
 });
 
 const depositAmount = computed(() => {
-  const type = sessionTypes.find((t) => t.value === formData.value.sessionType);
-  return type ? formatPrice(type.deposit) : formatPrice(0);
+  const selectedType = sessionTypes.find(
+    (t) => t.value === formData.value.sessionType
+  );
+  return selectedType ? formatPrice(selectedType.deposit) : formatPrice(0);
 });
 
 // Validation functions
@@ -1552,6 +1919,23 @@ const validateField = (field) => {
       if (!formData.value.numberOfPax) {
         errors.value.numberOfPax = "Please select number of persons";
       }
+      if (
+        formData.value.numberOfPax === "11" &&
+        !formData.value.customNumberOfPax
+      ) {
+        errors.value.customNumberOfPax = "Please enter the number of persons";
+      }
+      break;
+    case "customNumberOfPax":
+      if (formData.value.numberOfPax === "11") {
+        if (!formData.value.customNumberOfPax) {
+          errors.value.customNumberOfPax = "Please enter the number of persons";
+        } else if (parseInt(formData.value.customNumberOfPax) < 11) {
+          errors.value.customNumberOfPax = "Number must be 11 or greater";
+        } else if (parseInt(formData.value.customNumberOfPax) > 50) {
+          errors.value.customNumberOfPax = "Maximum 50 persons allowed";
+        }
+      }
       break;
   }
 };
@@ -1585,8 +1969,19 @@ const validateStep = (step) => {
     case 2:
       validateField("sessionType");
       validateField("numberOfPax");
+      if (formData.value.numberOfPax === "11") {
+        validateField("customNumberOfPax");
+        return (
+          !errors.value.sessionType &&
+          !errors.value.numberOfPax &&
+          !errors.value.customNumberOfPax
+        );
+      }
       return !errors.value.sessionType && !errors.value.numberOfPax;
     case 3:
+      // Add-ons are optional, so always return true
+      return true;
+    case 4:
       validateField("name");
       validateField("email");
       validateField("phone");
@@ -1599,7 +1994,7 @@ const validateStep = (step) => {
         !errors.value.source &&
         !errors.value.terms
       );
-    case 4:
+    case 5:
       return true;
     default:
       return true;
@@ -1609,14 +2004,14 @@ const validateStep = (step) => {
 const nextStep = () => {
   if (validateStep(currentStep.value)) {
     currentStep.value++;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 };
 
 const previousStep = () => {
   if (currentStep.value > 1) {
     currentStep.value--;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 };
 
@@ -1646,7 +2041,7 @@ const formatToYYYYMMDD = (date) => {
 
 // Update the processPayment function
 const processPayment = async () => {
-  if (!validateStep(3)) return;
+  if (!validateStep(5)) return;
 
   isProcessing.value = true;
 
@@ -1659,49 +2054,42 @@ const processPayment = async () => {
 
     // Convert time to 24-hour format
     const time24h = convertTo24Hour(formData.value.timeSlot);
-    console.log("Converted time:", time24h);
 
     // Format date to YYYY-MM-DD
     const formattedDate = formatToYYYYMMDD(formData.value.date);
-    console.log("Formatted date:", formattedDate);
 
-    // Hit API to proceed booking
-    const response = await $fetch("/api/booking/proceed", {
-      method: "POST",
-      body: {
-        name: formData.value.name,
-        email: formData.value.email,
-        phone: formData.value.phone,
-        address: formData.value.address,
-        theme: formData.value.sessionType,
-        theme_price: sessionTypes.find(
-          (t) => t.value === formData.value.sessionType
-        ).price,
-        theme_deposit: sessionTypes.find(
-          (t) => t.value === formData.value.sessionType
-        ).deposit,
-        date: formattedDate,
-        time: time24h,
-        termsAccepted: formData.value.termsAccepted,
-      },
-    });
+    // Create booking data
+    const bookingData = {
+      receiptNumber,
+      customerName: formData.value.name,
+      customerEmail: formData.value.email,
+      customerPhone: formData.value.phone,
+      sessionType: formData.value.sessionType,
+      numberOfPax:
+        formData.value.numberOfPax === "11"
+          ? formData.value.customNumberOfPax
+          : formData.value.numberOfPax,
+      date: formattedDate,
+      time: time24h,
+      addOns: formData.value.addOn ? [formData.value.addOn] : [],
+      paymentType: formData.value.paymentType,
+      amountPaid: amountToPay.value,
+      totalAmount: totalAmount.value,
+      balanceAmount:
+        formData.value.paymentType === "deposit" ? balanceAmount.value : "0.00",
+    };
 
-    console.log("API Response:", response);
+    console.log("Booking data:", bookingData);
 
-    // Navigate to receipt page with booking data
-    if (response.status === "success") {
-      navigateTo({
-        path: "/book-a-session/receipt",
-        query: {
-          booking: response.data.id,
-        },
-      });
-    }
+    // Here you would typically send this data to your backend
+    // await api.createBooking(bookingData);
+
+    // For demo, just show success and reset form
+    alert("Booking successful! Check your email for confirmation.");
+    resetForm();
   } catch (error) {
-    console.error("Booking error:", error);
-    alert(
-      error.data?.message || "An error occurred while processing your booking"
-    );
+    console.error("Payment processing failed:", error);
+    alert("Payment processing failed. Please try again.");
   } finally {
     isProcessing.value = false;
   }
@@ -1713,7 +2101,7 @@ const goToStep = (stepNumber) => {
   if (stepNumber <= currentStep.value || stepNumber === currentStep.value + 1) {
     if (validateStep(currentStep.value)) {
       currentStep.value = stepNumber;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 };
@@ -1877,6 +2265,96 @@ const scrollToDate = (date) => {
 const selectedTheme = computed(() => {
   return sessionTypes.find((type) => type.value === formData.value.sessionType);
 });
+
+// Add a watch to reset customNumberOfPax when numberOfPax changes
+watch(
+  () => formData.value.numberOfPax,
+  (newValue) => {
+    if (newValue !== "11") {
+      formData.value.customNumberOfPax = "";
+      errors.value.customNumberOfPax = "";
+    }
+  }
+);
+
+// Add function to handle add-on selection
+const selectAddOn = (value) => {
+  const addon = addOns.find((a) => a.value === value);
+  if (addon && addon.available) {
+    formData.value.addOn = formData.value.addOn === value ? "" : value;
+  }
+};
+
+// Add a computed property to display the number of persons
+const displayNumberOfPax = computed(() => {
+  if (formData.value.numberOfPax === "11") {
+    return `${formData.value.customNumberOfPax} persons`;
+  } else {
+    return `${formData.value.numberOfPax} persons`;
+  }
+});
+
+// Add a computed property to calculate the total amount
+const totalAmount = computed(() => {
+  const basePrice =
+    sessionTypes.find((t) => t.value === formData.value.sessionType)?.price ||
+    0;
+  const addonPrice =
+    addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+
+  return parseFloat(basePrice) + parseFloat(addonPrice);
+});
+
+// Add a computed property to calculate the balance amount
+const balanceAmount = computed(() => {
+  const selectedType = sessionTypes.find(
+    (t) => t.value === formData.value.sessionType
+  );
+  const basePrice = selectedType?.price || 0;
+  const addonPrice =
+    addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+  const total = basePrice + addonPrice;
+  const deposit = selectedType?.deposit || 0;
+  return formatPrice(total - deposit);
+});
+
+// Add a computed property to get the selected add-on
+const selectedAddOn = computed(() => {
+  return addOns.find((a) => a.value === formData.value.addOn);
+});
+
+const amountToPay = computed(() => {
+  if (formData.value.paymentType === "deposit") {
+    const selectedType = sessionTypes.find(
+      (t) => t.value === formData.value.sessionType
+    );
+    return formatPrice(selectedType?.deposit || 0);
+  } else {
+    const basePrice =
+      sessionTypes.find((t) => t.value === formData.value.sessionType)?.price ||
+      0;
+    const addonPrice =
+      addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+    return formatPrice(basePrice + addonPrice);
+  }
+});
+
+const resetForm = () => {
+  formData.value = {
+    name: "",
+    email: "",
+    phone: "",
+    source: "",
+    termsAccepted: false,
+    date: "",
+    timeSlot: "",
+    sessionType: "",
+    numberOfPax: "",
+    customNumberOfPax: "",
+    addOn: "",
+    paymentType: "deposit",
+  };
+};
 </script>
 
 <style lang="scss" scoped>
@@ -1890,28 +2368,36 @@ const selectedTheme = computed(() => {
   }
 }
 
-/* Remove fade transition styles */
-
 .form-group {
   @apply relative;
 }
 
 .form-input {
-  @apply block w-full px-3 sm:px-4 pt-5 sm:pt-6 pb-1.5 sm:pb-2 text-sm sm:text-base text-[#3C2A21] bg-white border border-[#3C2A21]/20 rounded-xl appearance-none transition-all duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/20 focus:border-[#3C2A21];
+  @apply block w-full px-3 sm:px-4 pt-5 sm:pt-6 pb-1.5 sm:pb-2 text-sm sm:text-base bg-white border rounded-xl appearance-none;
+  @apply text-[var(--color-primary)] border-[var(--color-border-primary)];
+  @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)];
   @apply placeholder-transparent;
+  transition: var(--transition-all);
 
   &.error {
-    @apply border-red-300 focus:ring-red-100 focus:border-red-500;
+    @apply border-red-500;
+    &:focus {
+      @apply ring-red-200 border-red-500;
+    }
   }
 }
 
 .form-label {
-  @apply absolute left-3 sm:left-4 top-3.5 sm:top-4 text-xs sm:text-sm text-[#3C2A21]/60 transition-all duration-200 cursor-text;
+  @apply absolute left-3 sm:left-4 top-3.5 sm:top-4 text-xs sm:text-sm cursor-text;
+  @apply pointer-events-none select-none;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+  transform-origin: 0 0;
 
   .form-input:focus + &,
   .form-input:not(:placeholder-shown) + & {
-    @apply transform -translate-y-2.5 scale-75 text-[#3C2A21];
+    @apply text-xs transform -translate-y-2;
+    color: var(--color-primary);
   }
 
   .form-input.error:focus + &,
@@ -1924,36 +2410,59 @@ const selectedTheme = computed(() => {
   @apply mt-1.5 text-xs text-red-500;
 }
 
+/* Custom Select Styles */
+select.form-input + .form-label {
+  @apply text-xs -translate-y-2;
+  color: var(--color-text-muted);
+}
+
+select.form-input:focus + .form-label {
+  color: var(--color-primary);
+}
+
+/* Number Input Styles */
+input[type="number"].form-input {
+  @apply pr-2;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    @apply m-0;
+    -webkit-appearance: none;
+  }
+  -moz-appearance: textfield;
+}
+
 .btn {
-  @apply inline-flex items-center px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
+  @apply inline-flex items-center px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-xl;
+  transition: var(--transition-all);
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95;
 
   &.btn-primary {
-    @apply text-white bg-[#3C2A21] hover:bg-[#5C4033] focus:ring-[#3C2A21];
+    color: var(--color-text-light);
+    background-color: var(--color-primary);
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+
+    &:hover {
+      background-color: var(--color-primary-light);
+    }
+    &:focus {
+      @apply ring-2;
+      ring-color: var(--color-primary);
+    }
   }
 
   &.btn-secondary {
-    @apply text-[#3C2A21] bg-white border border-[#3C2A21]/20 hover:bg-[#F5E6E0] focus:ring-[#3C2A21];
+    color: var(--color-primary);
+    background-color: var(--color-bg-light);
+    border: 1px solid var(--color-border-primary);
+
+    &:hover {
+      background-color: var(--color-bg-primary);
+    }
+    &:focus {
+      @apply ring-2;
+      ring-color: var(--color-primary);
+    }
   }
-}
-
-/* Modal Transitions */
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.modal-enter-to,
-.modal-leave-from {
-  opacity: 1;
-  transform: scale(1);
 }
 
 /* Custom Checkbox */
@@ -1962,55 +2471,116 @@ const selectedTheme = computed(() => {
 }
 
 .checkbox-label {
-  @apply block w-5 h-5 rounded border-2 border-[#3C2A21]/30 cursor-pointer transition-all duration-200;
-  @apply hover:border-[#3C2A21]/50;
-}
+  @apply block w-5 h-5 rounded cursor-pointer;
+  border: 2px solid var(--color-border-secondary);
+  transition: var(--transition-all);
 
-.checkbox-label.checkbox-error {
-  @apply border-red-300;
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &.checkbox-error {
+    @apply border-red-500;
+  }
 }
 
 .checkbox-icon {
-  @apply absolute inset-0 w-full h-full text-white opacity-0 transition-all duration-200 scale-50;
+  @apply absolute inset-0 w-full h-full opacity-0 scale-50;
+  color: var(--color-text-light);
+  transition: var(--transition-all);
 }
 
 input:checked + .checkbox-label {
-  @apply bg-[#3C2A21] border-[#3C2A21];
-}
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 
-input:checked + .checkbox-label .checkbox-icon {
-  @apply opacity-100 scale-100;
+  .checkbox-icon {
+    @apply opacity-100 scale-100;
+  }
 }
 
 input:focus + .checkbox-label {
-  @apply ring-2 ring-[#3C2A21]/20;
+  @apply ring-2;
+  ring-color: var(--color-primary);
+  ring-opacity: 0.2;
 }
 
-@keyframes checkbox-pop {
-  0% {
-    transform: scale(0.9);
+/* Enhanced Custom select styling */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  cursor: pointer;
+  font-family: var(--font-primary);
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+/* Style for the option elements */
+select option {
+  padding: var(--spacing-4) var(--spacing-6);
+  font-size: var(--text-base);
+  background-color: var(--color-bg-light);
+  color: var(--color-primary);
+  font-family: var(--font-primary);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+/* Style for option hover and selected states */
+select option:checked,
+select option:hover {
+  background: var(--gradient-background);
+  color: var(--color-primary);
+}
+
+/* Style for Firefox */
+@-moz-document url-prefix() {
+  select {
+    color: var(--color-primary);
+    background-color: var(--color-bg-light);
+    padding-right: var(--spacing-12);
   }
-  50% {
-    transform: scale(1.1);
+
+  select option {
+    background-color: var(--color-bg-light);
+    color: var(--color-primary);
   }
-  100% {
-    transform: scale(1);
+
+  select option:checked,
+  select option:hover {
+    box-shadow: 0 0 10px 100px var(--color-bg-primary) inset;
+    color: var(--color-primary);
   }
 }
 
-input:checked + .checkbox-label {
-  animation: checkbox-pop 0.2s ease-in-out;
+/* Style for Webkit browsers */
+select:focus {
+  border-color: var(--color-border-primary);
+  outline: none;
 }
 
-/* Add Playfair Display font family */
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-bg-light) inset;
+  -webkit-text-fill-color: var(--color-primary);
+}
 
-/* Add font family utility class */
-.font-playfair {
-  font-family: "Geist", serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
+/* Theme Card Styles */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth image scale transition */
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+  transition: var(--transition-transform);
 }
 
 /* Music control animation */
@@ -2026,124 +2596,5 @@ input:checked + .checkbox-label {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-.date-cell {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Smooth transitions for date cards */
-button {
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-}
-
-/* Smooth scrolling for the entire container */
-.space-y-6 {
-  scroll-behavior: smooth;
-}
-
-/* Add some padding at the bottom for better scrolling */
-.grid-cols-3 {
-  padding-bottom: 2rem;
-}
-
-/* Today indicator styles */
-.absolute.-top-2 {
-  font-size: 0.65rem;
-  line-height: 1rem;
-  white-space: nowrap;
-}
-
-/* Enhanced Custom select styling */
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: none;
-  cursor: pointer;
-  font-family: "Playfair Display", serif;
-}
-
-select::-ms-expand {
-  display: none;
-}
-
-/* Style for the option elements */
-select option {
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  background-color: white;
-  color: #3c2a21;
-  font-family: "Playfair Display", serif;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* Style for option hover and selected states */
-select option:checked,
-select option:hover {
-  background: linear-gradient(to right, #f5e6e0, #e6ccb2);
-  color: #3c2a21;
-}
-
-/* Style for Firefox */
-@-moz-document url-prefix() {
-  select {
-    color: #3c2a21;
-    background-color: white;
-    padding-right: 3rem;
-  }
-
-  select option {
-    background-color: white;
-    color: #3c2a21;
-  }
-
-  select option:checked,
-  select option:hover {
-    box-shadow: 0 0 10px 100px #f5e6e0 inset;
-    color: #3c2a21;
-  }
-}
-
-/* Style for Webkit browsers */
-select:focus {
-  border-color: rgba(60, 42, 33, 0.2);
-  outline: none;
-}
-
-select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px white inset;
-  -webkit-text-fill-color: #3c2a21;
-}
-
-/* Theme Card Styles */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.ring-offset-2 {
-  --tw-ring-offset-width: 2px;
-}
-
-/* Smooth image scale transition */
-.group:hover .group-hover\:scale-110 {
-  transform: scale(1.1);
 }
 </style>

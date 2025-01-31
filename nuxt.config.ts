@@ -9,7 +9,10 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '@/assets/css/theme.css',
+    '~/assets/css/main.css'
+  ],
 
   app: {
     head: {

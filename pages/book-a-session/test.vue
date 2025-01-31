@@ -45,7 +45,10 @@
     </div>
 
     <div
-      class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] font-sans"
+      class="min-h-screen font-sans"
+      :style="{
+        background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`
+      }"
     >
       <div class="max-w-lg mx-auto px-4 py-4 sm:py-8">
         <!-- Main Card -->
@@ -1465,5 +1468,24 @@ input:checked + .checkbox-label {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
+
+<style>
+:root {
+  /* Primary Colors */
+  --color-primary: #3C2A21;
+  --color-primary-light: #5C3D2E;
+  --color-primary-dark: #2C1810;
+  
+  /* Background Colors */
+  --color-bg-primary: #F5E6E0;
+  --color-bg-secondary: #E6CCB2;
+  --color-bg-tertiary: #DDB892;
+  
+  /* Text Colors */
+  --color-text-primary: #1F1F1F;
+  --color-text-secondary: #4A4A4A;
+  --color-text-light: #FFFFFF;
 }
 </style>

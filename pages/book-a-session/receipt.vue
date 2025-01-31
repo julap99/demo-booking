@@ -1,8 +1,11 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] py-6 sm:py-12"
+    class="min-h-screen font-sans"
+    :style="{
+      background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`,
+    }"
   >
-    <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-12">
         <el-skeleton :rows="10" animated />
@@ -23,10 +26,10 @@
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
           />
         </svg>
-        <h2 class="text-xl font-bold text-[#3C2A21] mb-2">
+        <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">
           Error Loading Receipt
         </h2>
-        <p class="text-[#3C2A21]/70 mb-6">{{ error }}</p>
+        <p class="text-[var(--color-text-primary)]/70 mb-6">{{ error }}</p>
         <NuxtLink to="/book-a-session" class="btn btn-primary">
           Return to Booking
         </NuxtLink>
@@ -35,13 +38,13 @@
       <!-- Receipt Card -->
       <div
         v-else-if="bookingData"
-        class="bg-white rounded-[20px] sm:rounded-[32px] shadow-xl shadow-[#3C2A21]/10 overflow-hidden relative"
+        class="bg-white rounded-[20px] sm:rounded-[32px] shadow-xl shadow-[var(--color-border-primary)] overflow-hidden relative"
       >
         <!-- Decorative Elements -->
         <div
-          class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#3C2A21] to-[#5C4033]"
+          class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)]"
         ></div>
-        <div class="absolute top-2 right-4 text-xs text-[#3C2A21]/50">
+        <div class="absolute top-2 right-4 text-xs text-[var(--color-text-primary)]/50">
           {{ new Date().toLocaleDateString() }}
         </div>
 
@@ -51,7 +54,7 @@
           <div class="text-center mb-8 sm:mb-12">
             <div class="mb-6">
               <svg
-                class="w-16 h-16 mx-auto mb-4 text-[#3C2A21]"
+                class="w-16 h-16 mx-auto mb-4 text-[var(--color-text-primary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -64,20 +67,20 @@
                 />
               </svg>
               <h1
-                class="text-2xl sm:text-3xl font-bold text-[#3C2A21] font-playfair mb-2"
+                class="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] font-playfair mb-2"
               >
                 Booking Confirmation
               </h1>
-              <p class="text-[#3C2A21]/70 text-base sm:text-lg font-medium">
+              <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
                 Receipt #{{ bookingData?.id || "N/A" }}
               </p>
-              <p class="text-[#3C2A21]/70 text-base sm:text-lg font-medium">
+              <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
                 Payment Date: {{ formatDatetime(bookingData?.created_date) }}
               </p>
             </div>
             <div class="flex justify-center">
               <div
-                class="px-4 sm:px-6 py-2 sm:py-3 bg-green-50 text-green-600 rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
+                  class="px-4 sm:px-6 py-2 sm:py-3 bg-[var(--color-bg-light)] text-[var(--color-text-primary)] rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
               >
                 <svg
                   class="w-4 h-4 mr-2"
@@ -99,10 +102,10 @@
 
           <!-- Customer Details -->
           <div class="mb-8 sm:mb-12">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-              <div class="bg-[#F5E6E0]/30 p-4 rounded-xl">
+            <div class="grid grid-cols-1 gap-6 sm:gap-8">
+              <div class="bg-[var(--color-bg-light)] p-4 rounded-xl">
                 <h3
-                  class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-3 font-playfair flex items-center"
+                  class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-3 font-playfair flex items-center"
                 >
                   <svg
                     class="w-4 h-4 mr-2"
@@ -120,15 +123,15 @@
                   Customer Details
                 </h3>
                 <p
-                  class="text-base sm:text-lg text-[#3C2A21] mb-2 font-medium capitalize"
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium capitalize"
                 >
                   {{ bookingData?.user_fullname || "N/A" }}
                 </p>
                 <p
-                  class="text-sm sm:text-base text-[#3C2A21] mb-1 flex items-center"
+                  class="text-sm sm:text-base text-[var(--color-text-primary)] mb-1 flex items-center"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -143,10 +146,10 @@
                   {{ bookingData?.user_email || "N/A" }}
                 </p>
                 <p
-                  class="text-sm sm:text-base text-[#3C2A21] flex items-center"
+                  class="text-sm sm:text-base text-[var(--color-text-primary)] flex items-center"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -161,9 +164,9 @@
                   {{ bookingData?.user_phoneno || "N/A" }}
                 </p>
               </div>
-              <div class="bg-[#F5E6E0]/30 p-4 rounded-xl">
+              <div class="bg-[var(--color-bg-light)] p-4 rounded-xl">
                 <h3
-                  class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-3 font-playfair flex items-center"
+                  class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-3 font-playfair flex items-center"
                 >
                   <svg
                     class="w-4 h-4 mr-2"
@@ -180,14 +183,14 @@
                   </svg>
                   Booking Date
                 </h3>
-                <p class="text-base sm:text-lg text-[#3C2A21] mb-2 font-medium">
+                <p class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium">
                   {{ formatDate(bookingData?.session_date) }}
                 </p>
                 <p
-                  class="text-sm sm:text-base text-[#3C2A21] flex items-center"
+                  class="text-sm sm:text-base text-[var(--color-text-primary)] flex items-center"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -206,9 +209,9 @@
           </div>
 
           <!-- Session Details -->
-          <div class="border-t border-[#3C2A21]/10 pt-6 sm:pt-8 mb-8 sm:mb-12">
+          <div class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8 mb-8 sm:mb-12">
             <h3
-              class="text-sm sm:text-base font-medium text-[#3C2A21]/70 mb-4 sm:mb-6 font-playfair flex items-center"
+              class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-4 sm:mb-6 font-playfair flex items-center"
             >
               <svg
                 class="w-4 h-4 mr-2"
@@ -231,21 +234,21 @@
               </svg>
               Session Details
             </h3>
-            <div class="space-y-4 bg-[#F5E6E0]/30 p-4 rounded-xl">
+            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
               <div class="flex justify-between items-center">
-                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
                   bookingData.theme
                 }}</span>
-                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
                   formatPrice(bookingData?.theme_price || 0)
                 }}</span>
               </div>
               <div
-                class="flex justify-between items-center text-sm sm:text-base text-[#3C2A21]"
+                class="flex justify-between items-center text-sm sm:text-base text-[var(--color-text-primary)]"
               >
                 <span class="flex items-center">
                   <svg
-                    class="w-4 h-4 mr-2 text-[#3C2A21]/70"
+                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -271,32 +274,34 @@
           </div>
 
           <!-- Payment Details -->
-          <div class="border-t border-[#3C2A21]/10 pt-6 sm:pt-8">
-            <div class="space-y-4 bg-[#F5E6E0]/30 p-4 rounded-xl">
+          <div class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8">
+            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
               <div
                 class="flex justify-between items-center text-sm sm:text-base"
               >
-                <span class="text-[#3C2A21]/70">Total Package Price</span>
-                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
+                <span class="text-[var(--color-text-primary)]/70">Total Package Price</span>
+                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
                   formatPrice(bookingData?.theme_price || 0)
                 }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-base sm:text-lg font-medium text-[#3C2A21]"
+                <span class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]"
                   >Deposit Paid</span
                 >
-                <span class="text-lg sm:text-xl font-semibold text-green-600">{{
+                <span class="text-lg sm:text-xl font-semibold text-[var(--color-primary)]">{{
                   formatPrice(bookingData?.theme_deposit || 0)
                 }}</span>
               </div>
               <div
                 class="flex justify-between items-center pt-4 border-t border-dashed border-[#3C2A21]/10"
               >
-                <span class="text-[#3C2A21]/70 text-sm sm:text-base"
+                <span class="text-[var(--color-text-primary)]/70 text-sm sm:text-base"
                   >Balance Due</span
                 >
-                <span class="text-base sm:text-lg text-[#3C2A21] font-medium">{{
-                  formatPrice(bookingData?.theme_price - bookingData?.theme_deposit || 0)
+                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
+                  formatPrice(
+                    bookingData?.theme_price - bookingData?.theme_deposit || 0
+                  )
                 }}</span>
               </div>
             </div>
@@ -304,11 +309,11 @@
 
           <!-- Notes -->
           <div
-            class="mt-8 sm:mt-12 space-y-2 text-xs sm:text-sm text-[#3C2A21]/70 bg-[#F5E6E0]/20 p-4 rounded-xl"
+            class="mt-8 sm:mt-12 space-y-2 text-xs sm:text-sm text-[var(--color-text-primary)]/70 bg-[var(--color-bg-light)] p-4 rounded-xl"
           >
             <div class="flex items-start space-x-2">
               <svg
-                class="w-4 h-4 text-[#3C2A21]/50 mt-0.5 flex-shrink-0"
+                class="w-4 h-4 text-[var(--color-text-primary)]/50 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -324,7 +329,7 @@
             </div>
             <div class="flex items-start space-x-2">
               <svg
-                class="w-4 h-4 text-[#3C2A21]/50 mt-0.5 flex-shrink-0"
+                class="w-4 h-4 text-[var(--color-text-primary)]/50 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -343,7 +348,7 @@
 
         <!-- Actions -->
         <div
-          class="border-t border-[#3C2A21]/10 p-4 sm:px-8 sm:py-6 bg-[#F5E6E0] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
+            class="border-t border-[var(--color-border-primary)] p-4 sm:px-8 sm:py-6 bg-[var(--color-bg-light)] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
         >
           <NuxtLink
             to="/"
@@ -367,7 +372,7 @@
 
           <button
             @click="downloadReceipt"
-            class="w-full sm:w-auto flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#3C2A21] to-[#5C4033] hover:from-[#5C4033] hover:to-[#7B5544] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-all duration-200 transform hover:scale-[1.02]"
+            class="w-full sm:w-auto flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary-light)] transition-all duration-200 transform hover:scale-[1.02]"
           >
             <svg
               class="w-4 h-4 mr-2"
@@ -547,19 +552,21 @@ const getReceiptDetail = async () => {
 };
 </script>
 
-<style scoped>
+<style>
+
+/* Component specific styles */
 .btn {
   @apply inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
 
 .btn-primary {
-  @apply text-white bg-[#3C2A21] hover:bg-[#5C4033] focus:ring-[#3C2A21];
+  @apply text-[var(--color-text-light)] bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] focus:ring-[var(--color-primary)];
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-secondary {
-  @apply text-[#3C2A21] bg-white border border-[#3C2A21]/20 hover:bg-[#F5E6E0] focus:ring-[#3C2A21];
+  @apply text-[var(--color-primary)] bg-[var(--color-bg-light)] border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-primary)] focus:ring-[var(--color-primary)];
 }
 
 @media print {

@@ -4,8 +4,11 @@
     <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
       <button
         @click="toggleMusic"
-        class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#3C2A21]/90 text-white shadow-lg hover:bg-[#3C2A21] transition-all duration-200"
-        :class="{ 'animate-pulse': isMusicPlaying }"
+        class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-opacity-90 text-[var(--color-text-light)] shadow-lg transition-all duration-200"
+        :class="[
+          { 'animate-pulse': isMusicPlaying },
+          'hover:bg-[var(--color-primary)] bg-[var(--color-primary)]'
+        ]"
       >
         <svg
           class="w-5 h-5 sm:w-6 sm:h-6"
@@ -45,7 +48,10 @@
     </div>
 
     <div
-      class="min-h-screen bg-gradient-to-br from-[#F5E6E0] via-[#E6CCB2] to-[#DDB892] font-sans"
+      class="min-h-screen font-sans"
+      :style="{
+        background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`
+      }"
     >
       <div class="max-w-lg mx-auto px-4 py-4 sm:py-8">
         <!-- Main Card -->
@@ -1462,134 +1468,33 @@ const toggleMusic = () => {
 };
 </script>
 
-<style lang="scss" scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease-in-out;
-}
+<style>
+@import '@/assets/css/theme.css';
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.form-group {
-  @apply relative;
-}
-
-.form-input {
-  @apply block w-full px-3 sm:px-4 pt-5 sm:pt-6 pb-1.5 sm:pb-2 text-sm sm:text-base text-[#3C2A21] bg-white border border-[#3C2A21]/20 rounded-xl appearance-none transition-all duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-[#3C2A21]/20 focus:border-[#3C2A21];
-  @apply placeholder-transparent;
-
-  &.error {
-    @apply border-red-300 focus:ring-red-100 focus:border-red-500;
-  }
-}
-
-.form-label {
-  @apply absolute left-3 sm:left-4 top-3.5 sm:top-4 text-xs sm:text-sm text-[#3C2A21]/60 transition-all duration-200 cursor-text;
-
-  .form-input:focus + &,
-  .form-input:not(:placeholder-shown) + & {
-    @apply transform -translate-y-2.5 scale-75 text-[#3C2A21];
-  }
-
-  .form-input.error:focus + &,
-  .form-input.error:not(:placeholder-shown) + & {
-    @apply text-red-500;
-  }
-}
-
-.form-error {
-  @apply mt-1.5 text-xs text-red-500;
-}
-
+/* Component specific styles */
 .btn {
   @apply inline-flex items-center px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95;
 
   &.btn-primary {
-    @apply text-white bg-[#3C2A21] hover:bg-[#5C4033] focus:ring-[#3C2A21];
+    @apply text-[var(--color-text-light)] bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] focus:ring-[var(--color-primary)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   &.btn-secondary {
-    @apply text-[#3C2A21] bg-white border border-[#3C2A21]/20 hover:bg-[#F5E6E0] focus:ring-[#3C2A21];
+    @apply text-[var(--color-primary)] bg-[var(--color-bg-light)] border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-primary)] focus:ring-[var(--color-primary)];
   }
-}
-
-/* Modal Transitions */
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.modal-enter-to,
-.modal-leave-from {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Custom Checkbox */
-.custom-checkbox {
-  @apply relative inline-block;
-}
-
-.checkbox-label {
-  @apply block w-5 h-5 rounded border-2 border-[#3C2A21]/30 cursor-pointer transition-all duration-200;
-  @apply hover:border-[#3C2A21]/50;
-}
-
-.checkbox-label.checkbox-error {
-  @apply border-red-300;
-}
-
-.checkbox-icon {
-  @apply absolute inset-0 w-full h-full text-white opacity-0 transition-all duration-200 scale-50;
-}
-
-input:checked + .checkbox-label {
-  @apply bg-[#3C2A21] border-[#3C2A21];
-}
-
-input:checked + .checkbox-label .checkbox-icon {
-  @apply opacity-100 scale-100;
-}
-
-input:focus + .checkbox-label {
-  @apply ring-2 ring-[#3C2A21]/20;
-}
-
-@keyframes checkbox-pop {
-  0% {
-    transform: scale(0.9);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-input:checked + .checkbox-label {
-  animation: checkbox-pop 0.2s ease-in-out;
 }
 
 /* Add Playfair Display font family */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
 
 /* Add font family utility class */
 .font-playfair {
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-primary);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /* Music control animation */
