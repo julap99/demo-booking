@@ -1,10 +1,9 @@
+/* Importing Theme */
+@import './theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
-/* Importing Theme */
-@import './theme.css';
 
 
 /* html, body {

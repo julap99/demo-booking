@@ -1,12 +1,12 @@
 <template>
   <div>
     <div
-      class="min-h-screen font-sans"
+      class="min-h-screen font-sans flex items-center justify-center py-6 sm:py-12"
       :style="{
         background: `var(--gradient-background)`,
       }"
     >
-      <div class="max-w-2xl mx-auto px-4 py-4 sm:py-8">
+      <div class="w-full max-w-2xl mx-auto px-4">
         <!-- Main Card -->
         <div
           class="bg-[var(--color-bg-white)] rounded-2xl sm:rounded-[32px] shadow-xl shadow-[var(--color-primary)]/10 overflow-hidden"
@@ -488,7 +488,7 @@
                             @blur="validateField('customNumberOfPax')"
                           />
                           <label for="customNumberOfPax" class="form-label"
-                            >Enter exact number of persons</label
+                            >Enter exact number of extra persons</label
                           >
                           <p
                             v-if="errors.customNumberOfPax"
