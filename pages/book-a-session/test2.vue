@@ -225,7 +225,9 @@
                       class="overflow-x-auto hide-scrollbar relative"
                       ref="dateScrollContainer"
                     >
-                      <div class="grid grid-flow-col gap-2 sm:gap-3 py-2 px-2 auto-cols-[80px] sm:auto-cols-[90px] md:auto-cols-[100px]">
+                      <div
+                        class="grid grid-flow-col gap-2 sm:gap-3 py-2 px-2 auto-cols-[80px] sm:auto-cols-[90px] md:auto-cols-[100px]"
+                      >
                         <template v-for="day in calendarDays" :key="day.date">
                           <button
                             @click="day.isSelectable && selectDate(day.date)"
@@ -251,7 +253,9 @@
                               Today
                             </div>
                             <!-- Day Name -->
-                            <div class="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                            <div
+                              class="text-xs sm:text-sm font-medium text-gray-600 mb-1"
+                            >
                               {{
                                 new Date(day.date).toLocaleDateString("en-MY", {
                                   weekday: "short",
@@ -265,14 +269,18 @@
                               {{ new Date(day.date).getDate() }}
                             </div>
                             <!-- Slot Indicator -->
-                            <div class="flex items-center space-x-1 sm:space-x-2">
+                            <div
+                              class="flex items-center space-x-1 sm:space-x-2"
+                            >
                               <div
                                 class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
                                 :class="
                                   getSlotIndicatorColor(getEventCount(day.date))
                                 "
                               ></div>
-                              <span class="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+                              <span
+                                class="text-xs sm:text-sm text-gray-600 whitespace-nowrap"
+                              >
                                 {{ getEventCount(day.date) }} slots
                               </span>
                             </div>
@@ -284,21 +292,44 @@
 
                   <div v-if="formData.date">
                     <!-- Session Duration Indicator -->
-                    <div class="flex items-center space-x-2 mb-6">
-                      <svg
-                        class="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span class="text-lg text-gray-600">30 min session</span>
+                    <div class="flex justify-between mb-6">
+                      <div class="flex items-center space-x-2">
+                        <svg
+                          class="w-5 h-5 text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span class="text-lg text-gray-600"
+                          >{{ slotInterval }} min session</span
+                        >
+                      </div>
+
+                      <!-- <div class="flex items-center space-x-2">
+                        <svg
+                          class="w-5 h-5 text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span class="text-lg text-gray-600"
+                          >{{ restTime }} min rest</span
+                        >
+                      </div> -->
                     </div>
 
                     <!-- Time Slots -->
@@ -306,19 +337,35 @@
                       ref="timeSlotsSection"
                       class="grid grid-cols-3 gap-3 scroll-mt-8"
                     >
-                      <button
-                        v-for="slot in timeSlots"
-                        :key="slot"
-                        @click="selectTimeSlot(slot)"
-                        :class="[
-                          'py-4 px-3 rounded-2xl text-center transition-all duration-200 text-base',
-                          formData.timeSlot === slot
-                            ? 'bg-white border-2 border-[var(--color-text-primary)] text-[var(--color-text-primary)] font-medium shadow-sm'
-                            : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-gray-300',
-                        ]"
-                      >
-                        {{ slot }}
-                      </button>
+                      <template v-if="isLoadingTimeSlots">
+                        <div
+                          v-for="n in 12"
+                          :key="n"
+                          class="py-4 px-3 rounded-2xl text-center bg-gray-50 border-2 border-gray-100 animate-pulse"
+                        >
+                          <div
+                            class="h-5 bg-gray-200 rounded w-20 mx-auto"
+                          ></div>
+                        </div>
+                      </template>
+                      <template v-else>
+                        <button
+                          v-for="slot in timeSlots"
+                          :key="slot"
+                          @click="selectTimeSlot(slot.value)"
+                          :disabled="!isTimeSlotAvailable(slot.value)"
+                          :class="[
+                            'py-4 px-3 rounded-2xl text-center transition-all duration-200 text-base',
+                            formData.value.timeSlot === slot.value
+                              ? 'bg-white border-2 border-[var(--color-text-primary)] text-[var(--color-text-primary)] font-medium shadow-sm'
+                              : isTimeSlotAvailable(slot.value)
+                              ? 'bg-white border-2 border-gray-200 text-gray-600 hover:border-gray-300'
+                              : 'bg-gray-50 border-2 border-gray-100 text-gray-400 cursor-not-allowed opacity-50',
+                          ]"
+                        >
+                          {{ slot.slot }}
+                        </button>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -1564,7 +1611,10 @@ const formData = ref({
   numberOfPax: "",
   customNumberOfPax: "",
   addOn: "",
-  paymentType: "deposit", // Add this new field with default value
+  paymentType: "deposit", // default to deposit payment
+  value: {
+    timeSlot: "",
+  },
 });
 
 const paymentData = ref({
@@ -1840,11 +1890,76 @@ function getSlotIndicatorColor(slots) {
   return "bg-green-400";
 }
 
-// Update selectDate function
+// Add ref for available time slots
+const availableTimeSlots = ref([]);
+
+// Update the timeSlots to be computed based on availableTimeSlots
+const timeSlots = computed(() => {
+  if (availableTimeSlots.value.length > 0) {
+    return availableTimeSlots.value;
+  }
+  return [
+    "9:00 AM",
+    "9:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "11:30 AM",
+    "12:00 PM",
+    "12:30 PM",
+    "1:00 PM",
+    "1:30 PM",
+    "2:00 PM",
+    "2:30 PM",
+    "3:00 PM",
+    "3:30 PM",
+    "4:00 PM",
+    "4:30 PM",
+    "5:00 PM",
+    "5:30 PM",
+    "6:00 PM",
+  ];
+});
+
+// Add after other refs
+const isLoadingTimeSlots = ref(false);
+
+const slotInterval = ref(0);
+const restTime = ref(0);
+
+// Update selectDate function to handle loading state
 const selectDate = async (date) => {
   formData.value.date = date;
   formData.value.timeSlot = ""; // Clear time slot when date changes
+  formData.value.value.timeSlot = ""; // Clear the nested timeSlot as well
   validateField("date");
+
+  isLoadingTimeSlots.value = true; // Set loading to true before fetching
+
+  try {
+    // Fetch available slots for the selected date
+    const response = await $fetch("/api/booking/get-available-slots", {
+      params: {
+        date: date,
+      },
+    });
+
+    // console.log("Response available slots: ", response);
+
+    if (response.status === "success") {
+      slotInterval.value = response.interval;
+      restTime.value = response.rest;
+      availableTimeSlots.value = response.data;
+    } else {
+      availableTimeSlots.value = [];
+      console.error("Failed to fetch available slots:", response.message);
+    }
+  } catch (error) {
+    availableTimeSlots.value = [];
+    console.error("Error fetching available slots:", error);
+  } finally {
+    isLoadingTimeSlots.value = false; // Set loading to false after fetching
+  }
 
   // Wait for DOM update then scroll to time slots
   await nextTick();
@@ -1856,6 +1971,14 @@ const selectDate = async (date) => {
     });
   }
 };
+
+// Update the time slots display section
+const isTimeSlotAvailable = computed(() => {
+  return (slot) => {
+    if (availableTimeSlots.value.length === 0) return true;
+    return availableTimeSlots.value.some((s) => s.value === slot);
+  };
+});
 
 const isDateSelected = (date) => {
   return formData.value.date === date;
@@ -1877,31 +2000,9 @@ const selectSessionType = (type) => {
   validateField("sessionType");
 };
 
-// Time slots
-const timeSlots = [
-  "9:00 AM",
-  "9:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "12:30 PM",
-  "1:00 PM",
-  "1:30 PM",
-  "2:00 PM",
-  "2:30 PM",
-  "3:00 PM",
-  "3:30 PM",
-  "4:00 PM",
-  "4:30 PM",
-  "5:00 PM",
-  "5:30 PM",
-  "6:00 PM",
-];
-
 const selectTimeSlot = (slot) => {
   formData.value.timeSlot = slot;
+  formData.value.value.timeSlot = slot;
   validateField("timeSlot");
 };
 
@@ -2083,7 +2184,17 @@ const previousStep = () => {
 
 // Add this function to convert 12-hour to 24-hour format
 const convertTo24Hour = (time12h) => {
+  if (typeof time12h !== "string") {
+    console.error("Invalid time format:", time12h);
+    return "";
+  }
+
   const [time, modifier] = time12h.split(" ");
+  if (!time || !modifier) {
+    console.error("Invalid time format:", time12h);
+    return "";
+  }
+
   let [hours, minutes] = time.split(":");
 
   // Convert hours to number for calculation
@@ -2133,7 +2244,7 @@ const processPayment = async () => {
     const bookingData = {
       // Session Details
       date: formattedDate,
-      time: time24h,
+      time: formData.value.timeSlot,
       theme: formData.value.sessionType,
       number_of_pax: totalPax,
       add_ons: formData.value.addOn ? [formData.value.addOn] : [],
