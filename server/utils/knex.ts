@@ -1,4 +1,4 @@
-import knex from "knex";
+import knex, { Knex } from "knex";
 import { dbConfig } from "./db.config";
 
 // Timeout wrapper for promises
@@ -41,9 +41,9 @@ const knexConfig = {
 };
 
 // Create knex instance with connection handling
-let knexInstance: any = null;
+let knexInstance: Knex | null = null;
 
-function getKnex() {
+function getKnex(): Knex {
   if (!knexInstance) {
     knexInstance = knex(knexConfig);
 
@@ -62,32 +62,25 @@ function getKnex() {
 
       // Destroy the instance on fatal errors
       if (err.fatal) {
-        knexInstance.destroy(() => {
+        knexInstance?.destroy(() => {
           knexInstance = null;
         });
       }
     });
   }
-  return knexInstance;
+  return knexInstance as Knex;
 }
 
-// Export a function that ensures connection with timeout
-export default async function getConnection() {
-  const instance = getKnex();
+// Initialize and export the Knex instance
+const db = getKnex();
 
-  console.log("DB_HOST", dbConfig.host);
-  console.log("DB_USER", dbConfig.user);
-  console.log("DB_PASSWORD", dbConfig.password);
-  console.log("DB_NAME", dbConfig.database);
-  console.log("DB_PORT", dbConfig.port);
-
-  // Test the connection with timeout
-  try {
-    await withTimeout(instance.raw("SELECT 1"));
-    console.log("Database connection established successfully");
-    return instance;
-  } catch (err: any) {
-    console.error("Failed to establish database connection:", {
+// Test the connection on first import
+db.raw('SELECT 1')
+  .then(() => {
+    console.log('Database connection established successfully');
+  })
+  .catch((err) => {
+    console.error('Failed to establish database connection:', {
       message: err.message,
       code: err.code,
       errno: err.errno,
@@ -97,9 +90,6 @@ export default async function getConnection() {
       database: dbConfig.database,
       user: dbConfig.user,
     });
+  });
 
-    // Reset the instance if connection fails
-    knexInstance = null;
-    throw err;
-  }
-}
+export default db;

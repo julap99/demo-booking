@@ -1,6 +1,14 @@
-import knex from "../../utils/knex";
+import db from "../../utils/knex";
 
 export default defineEventHandler(async (event) => {
-  const themes = await knex("theme").where("status", 1);
-  return themes;
+  try {
+    const themes = await db("theme").where("status", 1);
+    return themes;
+  } catch (error) {
+    console.error("Error fetching themes:", error);
+    throw createError({
+      statusCode: 500,
+      message: "Failed to fetch themes"
+    });
+  }
 });

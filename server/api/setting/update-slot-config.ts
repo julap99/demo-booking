@@ -1,30 +1,32 @@
-import knex from "../../utils/knex";
+import db from "../../utils/knex";
 
 export default defineEventHandler(async (event) => {
   try {
-    const { start_time, end_time, start_break, end_break, duration, rest } =
-      await readBody(event);
+    const body = await readBody(event);
+    const { start_time, end_time, duration, rest, start_break, end_break } = body;
 
-    await knex("slot_config").where("title", "Main Slot").update({
-      start_time,
-      end_time,
-      start_break,
-      end_break,
-      duration,
-      rest,
-    });
+    await db("slot_config")
+      .where("title", "Main Slot")
+      .update({
+        start_time,
+        end_time,
+        duration,
+        rest,
+        start_break,
+        end_break,
+        updated_date: db.fn.now()
+      });
 
     return {
       statusCode: 200,
       status: "success",
-      message: "Slot config updated successfully",
+      message: "Slot configuration updated successfully"
     };
   } catch (error) {
-    console.error(error);
-
+    console.error("Error updating slot config:", error);
     throw createError({
       statusCode: 500,
-      message: "Failed to update slot config",
+      message: "Failed to update slot configuration"
     });
   }
 });
