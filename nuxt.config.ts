@@ -113,6 +113,9 @@ export default defineNuxtConfig({
         cache: false,
         swr: false
       }
+    },
+    externals: {
+      inline: ['dayjs/plugin/utc.js', 'dayjs/plugin/timezone.js', 'dayjs/plugin/isSameOrAfter.js', 'dayjs/plugin/isSameOrBefore.js']
     }
   }
 })
