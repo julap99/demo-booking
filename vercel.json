@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "server/api/**/*": {
-      "maxDuration": 60
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -18,7 +13,10 @@
   "builds": [
     {
       "src": "nuxt.config.ts",
-      "use": "@nuxtjs/vercel-builder"
+      "use": "@nuxtjs/vercel-builder",
+      "config": {
+        "serverFiles": ["server/**/*"]
+      }
     }
   ],
   "routes": [

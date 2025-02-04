@@ -105,5 +105,14 @@ export default defineNuxtConfig({
 
   pages: true,
   
-  compatibilityDate: '2025-01-06'
+  compatibilityDate: '2025-01-06',
+
+  nitro: {
+    routeRules: {
+      '/api/**': { 
+        cache: false,
+        swr: false
+      }
+    }
+  }
 })
