@@ -19,10 +19,10 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/api/$1"
+      "source": "/api/:path*",
+      "destination": "/server/api/:path*"
     }
   ]
 } 

@@ -1,6 +1,16 @@
 import knex from 'knex'
 import { dbConfig } from './db.config'
 
+// Timeout wrapper for promises
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 50000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error('Operation timed out')), timeoutMs)
+    )
+  ])
+}
+
 // Optimize connection settings for serverless environment
 const knexConfig = {
   client: 'mysql2',
@@ -58,30 +68,29 @@ function getKnex() {
   return knexInstance
 }
 
-// Export a function that ensures connection
-export default function getConnection() {
+// Export a function that ensures connection with timeout
+export default async function getConnection() {
   const instance = getKnex()
   
-  // Test the connection
-  return instance.raw('SELECT 1')
-    .then(() => {
-      console.log('Database connection established successfully')
-      return instance
+  // Test the connection with timeout
+  try {
+    await withTimeout(instance.raw('SELECT 1'))
+    console.log('Database connection established successfully')
+    return instance
+  } catch (err: any) {
+    console.error('Failed to establish database connection:', {
+      message: err.message,
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      user: dbConfig.user
     })
-    .catch((err: any) => {
-      console.error('Failed to establish database connection:', {
-        message: err.message,
-        code: err.code,
-        errno: err.errno,
-        sqlState: err.sqlState,
-        host: dbConfig.host,
-        port: dbConfig.port,
-        database: dbConfig.database,
-        user: dbConfig.user
-      })
-      
-      // Reset the instance if connection fails
-      knexInstance = null
-      throw err
-    })
+    
+    // Reset the instance if connection fails
+    knexInstance = null
+    throw err
+  }
 } 
