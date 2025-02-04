@@ -348,6 +348,28 @@
                           ></div>
                         </div>
                       </template>
+                      <template v-else-if="availableTimeSlots.length === 0">
+                        <div class="col-span-3 py-8 text-center">
+                          <div class="flex flex-col items-center justify-center space-y-3">
+                            <svg class="w-12 h-12 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-medium text-[var(--color-text-primary)]">No Time Slots Available</h3>
+                            <p class="text-sm text-[var(--color-text-muted)] max-w-sm">
+                              Sorry, all slots for this date are fully booked or already past the current time. Please select another date to continue.
+                            </p>
+                            <button 
+                              @click="formData.date = ''" 
+                              class="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/5 rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
+                            >
+                              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                              </svg>
+                              Choose Another Date
+                            </button>
+                          </div>
+                        </div>
+                      </template>
                       <template v-else>
                         <button
                           v-for="slot in timeSlots"
@@ -1944,7 +1966,7 @@ const selectDate = async (date) => {
       },
     });
 
-    // console.log("Response available slots: ", response);
+    console.log("Response available slots: ", response);
 
     if (response.status === "success") {
       slotInterval.value = response.interval;

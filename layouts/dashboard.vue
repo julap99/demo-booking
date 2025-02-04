@@ -65,6 +65,13 @@
               >
                 Calendar
               </NuxtLink>
+              <NuxtLink
+                to="/dashboard/settings"
+                class="border-transparent text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-text-primary)] inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                active-class="border-[var(--color-primary)] text-[var(--color-text-primary)]"
+              >
+                Setting
+              </NuxtLink>
             </div>
           </div>
 
@@ -120,7 +127,9 @@
                   <div
                     class="h-8 w-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center"
                   >
-                    <span class="text-[var(--color-primary)] font-medium">{{ userInitial }}</span>
+                    <span class="text-[var(--color-primary)] font-medium">{{
+                      userInitial
+                    }}</span>
                   </div>
                 </button>
               </div>
@@ -151,13 +160,13 @@
           <NuxtLink
             to="/dashboard"
             class="border-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-text-primary)] block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200"
-              active-class="bg-[var(--color-bg-primary)] border-[var(--color-primary)] text-[var(--color-text-primary)]"
+            active-class="bg-[var(--color-bg-primary)] border-[var(--color-primary)] text-[var(--color-text-primary)]"
             @click="showMobileMenu = false"
           >
             Dashboard
           </NuxtLink>
           <NuxtLink
-            to="/dashboard/bookings"  
+            to="/dashboard/bookings"
             class="border-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-text-primary)] block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200"
             active-class="bg-[var(--color-bg-primary)] border-[var(--color-primary)] text-[var(--color-text-primary)]"
             @click="showMobileMenu = false"
@@ -180,19 +189,35 @@
           >
             Calendar
           </NuxtLink>
+          <NuxtLink
+            to="/dashboard/settings"
+            class="border-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-text-primary)] block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200"
+            active-class="bg-[var(--color-bg-primary)] border-[var(--color-primary)] text-[var(--color-text-primary)]"
+            @click="showMobileMenu = false"
+          >
+            Setting
+          </NuxtLink>
         </div>
-        
+
         <!-- Mobile Profile Menu -->
         <div class="pt-4 pb-3 border-t border-gray-200">
           <div class="flex items-center px-4">
             <div class="flex-shrink-0">
-              <div class="h-10 w-10 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center">
-                <span class="text-[var(--color-primary)] font-medium">{{ userInitial }}</span>
+              <div
+                class="h-10 w-10 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center"
+              >
+                <span class="text-[var(--color-primary)] font-medium">{{
+                  userInitial
+                }}</span>
               </div>
             </div>
             <div class="ml-3">
-              <div class="text-base font-medium text-gray-800">{{ user?.name }}</div>
-              <div class="text-sm font-medium text-gray-500">{{ user?.email }}</div>
+              <div class="text-base font-medium text-gray-800">
+                {{ user?.name }}
+              </div>
+              <div class="text-sm font-medium text-gray-500">
+                {{ user?.email }}
+              </div>
             </div>
           </div>
           <div class="mt-3 space-y-1">
@@ -228,7 +253,7 @@ onMounted(async () => {
 
 const user = computed(() => auth.getUser);
 const userInitial = computed(() => {
-  const name = user.value?.name?.trim() || 'U';
+  const name = user.value?.name?.trim() || "U";
   return name.charAt(0).toUpperCase();
 });
 
@@ -242,10 +267,26 @@ const toggleMobileMenu = () => {
 };
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { name: 'Bookings', href: '/dashboard/bookings', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-  { name: 'Calendar', href: '/dashboard/calendar', icon: 'M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' },
-  { name: 'Contacts', href: '/dashboard/contacts', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  },
+  {
+    name: "Bookings",
+    href: "/dashboard/bookings",
+    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  },
+  {
+    name: "Calendar",
+    href: "/dashboard/calendar",
+    icon: "M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z",
+  },
+  {
+    name: "Contacts",
+    href: "/dashboard/contacts",
+    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+  },
 ];
 </script>
 

@@ -12,6 +12,8 @@ dayjs.extend(isSameOrBefore);
 
 export default defineEventHandler(async (event) => {
   const { date } = await getQuery(event);
+  const now = dayjs();
+  const isToday = now.format('YYYY-MM-DD') === date;
 
   console.log("Date", date);
 
@@ -55,10 +57,13 @@ export default defineEventHandler(async (event) => {
         (currentSlot.isBefore(breakStart) && slotWithRest.isAfter(breakEnd))
       )
     ) {
-      slots.push({
-        slot: currentSlot.format("hh:mm A"),
-        value: currentSlot.format("HH:mm")
-      });
+      // For current date, only add future slots
+      if (!isToday || currentSlot.isAfter(now)) {
+        slots.push({
+          slot: currentSlot.format("hh:mm A"),
+          value: currentSlot.format("HH:mm")
+        });
+      }
     }
 
     // Move to the next slot start time, including rest period
