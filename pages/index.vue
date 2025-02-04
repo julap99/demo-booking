@@ -114,32 +114,34 @@ onMounted(() => {
           <div class="max-w-2xl">
             <!-- Decorative Element -->
             <div class="flex items-center gap-4 mb-8">
-              <div class="h-[2px] w-12 bg-[#C3A455]"></div>
-              <span class="text-[#C3A455] tracking-wider text-sm font-medium"
-                >HARI RAYA 2024</span
+              <div class="h-[2px] w-12 bg-[var(--color-primary-light)]"></div>
+              <span class="text-[var(--color-primary-light)] tracking-wider text-sm font-medium"
+                >HARI RAYA 2025</span
               >
             </div>
 
             <h1
-              class="font-serif text-6xl sm:text-7xl font-bold text-white leading-none mb-6"
+              class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold text-white leading-none mb-4 sm:mb-6"
             >
               <span class="block mb-2">Capture Your</span>
-              <span class="block text-[#C3A455]">Raya Moments</span>
+              <span class="block text-[var(--color-primary-light)]"
+                >Raya Moments</span
+              >
             </h1>
 
-            <p class="text-xl text-gray-300 mb-12 max-w-xl">
+            <p class="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 max-w-xl">
               Create timeless memories with our professional Hari Raya studio
               photography. Elegant setups, traditional touches, and modern
               aesthetics for your perfect family portraits.
             </p>
 
-            <div class="flex flex-col sm:flex-row gap-6 items-start">
+            <div class="flex flex-col gap-4 sm:gap-6 w-full sm:w-auto">
               <button
                 @click="navigateToBooking"
-                class="group relative px-8 py-4 bg-[#C3A455] text-white rounded-lg overflow-hidden transform hover:scale-105 transition-all duration-300"
+                class="group relative w-full sm:w-auto px-6 sm:px-8 py-4 bg-[var(--color-primary-light)] text-white rounded-lg overflow-hidden transform hover:scale-105 transition-all duration-300"
               >
                 <span
-                  class="relative z-10 flex items-center gap-2 text-lg font-medium"
+                  class="relative z-10 flex items-center justify-center sm:justify-start gap-2 text-base sm:text-lg font-medium"
                 >
                   Book Your Session
                   <svg
@@ -164,16 +166,16 @@ onMounted(() => {
 
               <!-- Package Preview -->
               <div
-                class="flex gap-4 items-center bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4"
+                class="flex flex-col sm:flex-row gap-4 items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-4 w-full sm:w-auto"
               >
-                <div class="text-white">
-                  <p class="text-sm font-medium text-[#C3A455]">
+                <div class="text-white text-center sm:text-left">
+                  <p class="text-sm font-medium text-[var(--color-primary-light)]">
                     Special Raya Package
                   </p>
                   <p class="text-2xl font-bold">RM 299</p>
                 </div>
-                <div class="h-12 w-[1px] bg-white/20"></div>
-                <div class="text-white text-sm">
+                <div class="hidden sm:block h-12 w-[1px] bg-white/20"></div>
+                <div class="text-white text-sm text-center sm:text-left">
                   <p>✓ 1 Hour Session</p>
                   <p>✓ 10 Digital Photos</p>
                 </div>
@@ -226,10 +228,10 @@ onMounted(() => {
     </main>
 
     <!-- Admin Login Link -->
-    <div class="fixed bottom-8 right-8">
+    <div class="fixed bottom-4 sm:bottom-8 right-4 sm:right-8">
       <button
         @click="navigateToAdminLogin"
-        class="group px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 text-sm flex items-center gap-2 shadow-lg"
+        class="group px-3 sm:px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 text-xs sm:text-sm flex items-center gap-2 shadow-lg"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

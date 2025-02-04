@@ -1,11 +1,11 @@
 <template>
   <div
-    class="min-h-screen font-sans"
+    class="min-h-screen font-sans flex items-center justify-center"
     :style="{
       background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`,
     }"
   >
-    <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-lg mx-auto  px-4 sm:px-6 lg:px-8 py-12 ">
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-12">
         <el-skeleton :rows="10" animated />
@@ -44,9 +44,9 @@
         <div
           class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)]"
         ></div>
-        <div class="absolute top-2 right-4 text-xs text-[var(--color-text-primary)]/50">
+        <!-- <div class="absolute top-2 right-4 text-xs text-[var(--color-text-primary)]/50">
           {{ new Date().toLocaleDateString() }}
-        </div>
+        </div> -->
 
         <!-- Receipt Content -->
         <div class="p-4 sm:p-8" ref="receiptContent">
@@ -72,7 +72,7 @@
                 Booking Confirmation
               </h1>
               <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
-                Receipt #{{ bookingData?.id || "N/A" }}
+                Receipt #{{ bookingData?.payment_ref_number || "N/A" }}
               </p>
               <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
                 Payment Date: {{ formatDatetime(bookingData?.created_date) }}

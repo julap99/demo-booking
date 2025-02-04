@@ -7,7 +7,9 @@ export default defineEventHandler(async (event) => {
     console.log("receiptNumber:", receiptNumber);
 
     // Check if receiptNumber is a valid booking number
-    const booking = await knex("booking").where("id", receiptNumber).first();
+    const booking = await knex("booking")
+      .where("payment_ref_number", receiptNumber)
+      .first();
     if (!booking) {
       throw createError({ statusCode: 404, message: "Booking not found" });
     }

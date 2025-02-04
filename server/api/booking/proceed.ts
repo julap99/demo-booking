@@ -11,14 +11,21 @@ interface BookingFormData {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  source: string;
   termsAccepted: boolean;
+
   // Session Details
-  theme: string;
+  theme: number;
   theme_price: number;
   theme_deposit: number;
   date: string;
   time: string;
+  number_of_pax: number;
+  add_ons: number[];
+
+  // Payment Details
+  payment_type: number; // 1 = full, 2 = deposit
+  payment_method: number; // 1 = fpx, 2 = cc
 }
 
 // Validate date format (YYYY-MM-DD)
@@ -82,16 +89,28 @@ export default defineEventHandler(async (event) => {
       name,
       email,
       phone,
-      address,
+      source,
       theme,
       theme_price,
       theme_deposit,
       date,
       time,
+      number_of_pax,
+      add_ons,
+      payment_type,
+      payment_method,
     } = body;
 
     // Validate required fields
-    if (!name || !email || !phone || !theme || !date || !time) {
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !theme ||
+      !date ||
+      !time ||
+      !number_of_pax
+    ) {
       throw createError({
         statusCode: 400,
         message: "Missing required fields",
@@ -132,6 +151,30 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // Validate number of pax
+    if (number_of_pax < 2 || number_of_pax > 30) {
+      throw createError({
+        statusCode: 400,
+        message: "Number of persons must be between 2 and 30",
+      });
+    }
+
+    // Validate payment type
+    if (![1, 2].includes(payment_type)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid payment type",
+      });
+    }
+
+    // Validate payment method
+    if (![1, 2].includes(payment_method)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid payment method",
+      });
+    }
+
     // Validate terms acceptance
     if (!body.termsAccepted) {
       throw createError({
@@ -140,8 +183,45 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Renerate ref number
+    // Generate receipt number
     const receiptNumber = generateReceiptNumber();
+    console.log("Receipt Number:", receiptNumber);
+
+    // Check if the theme is valid
+    const themeData = await knex("theme").where("id", theme).first();
+    if (!themeData) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid theme",
+      });
+    }
+
+    // Check if the add-ons are selected and are valid
+
+    if (add_ons.length > 0) {
+      for (const addon_id of add_ons) {
+        const addOn = await knex("addon").where("id", addon_id).first();
+        if (!addOn) {
+          throw createError({
+            statusCode: 400,
+            message: "Invalid add-ons",
+          });
+        }
+      }
+    }
+
+    // return {
+    //   statusCode: 200,
+    //   status: "success",
+    //   message: "Booking proceeded successfully",
+    // };
+
+    // Calculate payment amount
+    const paymentAmount =
+      payment_type === 1 ? theme_price : themeData.deposit + themeData.price;
+
+    // Addon is store in JSON format
+    const addon = JSON.stringify(add_ons);
 
     // Use transaction to ensure data consistency
     const result = await knex.transaction(async (trx) => {
@@ -150,15 +230,18 @@ export default defineEventHandler(async (event) => {
         user_fullname: name,
         user_email: email,
         user_phoneno: phone,
-        user_address: address,
-        theme: theme,
-        theme_price: theme_price,
-        theme_deposit: theme_deposit,
+        user_source: source,
         session_date: date,
         session_time: time,
+        theme: theme,
+        number_of_pax: number_of_pax,
+        addon: addon,
         payment_ref_number: receiptNumber,
-        status: 2,
-        session_status: 1,
+        payment_type: payment_type,
+        payment_method: payment_method,
+        payment_amount: paymentAmount,
+        status: 1, // Pending
+        session_status: 1, // Pending
         created_date: new Date(),
       });
 
@@ -186,7 +269,9 @@ export default defineEventHandler(async (event) => {
       theme: result.theme,
       session_date: result.session_date,
       session_time: result.session_time,
-      user_address: result.user_address,
+      number_of_pax: result.number_of_pax,
+      payment_type: result.payment_type,
+      payment_method: result.payment_method,
     });
 
     // Create Google Calendar event
@@ -199,15 +284,7 @@ export default defineEventHandler(async (event) => {
       statusCode: 200,
       status: "success",
       message: "Booking proceeded successfully",
-      data: {
-        ...result,
-        calendarEvent: calendarResult.success
-          ? {
-              eventId: calendarResult.eventId,
-              eventUrl: calendarResult.htmlLink,
-            }
-          : null,
-      },
+      data: result.payment_ref_number,
     };
   } catch (error: unknown) {
     console.error("Error proceeding booking:", error);

@@ -147,7 +147,7 @@
                         :value="index"
                         class="py-3 text-base font-medium"
                       >
-                        {{ month }} {{ currentYear }}
+                        {{ month.name }} {{ currentYear }}
                       </option>
                     </select>
                     <div
@@ -176,10 +176,10 @@
                   <div class="relative mb-6">
                     <!-- Shadow Indicators -->
                     <div
-                      class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"
+                      class="absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-10"
                     ></div>
                     <div
-                      class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"
+                      class="absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-10"
                     ></div>
 
                     <!-- Navigation Buttons -->
@@ -203,7 +203,7 @@
                     </button>
                     <button
                       @click="slideDates('next')"
-                      class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-lg hover:bg-gray-50 transition-all duration-200"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-white rounded-full hover:bg-gray-50 transition-all duration-200"
                     >
                       <svg
                         class="w-4 h-4 text-gray-600"
@@ -222,16 +222,16 @@
 
                     <!-- Scrollable Container -->
                     <div
-                      class="overflow-x-auto hide-scrollbar"
+                      class="overflow-x-auto hide-scrollbar relative"
                       ref="dateScrollContainer"
                     >
-                      <div class="flex space-x-4 py-2 px-2 min-w-min">
+                      <div class="grid grid-flow-col gap-2 sm:gap-3 py-2 px-2 auto-cols-[80px] sm:auto-cols-[90px] md:auto-cols-[100px]">
                         <template v-for="day in calendarDays" :key="day.date">
                           <button
                             @click="day.isSelectable && selectDate(day.date)"
                             :disabled="!day.isSelectable"
                             :data-date="day.date"
-                            class="flex-shrink-0 w-[100px] p-4 rounded-2xl border-2 transition-all duration-200 focus:outline-none relative"
+                            class="flex-shrink-0 p-3 sm:p-4 rounded-2xl border-2 transition-all duration-200 focus:outline-none relative"
                             :class="[
                               isDateSelected(day.date)
                                 ? 'border-[var(--color-text-primary)] bg-white shadow-sm'
@@ -246,33 +246,33 @@
                             <!-- Today Indicator -->
                             <div
                               v-if="day.isToday"
-                              class="absolute -top-2 left-1/2 -translate-x-1/2 bg-[var(--color-text-primary)] text-white text-xs px-2 py-0.5 rounded-full"
+                              class="absolute -top-2 left-1/2 -translate-x-1/2 bg-[var(--color-text-primary)] text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap"
                             >
                               Today
                             </div>
                             <!-- Day Name -->
-                            <div class="text-sm font-medium text-gray-600 mb-1">
+                            <div class="text-xs sm:text-sm font-medium text-gray-600 mb-1">
                               {{
-                                new Date(day.date).toLocaleDateString("en-US", {
+                                new Date(day.date).toLocaleDateString("en-MY", {
                                   weekday: "short",
                                 })
                               }}
                             </div>
                             <!-- Date -->
                             <div
-                              class="text-2xl font-semibold text-gray-900 mb-2"
+                              class="text-xl sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2"
                             >
                               {{ new Date(day.date).getDate() }}
                             </div>
                             <!-- Slot Indicator -->
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-1 sm:space-x-2">
                               <div
-                                class="w-2 h-2 rounded-full"
+                                class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
                                 :class="
                                   getSlotIndicatorColor(getEventCount(day.date))
                                 "
                               ></div>
-                              <span class="text-sm text-gray-600">
+                              <span class="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                                 {{ getEventCount(day.date) }} slots
                               </span>
                             </div>
@@ -342,13 +342,13 @@
                     <div
                       v-for="type in sessionTypes"
                       :key="type.value"
-                      @click="selectSessionType(type.value)"
+                      @click="selectSessionType(type.id)"
                       class="relative group cursor-pointer"
                     >
                       <div
                         class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
                         :class="[
-                          formData.sessionType === type.value
+                          formData.sessionType === type.id
                             ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
                             : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
                         ]"
@@ -375,7 +375,7 @@
                             <h3
                               class="text-2xl font-semibold text-white font-playfair mb-2"
                             >
-                              {{ type.label }}
+                              {{ type.title }}
                             </h3>
                             <p class="text-sm text-white/90 line-clamp-2">
                               {{ type.description }}
@@ -386,9 +386,7 @@
                           <div class="mt-4">
                             <div class="flex items-center justify-between">
                               <div>
-                                <p class="text-xs text-white/80">
-                                  Starting from
-                                </p>
+                                <p class="text-xs text-white/80">Price</p>
                                 <p class="text-xl font-semibold text-white">
                                   {{ formatPrice(type.price) }}
                                 </p>
@@ -396,13 +394,13 @@
                               <div
                                 class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                                 :class="[
-                                  formData.sessionType === type.value
+                                  formData.sessionType === type.id
                                     ? 'bg-[var(--color-text-primary)] text-white'
                                     : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
                                 ]"
                               >
                                 {{
-                                  formData.sessionType === type.value
+                                  formData.sessionType === type.id
                                     ? "Selected"
                                     : "Select Theme"
                                 }}
@@ -475,7 +473,7 @@
                       </div>
 
                       <!-- Custom number of persons input -->
-                      <div v-if="formData.numberOfPax === '11'" class="mt-4">
+                      <div v-if="formData.numberOfPax === 'more'" class="mt-4">
                         <div class="form-group">
                           <input
                             type="number"
@@ -483,8 +481,8 @@
                             v-model="formData.customNumberOfPax"
                             class="form-input peer"
                             :class="{ error: errors.customNumberOfPax }"
-                            placeholder="Enter number of persons"
-                            min="11"
+                            placeholder="Enter number of extra persons"
+                            min="1"
                             @blur="validateField('customNumberOfPax')"
                           />
                           <label for="customNumberOfPax" class="form-label"
@@ -519,11 +517,11 @@
                   <div class="grid grid-cols-1 gap-3">
                     <div
                       v-for="addon in addOns"
-                      :key="addon.value"
-                      @click="selectAddOn(addon.value)"
+                      :key="addon.id"
+                      @click="selectAddOn(addon.id)"
                       class="relative group"
                       :class="[
-                        addon.available
+                        addon.status == 1
                           ? 'cursor-pointer'
                           : 'cursor-not-allowed opacity-75',
                       ]"
@@ -531,7 +529,7 @@
                       <div
                         class="relative rounded-xl overflow-hidden transition-all duration-300 bg-white border"
                         :class="[
-                          formData.addOn === addon.value
+                          formData.addOn === addon.id
                             ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
                             : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]/50',
                         ]"
@@ -555,12 +553,12 @@
                                 <h3
                                   class="text-base font-medium text-[var(--color-text-primary)]"
                                 >
-                                  {{ addon.label }}
+                                  {{ addon.title }}
                                 </h3>
                                 <p
                                   class="text-sm text-[var(--color-text-muted)] line-clamp-1 mt-0.5"
                                 >
-                                  <!-- {{ addon.description }} -->
+                                  <!-- {{ addon.desc }} -->
                                   {{ formatPrice(addon.price) }}
                                 </p>
                               </div>
@@ -575,16 +573,16 @@
                           <!-- Selection Indicator -->
                           <div class="ml-4 flex-shrink-0">
                             <div
-                              v-if="addon.available"
+                              v-if="addon.status == 1"
                               class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
                               :class="[
-                                formData.addOn === addon.value
+                                formData.addOn === addon.id
                                   ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
                                   : 'border-[var(--color-border-primary)]',
                               ]"
                             >
                               <svg
-                                v-if="formData.addOn === addon.value"
+                                v-if="formData.addOn === addon.id"
                                 class="w-4 h-4 text-white"
                                 fill="none"
                                 stroke="currentColor"
@@ -1458,11 +1456,9 @@ definePageMeta({
 const html2pdf = ref(null);
 
 // Load html2pdf only on client side
-onMounted(() => {
-  // Initialize audio player
-  audioPlayer.value = new Audio("/music/music.mp3");
-  audioPlayer.value.loop = true;
-  audioPlayer.value.volume = 0.3;
+onMounted(async () => {
+  // Fetch slots for initial month (February)
+  await fetchSlotsData(1);
 
   // Wait for next tick before trying to scroll
   nextTick(() => {
@@ -1470,6 +1466,9 @@ onMounted(() => {
     const todayStr = format(today, "yyyy-MM-dd");
     scrollToDate(todayStr);
   });
+
+  await getThemes();
+  await getAddons();
 
   // Load html2pdf
   try {
@@ -1511,54 +1510,29 @@ const steps = [
 ];
 
 // Session types configuration
-const sessionTypes = [
-  {
-    value: "themeA",
-    label: "Classic Raya",
-    description:
-      "Traditional elegance with modern sophistication. Perfect for family portraits and formal gatherings.",
-    image:
-      "data:image/jpeg;base64,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",
-    price: 1500,
-    deposit: 500,
-    details: {
-      duration: "10 hours coverage",
-      deliverables: [
-        "300+ professionally edited photos",
-        "Premium photo album (30 pages)",
-        "Online gallery with downloading",
-        "All high-resolution images",
-        "Artistic color grading",
-        "Premium retouching service",
-      ],
-      timeframe: "Photos delivered within 4-6 weeks",
-      additionalInfo: "Includes pre-session consultation",
-    },
-  },
-  {
-    value: "themeB",
-    label: "Modern Raya",
-    description:
-      "Contemporary styling with bright, airy aesthetics. Ideal for modern families and creative expressions.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0XTwmmKj-9sQcnOQX8ypI35boAu6sgmh0Mg&s",
-    price: 800,
-    deposit: 300,
-    details: {
-      duration: "6 hours coverage",
-      deliverables: [
-        "200+ professionally edited photos",
-        "Online gallery with downloading",
-        "All high-resolution images",
-        "Modern color treatment",
-      ],
-      timeframe: "Photos delivered within 2-3 weeks",
-      additionalInfo: "Includes theme consultation",
-    },
-  },
-];
+const sessionTypes = ref([]);
 
-// Add this after the sessionTypes array
+const getThemes = async () => {
+  try {
+    const themes = await $fetch("/api/booking/get-themes");
+    sessionTypes.value = themes;
+  } catch (error) {
+    console.error("Failed to fetch themes:", error);
+    return [];
+  }
+};
+
+const getAddons = async () => {
+  try {
+    const addonsData = await $fetch("/api/booking/get-addons");
+    addOns.value = addonsData;
+  } catch (error) {
+    console.error("Failed to fetch addons:", error);
+    addOns.value = [];
+  }
+};
+
+// Update paxOptions array
 const paxOptions = [
   { value: "2", label: "2 persons" },
   { value: "3", label: "3 persons" },
@@ -1569,66 +1543,11 @@ const paxOptions = [
   { value: "8", label: "8 persons" },
   { value: "9", label: "9 persons" },
   { value: "10", label: "10 persons" },
-  { value: "11", label: "More than 10 persons" },
+  { value: "more", label: "More than 10 persons" },
 ];
 
 // Add after sessionTypes array
-const addOns = [
-  {
-    value: "frame",
-    label: "Premium Frame",
-    description:
-      "High-quality wooden frames with premium glass and elegant design. Perfect for displaying your favorite photos.",
-    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
-    price: 300,
-    available: true,
-    details: {
-      sizes: ["8x10", "11x14", "16x20", "20x24"],
-      materials: ["Premium wood", "Anti-glare glass"],
-      features: [
-        "Custom sizing available",
-        "Multiple color options",
-        "UV protection glass",
-        "Acid-free matting",
-      ],
-    },
-  },
-  {
-    value: "album",
-    label: "Deluxe Photo Album",
-    description:
-      "Premium quality photo album with thick pages and elegant cover. Currently unavailable.",
-    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
-    price: 500,
-    available: false,
-    details: {
-      sizes: ["8x8", "10x10", "12x12"],
-      materials: ["Premium leather", "Thick pages"],
-      features: [
-        "Personalized cover",
-        "Lay-flat pages",
-        "Premium printing",
-        "Gift box included",
-      ],
-    },
-  },
-  {
-    value: "video",
-    label: "Video Coverage",
-    description: "Professional video coverage of your session. Coming soon.",
-    image: "https://otwoo.co.id/assets/images/collection/demo21-firs-birth.jpg",
-    price: 800,
-    available: false,
-    details: {
-      duration: "Same as photo session",
-      deliverables: [
-        "Edited highlight video",
-        "Raw footage",
-        "Digital delivery",
-      ],
-    },
-  },
-];
+const addOns = ref([]);
 
 // Form state
 const currentStep = ref(1);
@@ -1657,123 +1576,269 @@ const paymentData = ref({
 
 const errors = ref({});
 
-// First declare the refs
-const currentDate = ref(new Date());
+// First declare all the refs
+const currentDate = ref(new Date(2025, 1, 1)); // February 2025
 const selectedDate = ref(null);
 const dateScrollContainer = ref(null);
 const initialScrollComplete = ref(false);
 const timeSlotsSection = ref(null);
 
 // Then declare the computed properties
-const currentMonthName = computed(() => {
-  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(
-    currentDate.value
-  );
+const currentMonth = computed({
+  get: () => {
+    return currentDate.value.getMonth() - 1;
+  },
+  set: async (monthIndex) => {
+    const actualMonth = monthIndex + 1;
+
+    if (actualMonth >= 1 && actualMonth <= 3) {
+      const newDate = new Date(2025, actualMonth, 1);
+      currentDate.value = newDate;
+
+      // Fetch slots data for the new month
+      await fetchSlotsData(actualMonth);
+
+      // Reset form data date when changing months
+      formData.value.date = "";
+      formData.value.timeSlot = "";
+
+      nextTick(() => {
+        const today = new Date();
+        const isCurrentMonth =
+          actualMonth === today.getMonth() && today.getFullYear() === 2025;
+
+        if (isCurrentMonth && today <= new Date(2025, 3, 30)) {
+          const todayStr = format(today, "yyyy-MM-dd");
+          scrollToDate(todayStr);
+        } else {
+          const firstOfMonth = format(newDate, "yyyy-MM-dd");
+          scrollToDate(firstOfMonth);
+        }
+      });
+    }
+  },
 });
 
 const currentYear = computed(() => {
   return currentDate.value.getFullYear();
 });
 
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-// Update calendarDays computed to fix date format
-const calendarDays = computed(() => {
-  const year = currentDate.value.getFullYear();
+const weeklyCalendar = computed(() => {
+  const year = 2025;
   const month = currentDate.value.getMonth();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const days = [];
-  const firstDay = new Date(year, month, 1); // First day of current month
-  const lastDay = new Date(year, month + 1, 0); // Last day of current month
+  // Get the first day of the month
+  const firstDay = new Date(year, month, 1);
 
-  // Loop through all days of the current month only
+  // Get the last day of the month
+  const lastDay = new Date(year, month + 1, 0);
+
+  // Get the start of the first week (Monday)
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - startDate.getDay() + 1);
+
+  // Get the end of the last week (Sunday)
+  const endDate = new Date(lastDay);
+  endDate.setDate(endDate.getDate() + (7 - endDate.getDay()));
+
+  const weeks = [];
+  let currentWeekDate = new Date(startDate);
+  let weekNumber = 1;
+
+  while (currentWeekDate <= endDate) {
+    const week = {
+      weekNumber,
+      startDate: new Date(currentWeekDate),
+      endDate: new Date(currentWeekDate),
+      days: [],
+    };
+
+    // Add 7 days to the week
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeekDate);
+      const dateStr = format(date, "yyyy-MM-dd");
+      const dayOfWeek = date.getDay();
+
+      const isSelectable =
+        dayOfWeek >= 1 && // Monday
+        dayOfWeek <= 5 && // Friday
+        date >= today && // Not in the past
+        date <= new Date(2025, 3, 30); // Not after April 2025
+
+      const isToday =
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
+
+      week.days.push({
+        date: dateStr,
+        isSelectable,
+        isToday,
+      });
+
+      currentWeekDate.setDate(currentWeekDate.getDate() + 1);
+    }
+
+    week.endDate = new Date(currentWeekDate);
+    week.endDate.setDate(week.endDate.getDate() - 1);
+    weeks.push(week);
+    weekNumber++;
+  }
+
+  return weeks;
+});
+
+const weekRanges = computed(() => {
+  return weeklyCalendar.value.map((week, index) => ({
+    weekNumber: week.weekNumber,
+    startDate: week.startDate,
+    endDate: week.endDate,
+  }));
+});
+
+const canGoToPreviousWeek = computed(() => {
+  if (!weeklyCalendar.value.length) return false;
+  const firstWeekStart = weeklyCalendar.value[0].startDate;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return firstWeekStart > today;
+});
+
+const canGoToNextWeek = computed(() => {
+  if (!weeklyCalendar.value.length) return false;
+  const lastWeekEnd =
+    weeklyCalendar.value[weeklyCalendar.value.length - 1].endDate;
+  return lastWeekEnd < new Date(2025, 3, 30); // Not after April 30, 2025
+});
+
+// Helper functions
+const isCurrentWeek = (date) => {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(endOfWeek.getDate() + 6);
+  return date >= startOfWeek && date <= endOfWeek;
+};
+
+const scrollToWeek = (startDate) => {
+  if (!dateScrollContainer.value) return;
+
+  const weekCard = dateScrollContainer.value
+    .querySelector(`[data-date="${format(startDate, "yyyy-MM-dd")}"]`)
+    ?.closest(".week-card");
+
+  if (weekCard) {
+    const container = dateScrollContainer.value;
+    const scrollLeft =
+      weekCard.offsetLeft -
+      container.clientWidth / 2 +
+      weekCard.clientWidth / 2;
+    container.scrollTo({
+      left: Math.max(0, scrollLeft),
+      behavior: "smooth",
+    });
+  }
+};
+
+function formatDateRange(startDate, endDate) {
+  return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d")}`;
+}
+
+function formatDayName(dateStr) {
+  return new Date(dateStr).toLocaleDateString("en-MY", { weekday: "short" });
+}
+
+function formatDayNumber(dateStr) {
+  return new Date(dateStr).getDate();
+}
+
+// Update months array to use 0-based indices for the v-model binding
+const months = [
+  { name: "February", index: 0 },
+  { name: "March", index: 1 },
+  { name: "April", index: 2 },
+];
+
+// Update calendarDays computed to fix date format
+const calendarDays = computed(() => {
+  const year = 2025;
+  const month = currentDate.value.getMonth();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Validate that we're only showing Feb (1), Mar (2), or Apr (3)
+  if (month < 1 || month > 3) {
+    return []; // Return empty array for invalid months
+  }
+
+  const days = [];
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
   let date = new Date(firstDay);
   while (date <= lastDay) {
-    const dateStr = format(date, "yyyy-MM-dd"); // Format: YYYY-MM-DD
+    const dateStr = format(date, "yyyy-MM-dd");
     const dayOfWeek = date.getDay();
+
+    const isSelectable =
+      dayOfWeek >= 1 && // Monday
+      dayOfWeek <= 5 && // Friday
+      date >= today && // Not in the past
+      date <= new Date(2025, 3, 30); // Not after April 2025
+
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
 
     days.push({
       date: dateStr,
-      isSelectable: dayOfWeek >= 1 && dayOfWeek <= 4 && date >= today,
-      isToday: date.toDateString() === today.toDateString(),
+      isSelectable,
+      isToday,
     });
 
-    // Move to next day
     date = new Date(date.setDate(date.getDate() + 1));
   }
 
   return days;
 });
 
-// Update the currentMonth computed setter
-const currentMonth = computed({
-  get: () => currentDate.value.getMonth(),
-  set: (month) => {
-    const newDate = new Date(currentDate.value.getFullYear(), month, 1);
-    currentDate.value = newDate;
+// Add new ref for slots data
+const slotsData = ref({});
 
-    // Reset form data date when changing months
-    formData.value.date = "";
-    formData.value.timeSlot = "";
-
-    // After month change, scroll to appropriate date without selecting it
-    const today = new Date();
-    const isCurrentMonth =
-      month === today.getMonth() &&
-      newDate.getFullYear() === today.getFullYear();
-
-    // Use nextTick to ensure calendar is updated
-    nextTick(() => {
-      if (isCurrentMonth) {
-        // If current month, scroll to today's date
-        const todayStr = format(today, "yyyy-MM-dd");
-        scrollToDate(todayStr);
-      } else {
-        // For other months, scroll to first date of the month
-        const firstOfMonth = format(newDate, "yyyy-MM-dd");
-        scrollToDate(firstOfMonth);
-      }
+// Add function to fetch slots data
+async function fetchSlotsData(month) {
+  try {
+    const response = await $fetch("/api/booking/get-slots", {
+      params: {
+        month: month,
+        year: 2025,
+      },
     });
-  },
-});
+
+    console.log("Response slots: ", response);
+    if (response.status === "success") {
+      slotsData.value = response.data;
+    }
+  } catch (error) {
+    console.error("Failed to fetch slots data:", error);
+  }
+}
+
+// Update getEventCount to use the API data
+function getEventCount(date) {
+  return slotsData.value[date] || 0;
+}
 
 function getSlotIndicatorColor(slots) {
   if (slots === 0) return "bg-gray-300";
-  if (slots <= 3) return "bg-yellow-400";
+  if (slots <= 2) return "bg-yellow-400";
+  if (slots <= 4) return "bg-yellow-400";
   return "bg-green-400";
 }
-
-// Calendar methods
-const previousMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth() - 1,
-    1
-  );
-};
-
-const nextMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth() + 1,
-    1
-  );
-};
 
 // Update selectDate function
 const selectDate = async (date) => {
@@ -1849,15 +1914,15 @@ const formatPrice = (amount) => {
 };
 
 const sessionPrice = computed(() => {
-  const selectedType = sessionTypes.find(
-    (t) => t.value === formData.value.sessionType
+  const selectedType = sessionTypes.value.find(
+    (t) => t.id === formData.value.sessionType
   );
   return selectedType ? formatPrice(selectedType.price) : formatPrice(0);
 });
 
 const depositAmount = computed(() => {
-  const selectedType = sessionTypes.find(
-    (t) => t.value === formData.value.sessionType
+  const selectedType = sessionTypes.value.find(
+    (t) => t.id === formData.value.sessionType
   );
   return selectedType ? formatPrice(selectedType.deposit) : formatPrice(0);
 });
@@ -1920,20 +1985,21 @@ const validateField = (field) => {
         errors.value.numberOfPax = "Please select number of persons";
       }
       if (
-        formData.value.numberOfPax === "11" &&
+        formData.value.numberOfPax === "more" &&
         !formData.value.customNumberOfPax
       ) {
-        errors.value.customNumberOfPax = "Please enter the number of persons";
+        errors.value.customNumberOfPax = "Please enter number of extra persons";
       }
       break;
     case "customNumberOfPax":
-      if (formData.value.numberOfPax === "11") {
+      if (formData.value.numberOfPax === "more") {
         if (!formData.value.customNumberOfPax) {
-          errors.value.customNumberOfPax = "Please enter the number of persons";
-        } else if (parseInt(formData.value.customNumberOfPax) < 11) {
-          errors.value.customNumberOfPax = "Number must be 11 or greater";
-        } else if (parseInt(formData.value.customNumberOfPax) > 50) {
-          errors.value.customNumberOfPax = "Maximum 50 persons allowed";
+          errors.value.customNumberOfPax =
+            "Please enter number of extra persons";
+        } else if (parseInt(formData.value.customNumberOfPax) < 1) {
+          errors.value.customNumberOfPax = "Number must be at least 1";
+        } else if (parseInt(formData.value.customNumberOfPax) > 20) {
+          errors.value.customNumberOfPax = "Maximum 20 extra persons allowed";
         }
       }
       break;
@@ -1969,7 +2035,7 @@ const validateStep = (step) => {
     case 2:
       validateField("sessionType");
       validateField("numberOfPax");
-      if (formData.value.numberOfPax === "11") {
+      if (formData.value.numberOfPax === "more") {
         validateField("customNumberOfPax");
         return (
           !errors.value.sessionType &&
@@ -2046,50 +2112,70 @@ const processPayment = async () => {
   isProcessing.value = true;
 
   try {
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Generate receipt number
-    const receiptNumber = generateReceiptNumber();
-
     // Convert time to 24-hour format
     const time24h = convertTo24Hour(formData.value.timeSlot);
 
     // Format date to YYYY-MM-DD
     const formattedDate = formatToYYYYMMDD(formData.value.date);
 
+    // Get selected theme details
+    const selectedType = sessionTypes.value.find(
+      (t) => t.id === formData.value.sessionType
+    );
+
+    // Calculate total number of persons
+    const totalPax =
+      formData.value.numberOfPax === "more"
+        ? 10 + (parseInt(formData.value.customNumberOfPax) || 0)
+        : parseInt(formData.value.numberOfPax);
+
     // Create booking data
     const bookingData = {
-      receiptNumber,
-      customerName: formData.value.name,
-      customerEmail: formData.value.email,
-      customerPhone: formData.value.phone,
-      sessionType: formData.value.sessionType,
-      numberOfPax:
-        formData.value.numberOfPax === "11"
-          ? formData.value.customNumberOfPax
-          : formData.value.numberOfPax,
+      // Session Details
       date: formattedDate,
       time: time24h,
-      addOns: formData.value.addOn ? [formData.value.addOn] : [],
-      paymentType: formData.value.paymentType,
-      amountPaid: amountToPay.value,
-      totalAmount: totalAmount.value,
-      balanceAmount:
-        formData.value.paymentType === "deposit" ? balanceAmount.value : "0.00",
+      theme: formData.value.sessionType,
+      number_of_pax: totalPax,
+      add_ons: formData.value.addOn ? [formData.value.addOn] : [],
+
+      // Customer Details
+      name: formData.value.name,
+      email: formData.value.email,
+      phone: formData.value.phone.replace(/\D/g, ""), // Remove non-digits
+      source: formData.value.source,
+
+      // Payment Details
+      payment_type: formData.value.paymentType === "full" ? 1 : 2, // 1 = full, 2 = deposit
+      payment_method: 1, // 1 = fpx (only option available currently)
+
+      // Required by API
+      termsAccepted: formData.value.termsAccepted,
     };
 
-    console.log("Booking data:", bookingData);
+    console.log("Booking Data:", bookingData);
 
-    // Here you would typically send this data to your backend
-    // await api.createBooking(bookingData);
+    // Call the API
+    const response = await $fetch("/api/booking/proceed", {
+      method: "POST",
+      body: bookingData,
+    });
 
-    // For demo, just show success and reset form
-    alert("Booking successful! Check your email for confirmation.");
-    resetForm();
+    console.log("API Response:", response);
+
+    // // If successful, navigate to receipt page
+    if (response.status === "success") {
+      navigateTo({
+        path: "/book-a-session/receipt",
+        query: {
+          booking: response.data,
+        },
+      });
+    }
   } catch (error) {
-    console.error("Payment processing failed:", error);
-    alert("Payment processing failed. Please try again.");
+    console.error("Booking error:", error);
+    alert(
+      error.data?.message || "An error occurred while processing your booking"
+    );
   } finally {
     isProcessing.value = false;
   }
@@ -2123,7 +2209,9 @@ const generateReceiptNumber = () => {
 };
 
 const getBalanceAmount = () => {
-  const type = sessionTypes.find((t) => t.value === formData.value.sessionType);
+  const type = sessionTypes.value.find(
+    (t) => t.value === formData.value.sessionType
+  );
   return type ? type.price - type.deposit : 0;
 };
 
@@ -2161,39 +2249,12 @@ const closeReceipt = () => {
   currentStep.value = 1;
 };
 
-// Music player state
-const isMusicPlaying = ref(false);
-const audioPlayer = ref(null);
-
-// Toggle music playback
-const toggleMusic = () => {
-  if (!audioPlayer.value) return;
-
-  if (isMusicPlaying.value) {
-    audioPlayer.value.pause();
-  } else {
-    audioPlayer.value.play();
-  }
-  isMusicPlaying.value = !isMusicPlaying.value;
-};
-
-// Add function to get event count for a date
-function getEventCount(date) {
-  // This is a mock function - replace with actual event counting logic
-  const dateObj = new Date(date);
-  const day = dateObj.getDate();
-
-  // For demo purposes, generate random number of events (2-8) for each date
-  // In production, this should come from your backend
-  return Math.floor(Math.random() * 7) + 2;
-}
-
 // Add new refs and functions for slide dates
 const slideDates = (direction) => {
   if (!dateScrollContainer.value) return;
 
   const container = dateScrollContainer.value;
-  const scrollAmount = 240; // 2 cards (120px width + 16px gap)
+  const scrollAmount = 336; // 3 cards (100px width + 16px gap per card)
 
   if (direction === "prev") {
     container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
@@ -2230,47 +2291,43 @@ const scrollToSelectedDate = () => {
 
 // Update the scrollToDate function
 const scrollToDate = (date) => {
-  if (!date) return;
+  if (!date || !dateScrollContainer.value) return;
 
-  // Use nextTick to ensure DOM is updated
   nextTick(() => {
-    // Double check if container exists after DOM update
-    if (!dateScrollContainer.value) return;
+    const dateButton = dateScrollContainer.value.querySelector(
+      `[data-date="${date}"]`
+    );
 
-    // Add a small delay to ensure the DOM is fully rendered
-    setTimeout(() => {
-      const dateButton = dateScrollContainer.value.querySelector(
-        `[data-date="${date}"]`
-      );
-
-      if (dateButton) {
-        // Calculate scroll position to center the element
+    if (dateButton) {
+      const weekCard = dateButton.closest(".week-card");
+      if (weekCard) {
         const container = dateScrollContainer.value;
         const scrollLeft =
-          dateButton.offsetLeft -
+          weekCard.offsetLeft -
           container.clientWidth / 2 +
-          dateButton.clientWidth / 2;
+          weekCard.clientWidth / 2;
 
-        // Smooth scroll to the position
         container.scrollTo({
           left: Math.max(0, scrollLeft),
           behavior: "smooth",
         });
       }
-    }, 50); // Small delay for DOM rendering
+    }
   });
 };
 
 // Selected theme
 const selectedTheme = computed(() => {
-  return sessionTypes.find((type) => type.value === formData.value.sessionType);
+  return sessionTypes.value.find(
+    (type) => type.id === formData.value.sessionType
+  );
 });
 
 // Add a watch to reset customNumberOfPax when numberOfPax changes
 watch(
   () => formData.value.numberOfPax,
   (newValue) => {
-    if (newValue !== "11") {
+    if (newValue !== "more") {
       formData.value.customNumberOfPax = "";
       errors.value.customNumberOfPax = "";
     }
@@ -2279,16 +2336,20 @@ watch(
 
 // Add function to handle add-on selection
 const selectAddOn = (value) => {
-  const addon = addOns.find((a) => a.value === value);
-  if (addon && addon.available) {
+  const addon = addOns.value.find((a) => a.id === value);
+  if (addon && addon.status == 1) {
+    // Changed from addon.available to addon.status == 1
     formData.value.addOn = formData.value.addOn === value ? "" : value;
   }
 };
 
 // Add a computed property to display the number of persons
 const displayNumberOfPax = computed(() => {
-  if (formData.value.numberOfPax === "11") {
-    return `${formData.value.customNumberOfPax} persons`;
+  if (formData.value.numberOfPax === "more") {
+    const baseNumber = 10;
+    const extraPersons = parseInt(formData.value.customNumberOfPax) || 0;
+    const totalPersons = baseNumber + extraPersons;
+    return `${totalPersons} persons (10 + ${extraPersons})`;
   } else {
     return `${formData.value.numberOfPax} persons`;
   }
@@ -2297,22 +2358,22 @@ const displayNumberOfPax = computed(() => {
 // Add a computed property to calculate the total amount
 const totalAmount = computed(() => {
   const basePrice =
-    sessionTypes.find((t) => t.value === formData.value.sessionType)?.price ||
-    0;
+    sessionTypes.value.find((t) => t.id === formData.value.sessionType)
+      ?.price || 0;
   const addonPrice =
-    addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+    addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
 
   return parseFloat(basePrice) + parseFloat(addonPrice);
 });
 
 // Add a computed property to calculate the balance amount
 const balanceAmount = computed(() => {
-  const selectedType = sessionTypes.find(
-    (t) => t.value === formData.value.sessionType
+  const selectedType = sessionTypes.value.find(
+    (t) => t.id === formData.value.sessionType
   );
   const basePrice = selectedType?.price || 0;
   const addonPrice =
-    addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+    addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
   const total = basePrice + addonPrice;
   const deposit = selectedType?.deposit || 0;
   return formatPrice(total - deposit);
@@ -2320,21 +2381,21 @@ const balanceAmount = computed(() => {
 
 // Add a computed property to get the selected add-on
 const selectedAddOn = computed(() => {
-  return addOns.find((a) => a.value === formData.value.addOn);
+  return addOns.value.find((a) => a.id === formData.value.addOn);
 });
 
 const amountToPay = computed(() => {
   if (formData.value.paymentType === "deposit") {
-    const selectedType = sessionTypes.find(
-      (t) => t.value === formData.value.sessionType
+    const selectedType = sessionTypes.value.find(
+      (t) => t.id === formData.value.sessionType
     );
     return formatPrice(selectedType?.deposit || 0);
   } else {
     const basePrice =
-      sessionTypes.find((t) => t.value === formData.value.sessionType)?.price ||
-      0;
+      sessionTypes.value.find((t) => t.id === formData.value.sessionType)
+        ?.price || 0;
     const addonPrice =
-      addOns.find((a) => a.value === formData.value.addOn)?.price || 0;
+      addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
     return formatPrice(basePrice + addonPrice);
   }
 });
