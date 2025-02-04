@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/**/*.ts": {
+    "server/api/**/*": {
       "maxDuration": 60
     }
   },
@@ -13,6 +13,18 @@
           "value": "public, max-age=0, must-revalidate"
         }
       ]
+    }
+  ],
+  "builds": [
+    {
+      "src": "nuxt.config.ts",
+      "use": "@nuxtjs/vercel-builder"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server/api/$1"
     }
   ]
 } 

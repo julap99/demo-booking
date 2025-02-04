@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@nuxtjs/vercel-builder": "^0.25.0",
     "@types/node": "^20.10.6",
     "@vite-pwa/nuxt": "^0.10.6",
     "autoprefixer": "^10.4.16",
