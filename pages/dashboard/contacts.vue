@@ -132,9 +132,9 @@ const openDetailsModal = (contact) => {
     </div>
 
     <!-- Main Content Area -->
-    <div class="bg-white shadow-sm rounded-lg">
+    <div class="bg-white shadow-sm rounded-lg mt-5">
       <!-- Search -->
-      <div class="bg-white rounded-lg shadow-sm">
+      <div class="bg-[var(--color-bg-secondary)] rounded-lg shadow-sm">
         <div class="p-4 border-b border-gray-200">
           <div
             class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0"
@@ -201,11 +201,11 @@ const openDetailsModal = (contact) => {
           <div v-for="i in 5" :key="i" class="animate-pulse">
             <div class="flex items-center space-x-4">
               <div class="flex-1">
-                <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                <div class="h-4 bg-[var(--color-bg-secondary)] rounded w-1/4 mb-2"></div>
+                <div class="h-3 bg-[var(--color-bg-secondary)] rounded w-1/3"></div>
               </div>
               <div class="w-24">
-                <div class="h-6 bg-gray-200 rounded"></div>
+                <div class="h-6 bg-[var(--color-bg-secondary)] rounded"></div>
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ const openDetailsModal = (contact) => {
         class="px-4 py-12 sm:px-6 text-center"
       >
         <svg
-          class="mx-auto h-12 w-12 text-gray-400"
+          class="mx-auto h-12 w-12 text-[var(--color-text-secondary)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -230,10 +230,10 @@ const openDetailsModal = (contact) => {
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
           />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">
+        <h3 class="mt-2 text-sm font-medium text-[var(--color-text-primary)]">
           No contacts found
         </h3>
-        <p class="mt-1 text-sm text-gray-500">
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
           {{
             search
               ? "Try adjusting your search terms"
@@ -245,13 +245,13 @@ const openDetailsModal = (contact) => {
       <!-- Contacts Table -->
       <div v-else>
         <!-- Table Header with Page Size Selector -->
-        <div class="px-6 py-4 border-b border-gray-200 bg-[#F5E6E0]">
+        <div class="px-6 py-4 border-b  bg-white">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">Show</span>
+              <span class="text-sm text-[var(--color-text-secondary)]">Show</span>
               <select
                 v-model="itemsPerPage"
-                class="rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
+                class="rounded-lg border-[var(--color-border-secondary)] focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
               >
                 <option
                   v-for="size in pageSizeOptions"
@@ -261,9 +261,9 @@ const openDetailsModal = (contact) => {
                   {{ size }}
                 </option>
               </select>
-              <span class="text-sm text-gray-500">entries</span>
+              <span class="text-sm text-[var(--color-text-secondary)]">entries</span>
             </div>
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-[var(--color-text-secondary)]">
               Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
               {{
                 Math.min(currentPage * itemsPerPage, filteredContacts.length)
@@ -275,164 +275,113 @@ const openDetailsModal = (contact) => {
 
         <!-- Table Content -->
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
+          <table class="min-w-full divide-y divide-[var(--color-border-secondary)]">
             <thead>
-              <tr class="bg-[#F5E6E0]">
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  No
+              <tr class="bg-white">
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">No</span>
+                  </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Contact Info
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Contact Info</span>
+                  </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Bookings
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Bookings</span>
+                  </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Action
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Actions</span>
+                  </div>
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
+            <tbody class="divide-y divide-[var(--color-border-secondary)] bg-white">
               <tr
                 v-for="(contact, index) in paginatedContacts"
                 :key="contact.id"
-                class="hover:bg-[#F5E6E0]/30 transition-colors duration-150"
+                class="group hover:bg-[var(--color-bg-secondary)] transition-colors duration-150"
               >
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#3C2A21]"
-                >
-                  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-[var(--color-text-primary)]">
+                    {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div
-                      class="h-8 w-8 flex-shrink-0 rounded-full bg-[#785340] flex items-center justify-center"
-                    >
-                      <span class="text-sm font-medium text-white">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full bg-[var(--color-bg-primary)] bg-opacity-10 flex items-center justify-center">
+                      <span class="text-sm font-medium text-[var(--color-text-primary)]">
                         {{ contact.name.charAt(0) }}
                       </span>
                     </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-[#3C2A21]">
+                    <div>
+                      <div class="text-sm font-medium text-[var(--color-text-primary)]">
                         {{ contact.name }}
                       </div>
-                      <div class="text-xs text-gray-500">
+                      <div class="text-sm text-[var(--color-text-secondary)]">
                         {{ contact.email }}
                       </div>
-                      <div class="text-xs text-gray-500">
+                      <div class="text-sm text-[var(--color-text-secondary)]">
                         {{ contact.phone }}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-900 max-w-md">
-                    Total Bookings: {{ contact.total_bookings }}
-                    <br />
-                    Paid: {{ contact.paid_bookings }}
-                    <br />
-                    Pending: {{ contact.pending_bookings }}
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-[var(--color-text-secondary)]">Total:</span>
+                      <span class="text-sm font-medium text-[var(--color-text-primary)]">{{ contact.total_bookings }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-[var(--color-text-secondary)]">Paid:</span>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {{ contact.paid_bookings }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-[var(--color-text-secondary)]">Pending:</span>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {{ contact.pending_bookings }}
+                      </span>
+                    </div>
                   </div>
                 </td>
-
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center space-x-4">
-                    <!-- Detail Icon -->
+                  <div class="flex items-center gap-3">
                     <button
-                      class="text-[#3C2A21] hover:text-[#5C4033] transition-colors group relative"
-                      title="View Details"
                       @click="openDetailsModal(contact)"
+                      class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                      title="View Details"
                     >
-                      <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      <span
-                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                      >
-                        View Details
-                      </span>
                     </button>
-
-                    <!-- Email Icon -->
                     <a
                       :href="'mailto:' + contact.email"
-                      class="text-[#3C2A21] hover:text-[#5C4033] transition-colors group relative"
+                      class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                       title="Send Email"
                     >
-                      <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      <span
-                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                      >
-                        Send Email
-                      </span>
                     </a>
-
-                    <!-- WhatsApp Icon -->
                     <a
                       :href="'https://wa.me/' + contact.phone?.replace(/\D/g, '')"
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="text-[#3C2A21] hover:text-[#5C4033] transition-colors group relative"
+                      class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                       title="Send WhatsApp Message"
                     >
-                      <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"
-                        />
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
                       </svg>
-                      <span
-                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                      >
-                        Send WhatsApp Message
-                      </span>
                     </a>
                   </div>
                 </td>
@@ -442,13 +391,13 @@ const openDetailsModal = (contact) => {
         </div>
 
         <!-- Pagination Controls -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-[#F5E6E0]">
+        <div class="px-6 py-4 border-t border-[var(--color-border-secondary)] bg-white">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <button
                 @click="handlePageChange(currentPage - 1)"
                 :disabled="currentPage === 1"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center px-3 py-2 border border-[var(--color-border-secondary)] shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -459,8 +408,8 @@ const openDetailsModal = (contact) => {
                     :class="[
                       'px-3 py-2 text-sm font-medium rounded-lg',
                       currentPage === page
-                        ? 'bg-[#785340] text-white'
-                        : 'text-gray-700 hover:bg-[#F5E6E0]',
+                        ? 'bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]'
+                        : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]',
                     ]"
                   >
                     {{ page }}
@@ -470,7 +419,7 @@ const openDetailsModal = (contact) => {
               <button
                 @click="handlePageChange(currentPage + 1)"
                 :disabled="currentPage === totalPages"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center px-3 py-2 border border-[var(--color-border-secondary)] shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -488,11 +437,11 @@ const openDetailsModal = (contact) => {
     >
       <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 overflow-hidden">
         <!-- Modal Header -->
-        <div class="px-6 py-4 bg-[#F5E6E0] flex items-center justify-between">
-          <h3 class="text-lg font-medium text-[#3C2A21]">Contact Details</h3>
+        <div class="px-6 py-4 bg-[var(--color-bg-secondary)] flex items-center justify-between">
+          <h3 class="text-lg font-medium text-[var(--color-text-primary)]">Contact Details</h3>
           <button
             @click="showDetailsModal = false"
-            class="text-[#3C2A21] hover:text-[#5C4033] transition-colors"
+            class="text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] transition-colors"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -552,7 +501,7 @@ const openDetailsModal = (contact) => {
                 <span
                   v-for="theme in selectedContact?.themes?.split(',')"
                   :key="theme"
-                  class="px-3 py-1 rounded-full text-xs font-medium bg-[#F5E6E0] text-[#3C2A21]"
+                  class="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]"
                 >
                   {{ theme }}
                 </span>
@@ -565,7 +514,7 @@ const openDetailsModal = (contact) => {
         <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
           <a
             :href="'mailto:' + selectedContact?.email"
-            class="inline-flex items-center px-4 py-2 border border-[#785340] text-sm font-medium rounded-md text-[#785340] bg-white hover:bg-[#785340] hover:text-white transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-[var(--color-bg-secondary)] text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-secondary)] transition-colors"
           >
             Send Email
           </a>
@@ -573,7 +522,7 @@ const openDetailsModal = (contact) => {
             :href="'https://wa.me/' + selectedContact?.phone?.replace(/\D/g, '')"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#785340] hover:bg-[#5C4033] transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-primary)] transition-colors"
           >
             WhatsApp
           </a>

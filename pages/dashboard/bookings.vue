@@ -14,9 +14,9 @@ const pageSizeOptions = [5, 10, 25, 50];
 // Stats computed properties
 const stats = computed(() => ({
   total: bookings.value.length,
-  pending: bookings.value.filter((b) => b.status === "Pending").length,
-  confirmed: bookings.value.filter((b) => b.status === "Confirmed").length,
-  revenue: bookings.value.reduce((sum, b) => sum + b.price, 0),
+  pending: bookings.value.filter((b) => b.status === 1).length,
+  confirmed: bookings.value.filter((b) => b.status === 2 || b.status === 3).length,
+  revenue: bookings.value.reduce((sum, b) => sum + b.payment_amount, 0),
 }));
 
 // Search and filter states
@@ -57,17 +57,13 @@ const statusMap = {
 
 const statuses = [
   { value: "all", label: "All Statuses" },
-  { value: "Pending", label: "Payment Pending" },
-  { value: "Partial", label: "Partial Payment" },
-  { value: "Paid", label: "Paid" },
-  { value: "Completed", label: "Session Completed" },
+  { value: 1, label: "Payment Pending" },
+  { value: 2, label: "Partial Payment" },
+  { value: 3, label: "Paid" },
 ];
 
-const services = [
-  { value: "all", label: "All Themes" },
-  { value: "Theme A", label: "Theme A" },
-  { value: "Theme B", label: "Theme B" },
-];
+// Replace the services constant with a ref
+const services = ref([{ value: "all", label: "All Themes" }]);
 
 // Add sorting state
 const sortBy = ref("created_date");
@@ -90,17 +86,17 @@ const filteredBookings = computed(() => {
       );
 
     // Status match with mapping
-    const bookingStatus = statusMap[booking.status] || "Unknown";
     const statusMatch =
-      statusFilter.value === "all" || bookingStatus === statusFilter.value;
+      statusFilter.value === "all" || booking.status === statusFilter.value;
 
-    // Service match
+    // Service match using theme_title
     const serviceMatch =
-      serviceFilter.value === "all" || booking.theme === serviceFilter.value;
+      serviceFilter.value === "all" ||
+      booking.theme_title === serviceFilter.value;
 
-    // Enhanced date match with proper date comparison
-    const bookingDate = booking.created_date
-      ? new Date(booking.created_date)
+    // Date match using session_date
+    const sessionDate = booking.session_date
+      ? new Date(booking.session_date)
       : null;
     const startDate = dateRange.value.start
       ? new Date(dateRange.value.start)
@@ -108,9 +104,9 @@ const filteredBookings = computed(() => {
     const endDate = dateRange.value.end ? new Date(dateRange.value.end) : null;
 
     const dateMatch =
-      !bookingDate || // If no booking date, include it
-      ((!startDate || bookingDate >= startDate) &&
-        (!endDate || bookingDate <= endDate));
+      !sessionDate || // If no session date, include it
+      ((!startDate || sessionDate >= startDate) &&
+        (!endDate || sessionDate <= endDate));
 
     return searchMatch && statusMatch && serviceMatch && dateMatch;
   });
@@ -121,13 +117,11 @@ const filteredBookings = computed(() => {
 
     switch (sortBy.value) {
       case "payment_status":
-        // Compare payment status using the statusMap
         comparison = (statusMap.payment[a.status] || "").localeCompare(
           statusMap.payment[b.status] || ""
         );
         break;
       case "session_status":
-        // Compare session status using the statusMap
         comparison = (statusMap.session[a.session_status] || "").localeCompare(
           statusMap.session[b.session_status] || ""
         );
@@ -136,11 +130,9 @@ const filteredBookings = computed(() => {
         comparison = new Date(a.created_date) - new Date(b.created_date);
         break;
       case "session":
-        // Compare session dates, if dates are equal then compare times
         const aDate = new Date(a.session_date);
         const bDate = new Date(b.session_date);
         if (aDate.getTime() === bDate.getTime()) {
-          // If dates are equal, compare times
           const [aHours, aMinutes] = a.session_time.split(":").map(Number);
           const [bHours, bMinutes] = b.session_time.split(":").map(Number);
           comparison = aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
@@ -244,7 +236,11 @@ const formatDate = (date) => {
 };
 
 const formatTime = (time) => {
-  return time.split(":").slice(0, 2).join(":");
+  // IN 12 HOUR FORMAT
+  const [hours, minutes] = time.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12;
+  return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
 // Modal state
@@ -277,10 +273,19 @@ const getBookings = async () => {
   isLoading.value = true;
   try {
     const resp = await $fetch("/api/booking/get-bookings");
-
-    console.log("resp:", resp);
-
     bookings.value = resp;
+
+    // Extract unique themes from bookings and update services
+    const uniqueThemes = [
+      ...new Set(bookings.value.map((booking) => booking.theme_title)),
+    ];
+    services.value = [
+      { value: "all", label: "All Themes" },
+      ...uniqueThemes.map((theme) => ({
+        value: theme,
+        label: theme,
+      })),
+    ];
   } catch (error) {
     console.error("Error fetching bookings:", error);
   } finally {
@@ -470,9 +475,9 @@ const isRescheduling = ref(false);
 
 // Add confirmation modal state
 const showConfirmationModal = ref(false);
-const confirmationMessage = ref('');
+const confirmationMessage = ref("");
 const confirmationAction = ref(() => {});
-const confirmationTitle = ref('');
+const confirmationTitle = ref("");
 
 // Function to show confirmation modal
 const showConfirmation = (title, message, action) => {
@@ -490,8 +495,8 @@ const rescheduleSession = async () => {
   }
 
   showConfirmation(
-    'Confirm Reschedule',
-    'Are you sure you want to reschedule this session?',
+    "Confirm Reschedule",
+    "Are you sure you want to reschedule this session?",
     async () => {
       isRescheduling.value = true;
       try {
@@ -529,25 +534,25 @@ const rescheduleSession = async () => {
 // Update markAsPaid function
 const markAsPaid = async (bookingId) => {
   showConfirmation(
-    'Confirm Payment',
-    'Are you sure you want to mark this booking as paid?',
+    "Confirm Payment",
+    "Are you sure you want to mark this booking as paid?",
     async () => {
       isMarkingAsPaid.value = true;
       try {
         const response = await $fetch(`/api/booking/mark-paid/${bookingId}`, {
-          method: 'PUT'
+          method: "PUT",
         });
 
         if (response.success) {
           selectedBooking.value.status = 3; // Set status to paid
-          alert('Booking has been marked as paid successfully');
+          alert("Booking has been marked as paid successfully");
           getBookings(); // Refresh the bookings list
         } else {
-          throw new Error('Failed to mark booking as paid');
+          throw new Error("Failed to mark booking as paid");
         }
       } catch (error) {
-        console.error('Error marking booking as paid:', error);
-        alert('Failed to mark booking as paid. Please try again.');
+        console.error("Error marking booking as paid:", error);
+        alert("Failed to mark booking as paid. Please try again.");
       } finally {
         isMarkingAsPaid.value = false;
         showConfirmationModal.value = false;
@@ -559,26 +564,26 @@ const markAsPaid = async (bookingId) => {
 // Update cancelBooking function
 const cancelBooking = async (bookingId) => {
   showConfirmation(
-    'Confirm Cancellation',
-    'Are you sure you want to cancel this booking? This action cannot be undone.',
+    "Confirm Cancellation",
+    "Are you sure you want to cancel this booking? This action cannot be undone.",
     async () => {
       isCancelling.value = true;
       try {
         const response = await $fetch(`/api/booking/cancel/${bookingId}`, {
-          method: 'PUT'
+          method: "PUT",
         });
 
         if (response.success) {
           selectedBooking.value.status = 3; // Set status to cancelled
           showModal.value = false;
-          alert('Booking has been cancelled successfully');
+          alert("Booking has been cancelled successfully");
           getBookings(); // Refresh the bookings list
         } else {
-          throw new Error('Failed to cancel booking');
+          throw new Error("Failed to cancel booking");
         }
       } catch (error) {
-        console.error('Error cancelling booking:', error);
-        alert('Failed to cancel booking. Please try again.');
+        console.error("Error cancelling booking:", error);
+        alert("Failed to cancel booking. Please try again.");
       } finally {
         isCancelling.value = false;
         showConfirmationModal.value = false;
@@ -597,7 +602,9 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Booking Management</h1>
+        <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+          Booking Management
+        </h1>
         <p class="mt-1 text-sm text-[var(--color-text-primary)]">
           View and manage all photography session bookings
         </p>
@@ -607,7 +614,7 @@ onMounted(() => {
     <!-- Loading State for Stats -->
     <div
       v-if="isLoading"
-      class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+      class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-4"
     >
       <div
         v-for="i in 4"
@@ -616,9 +623,13 @@ onMounted(() => {
       >
         <div class="p-5">
           <div class="flex items-center space-x-4">
-            <div class="w-8 h-8 bg-[var(--color-bg-primary)] rounded-full"></div>
+            <div
+              class="w-8 h-8 bg-[var(--color-bg-primary)] rounded-full"
+            ></div>
             <div class="flex-1">
-              <div class="h-4 bg-[var(--color-bg-primary)] rounded w-1/2 mb-2"></div>
+              <div
+                class="h-4 bg-[var(--color-bg-primary)] rounded w-1/2 mb-2"
+              ></div>
               <div class="h-6 bg-[var(--color-bg-primary)] rounded w-1/4"></div>
             </div>
           </div>
@@ -627,33 +638,44 @@ onMounted(() => {
     </div>
 
     <!-- Stats Grid -->
-    <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 my-5">
-      <!-- Total Bookings -->
-      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
-        <div class="p-5">
+    <div
+      v-else
+      class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 my-5"
+    >
+      <div
+        class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-[var(--color-bg-primary)] to-[var(--color-bg-secondary)] opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+        ></div>
+        <div class="p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <svg
-                class="h-6 w-6 text-[var(--color-text-primary)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-12 h-12 bg-[var(--color-bg-primary)] bg-opacity-10 rounded-lg flex items-center justify-center"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  class="h-6 w-6 text-[var(--color-bg-secondary)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                <dt class="text-sm font-medium text-gray-500 truncate">
                   Total Bookings
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
+                  <div class="text-2xl font-bold text-gray-900">
                     {{ stats.total }}
                   </div>
                 </dd>
@@ -663,32 +685,40 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Pending Bookings -->
-      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
-        <div class="p-5">
+      <div
+        class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-yellow-500 to-yellow-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+        ></div>
+        <div class="p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <svg
-                class="h-6 w-6 text-[var(--color-text-primary)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  class="h-6 w-6 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
-                  Pending Bookings
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Pending
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
+                  <div class="text-2xl font-bold text-gray-900">
                     {{ stats.pending }}
                   </div>
                 </dd>
@@ -698,32 +728,40 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Confirmed Bookings -->
-      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
-        <div class="p-5">
+      <div
+        class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+        ></div>
+        <div class="p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <svg
-                class="h-6 w-6 text-[var(--color-text-primary)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  class="h-6 w-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
-                  Confirmed Bookings
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Confirmed
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
+                  <div class="text-2xl font-bold text-gray-900">
                     {{ stats.confirmed }}
                   </div>
                 </dd>
@@ -733,32 +771,40 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Total Revenue -->
-      <div class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg">
-        <div class="p-5">
+      <div
+        class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+        ></div>
+        <div class="p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <svg
-                class="h-6 w-6 text-[var(--color-text-primary)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+                <svg
+                  class="h-6 w-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
             </div>
             <div class="ml-5 w-0 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                <dt class="text-sm font-medium text-gray-500 truncate">
                   Total Revenue
                 </dt>
                 <dd class="flex items-baseline">
-                  <div class="text-2xl font-semibold text-[var(--color-text-primary)]">
+                  <div class="text-2xl font-bold text-gray-900">
                     {{ formatCurrency(stats.revenue) }}
                   </div>
                 </dd>
@@ -774,7 +820,7 @@ onMounted(() => {
       <!-- Search and Filters -->
       <div class="bg-[var(--color-bg-secondary)] rounded-lg shadow-sm">
         <!-- Quick Search and Filter Toggle -->
-        <div class="p-4 border-b border-[var(--color-border-primary)]">
+        <div class="p-4 border-b border-[var(--color-border-secondary)]">
           <div
             class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0"
           >
@@ -801,7 +847,7 @@ onMounted(() => {
                   type="text"
                   v-model="search"
                   placeholder="Search by name, email, or phone..."
-                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
+                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
                 />
                 <div
                   v-if="isSearching"
@@ -833,7 +879,7 @@ onMounted(() => {
             <div class="flex items-center space-x-4">
               <button
                 @click="showFilters = !showFilters"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340]"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
               >
                 <svg
                   class="h-4 w-4 mr-2"
@@ -851,7 +897,7 @@ onMounted(() => {
                 {{ showFilters ? "Hide Filters" : "Show Filters" }}
                 <span
                   v-if="activeFiltersCount > 0"
-                  class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#785340] text-white"
+                  class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
                 >
                   {{ activeFiltersCount }}
                 </span>
@@ -859,7 +905,7 @@ onMounted(() => {
               <button
                 v-if="activeFiltersCount > 0"
                 @click="clearFilters"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340]"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
               >
                 Clear Filters
               </button>
@@ -870,18 +916,19 @@ onMounted(() => {
         <!-- Advanced Filters -->
         <div
           v-show="showFilters"
-          class="p-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]"
+          class="p-4 border-b border-[var(--color-border-secondary)] bg-[var(--color-bg-secondary)]"
         >
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Status Filter -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+              <label
+                class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
                 >Status</label
               >
               <div class="relative">
                 <select
                   v-model="statusFilter"
-                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[#785340] focus:border-[#785340] transition-colors hover:border-[#785340]"
+                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
                 >
                   <option
                     v-for="status in statuses"
@@ -917,7 +964,7 @@ onMounted(() => {
               <div class="relative">
                 <select
                   v-model="serviceFilter"
-                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[#785340] focus:border-[#785340] transition-colors hover:border-[#785340]"
+                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
                 >
                   <option
                     v-for="service in services"
@@ -948,7 +995,7 @@ onMounted(() => {
             <!-- Date Range -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-[#3C2A21] mb-1"
-                >Date Range</label
+                >Session Date Range</label
               >
               <div class="grid grid-cols-2 gap-3">
                 <div class="relative">
@@ -1020,9 +1067,13 @@ onMounted(() => {
             <div class="flex flex-wrap gap-2">
               <span
                 v-if="statusFilter !== 'all'"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#785340] text-white"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
               >
-                Status: {{ statusFilter }}
+                Status:
+                {{
+                  statuses.find((s) => s.value === statusFilter)?.label ||
+                  statusFilter
+                }}
                 <button
                   @click="statusFilter = 'all'"
                   class="ml-1 hover:text-gray-200"
@@ -1044,7 +1095,7 @@ onMounted(() => {
               </span>
               <span
                 v-if="serviceFilter !== 'all'"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#785340] text-white"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
               >
                 Theme: {{ serviceFilter }}
                 <button
@@ -1068,7 +1119,7 @@ onMounted(() => {
               </span>
               <span
                 v-if="dateRange.start || dateRange.end"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#785340] text-white"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
               >
                 Date: {{ dateRange.start || "Any" }} -
                 {{ dateRange.end || "Any" }}
@@ -1099,19 +1150,156 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Loading State for Table -->
-      <div v-if="isLoading" class="px-4 py-5 sm:p-6">
-        <div class="space-y-4">
-          <div v-for="i in 5" :key="i" class="animate-pulse">
-            <div class="flex items-center space-x-4">
-              <div class="flex-1">
-                <div class="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-1/3"></div>
-              </div>
-              <div class="w-24">
-                <div class="h-6 bg-gray-200 rounded"></div>
+      <!-- Loading State -->
+      <div
+        v-if="isLoading"
+        class="bg-white rounded-lg shadow-sm overflow-hidden space-y-4"
+      >
+        <!-- Skeleton Header -->
+        <div class="p-4 md:p-6 bg-white border-b border-gray-200">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+          >
+            <div class="flex items-center space-x-2">
+              <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div class="h-9 w-16 bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+            <div class="h-5 w-64 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton Table -->
+        <div class="hidden md:block mt-4">
+          <div class="min-w-full divide-y divide-gray-200">
+            <!-- Skeleton Header -->
+            <div class="bg-gray-50">
+              <div class="grid grid-cols-5 px-6 py-4">
+                <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
               </div>
             </div>
+
+            <!-- Skeleton Rows -->
+            <div class="bg-white divide-y divide-gray-200">
+              <div v-for="i in itemsPerPage" :key="i" class="group">
+                <div class="grid grid-cols-5 px-6 py-4">
+                  <!-- Customer Column -->
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"
+                    ></div>
+                    <div class="space-y-2">
+                      <div
+                        class="h-4 w-32 bg-gray-200 rounded animate-pulse"
+                      ></div>
+                      <div
+                        class="h-3 w-48 bg-gray-200 rounded animate-pulse"
+                      ></div>
+                    </div>
+                  </div>
+                  <!-- Theme Column -->
+                  <div class="flex items-center">
+                    <div
+                      class="h-6 w-24 bg-gray-200 rounded-full animate-pulse"
+                    ></div>
+                  </div>
+                  <!-- Status Column -->
+                  <div class="flex items-center">
+                    <div
+                      class="h-6 w-20 bg-gray-200 rounded-full animate-pulse"
+                    ></div>
+                  </div>
+                  <!-- Session Column -->
+                  <div class="space-y-2">
+                    <div
+                      class="h-4 w-32 bg-gray-200 rounded animate-pulse"
+                    ></div>
+                    <div
+                      class="h-3 w-24 bg-gray-200 rounded animate-pulse"
+                    ></div>
+                  </div>
+                  <!-- Actions Column -->
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="h-8 w-8 bg-gray-200 rounded animate-pulse"
+                    ></div>
+                    <div
+                      class="h-8 w-8 bg-gray-200 rounded animate-pulse"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Mobile View -->
+        <div class="md:hidden divide-y divide-gray-200 mt-4">
+          <div v-for="i in itemsPerPage" :key="i" class="p-4 space-y-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 rounded-full bg-gray-200 animate-pulse"
+                ></div>
+                <div class="space-y-2">
+                  <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  <div class="h-3 w-48 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div
+                class="h-6 w-20 bg-gray-200 rounded-full animate-pulse"
+              ></div>
+            </div>
+
+            <!-- Details -->
+            <div
+              class="grid grid-cols-2 gap-4 py-3 border-t border-b border-gray-100"
+            >
+              <div class="space-y-2">
+                <div class="h-3 w-12 bg-gray-200 rounded animate-pulse"></div>
+                <div
+                  class="h-6 w-24 bg-gray-200 rounded-full animate-pulse"
+                ></div>
+              </div>
+              <div class="space-y-2">
+                <div class="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div class="space-y-2">
+                <div class="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-3">
+              <div class="h-9 w-28 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div class="h-9 w-28 bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skeleton Pagination -->
+        <div class="px-4 py-3 md:px-6 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div class="hidden md:flex items-center gap-2">
+                <div
+                  v-for="i in 3"
+                  :key="i"
+                  class="h-9 w-9 bg-gray-200 rounded-lg animate-pulse"
+                ></div>
+              </div>
+              <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+            <div
+              class="md:hidden h-5 w-32 bg-gray-200 rounded animate-pulse"
+            ></div>
           </div>
         </div>
       </div>
@@ -1119,7 +1307,7 @@ onMounted(() => {
       <!-- Empty State -->
       <div
         v-else-if="!isLoading && filteredBookings.length === 0"
-        class="px-4 py-12 sm:px-6 text-center"
+        class="px-4 py-12 sm:px-6 text-center bg-white rounded-lg shadow-sm"
       >
         <svg
           class="mx-auto h-12 w-12 text-gray-400"
@@ -1159,7 +1347,7 @@ onMounted(() => {
               dateRange.start ||
               dateRange.end
             "
-            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#785340] hover:bg-[#5C4132] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340]"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
           >
             Clear filters
           </button>
@@ -1167,15 +1355,18 @@ onMounted(() => {
       </div>
 
       <!-- Bookings Table -->
-      <div v-else>
-        <!-- Table Header with Page Size Selector -->
-        <div class="px-6 py-4 border-b border-gray-200 bg-[#F5E6E0]">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">Show</span>
+      <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Table Header -->
+        <div class="p-4 md:p-6 bg-white border-b border-gray-200">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+          >
+            <!-- Left side -->
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+              <span>Show</span>
               <select
                 v-model="itemsPerPage"
-                class="rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
+                class="form-select rounded-lg border-gray-200 text-gray-700 sm:text-sm focus:border-[var(--color-bg-primary)] focus:ring focus:ring-[var(--color-bg-primary)] focus:ring-opacity-50"
               >
                 <option
                   v-for="size in pageSizeOptions"
@@ -1185,381 +1376,229 @@ onMounted(() => {
                   {{ size }}
                 </option>
               </select>
-              <span class="text-sm text-gray-500">entries</span>
+              <span>entries</span>
             </div>
+
+            <!-- Right side -->
             <div class="text-sm text-gray-500">
-              Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-              {{
+              Showing
+              <span class="font-medium text-gray-700">{{
+                (currentPage - 1) * itemsPerPage + 1
+              }}</span>
+              to
+              <span class="font-medium text-gray-700">{{
                 Math.min(currentPage * itemsPerPage, filteredBookings.length)
-              }}
-              of {{ filteredBookings.length }} entries
+              }}</span>
+              of
+              <span class="font-medium text-gray-700">{{
+                filteredBookings.length
+              }}</span>
+              entries
             </div>
           </div>
         </div>
 
-        <!-- Table Content -->
-        <div class="overflow-x-auto">
+        <!-- Desktop View -->
+        <div class="hidden md:block">
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
-              <tr class="bg-[#F5E6E0]">
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  No
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Customer
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Theme
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
-                  @click="toggleSort('payment_status')"
-                >
-                  <div class="flex items-center">
-                    Payment Status
-                    <span class="ml-2">
-                      <svg
-                        :class="{
-                          'h-4 w-4 transition-transform': true,
-                          'transform rotate-180':
-                            sortBy === 'payment_status' && sortOrder === 'desc',
-                          'text-[#3C2A21]': sortBy === 'payment_status',
-                          'text-gray-400 group-hover:text-[#3C2A21]':
-                            sortBy !== 'payment_status',
-                        }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    </span>
+              <tr class="bg-gray-50">
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Customer</span
+                    >
                   </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
-                  @click="toggleSort('session_status')"
-                >
-                  <div class="flex items-center">
-                    Session Status
-                    <span class="ml-2">
-                      <svg
-                        :class="{
-                          'h-4 w-4 transition-transform': true,
-                          'transform rotate-180':
-                            sortBy === 'session_status' && sortOrder === 'desc',
-                          'text-[#3C2A21]': sortBy === 'session_status',
-                          'text-gray-400 group-hover:text-[#3C2A21]':
-                            sortBy !== 'session_status',
-                        }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    </span>
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Theme</span
+                    >
                   </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
-                  @click="toggleSort('created_date')"
-                >
-                  <div class="flex items-center">
-                    Created
-                    <span class="ml-2">
-                      <svg
-                        :class="{
-                          'h-4 w-4 transition-transform': true,
-                          'transform rotate-180':
-                            sortBy === 'created_date' && sortOrder === 'desc',
-                          'text-[#3C2A21]': sortBy === 'created_date',
-                          'text-gray-400 group-hover:text-[#3C2A21]':
-                            sortBy !== 'created_date',
-                        }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    </span>
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div
+                    class="flex items-center gap-2 cursor-pointer group"
+                    @click="toggleSort('payment_status')"
+                  >
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Status</span
+                    >
+                    <svg
+                      :class="{
+                        'h-4 w-4 transition-transform': true,
+                        'rotate-180':
+                          sortBy === 'payment_status' && sortOrder === 'desc',
+                        'text-[var(--color-bg-primary)]':
+                          sortBy === 'payment_status',
+                        'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+                          sortBy !== 'payment_status',
+                      }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap cursor-pointer group"
-                  @click="toggleSort('session')"
-                >
-                  <div class="flex items-center">
-                    Session
-                    <span class="ml-2">
-                      <svg
-                        :class="{
-                          'h-4 w-4 transition-transform': true,
-                          'transform rotate-180':
-                            sortBy === 'session' && sortOrder === 'desc',
-                          'text-[#3C2A21]': sortBy === 'session',
-                          'text-gray-400 group-hover:text-[#3C2A21]':
-                            sortBy !== 'session',
-                        }"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    </span>
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div
+                    class="flex items-center gap-2 cursor-pointer group"
+                    @click="toggleSort('session')"
+                  >
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Session</span
+                    >
+                    <svg
+                      :class="{
+                        'h-4 w-4 transition-transform': true,
+                        'rotate-180':
+                          sortBy === 'session' && sortOrder === 'desc',
+                        'text-[var(--color-bg-primary)]': sortBy === 'session',
+                        'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+                          sortBy !== 'session',
+                      }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </div>
                 </th>
-                <th
-                  scope="col"
-                  class="px-6 py-4 text-left text-xs font-semibold text-[#3C2A21] uppercase tracking-wider whitespace-nowrap"
-                >
-                  Action
+                <th scope="col" class="px-6 py-4 text-left">
+                  <span
+                    class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >Actions</span
+                  >
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-200 bg-white">
               <tr
-                v-for="(booking, index) in paginatedBookings"
+                v-for="booking in paginatedBookings"
                 :key="booking.id"
-                class="hover:bg-[#F5E6E0]/30 transition-colors duration-150"
+                class="group hover:bg-gray-50 transition-colors duration-150"
               >
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#3C2A21]"
-                >
-                  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
+                  <div class="flex items-center gap-3">
                     <div
-                      class="h-8 w-8 flex-shrink-0 rounded-full bg-[#785340] flex items-center justify-center"
+                      class="w-10 h-10 flex-shrink-0 rounded-full bg-[var(--color-bg-primary)] bg-opacity-10 flex items-center justify-center"
                     >
-                      <span class="text-sm font-medium text-white">
+                      <span
+                        class="text-sm font-medium text-[var(--color-secondary)]"
+                      >
                         {{ booking.user_fullname.charAt(0) }}
                       </span>
                     </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-[#3C2A21]">
+                    <div>
+                      <div
+                        class="text-sm font-medium text-[var(--color-text-primary)] capitalize"
+                      >
                         {{ booking.user_fullname }}
                       </div>
-                      <div class="text-xs text-gray-500">
+                      <div class="text-sm text-[var(--color-text-secondary)]">
                         {{ booking.user_email }}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div
-                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F5E6E0] text-[#3C2A21]"
+                  <span
+                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] bg-opacity-10 text-[var(--color-primary)]"
                   >
-                    {{ booking.theme }}
-                  </div>
+                    {{ booking.theme_title }}
+                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="space-y-2">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-yellow-100 text-yellow-800': booking.status === 1,
+                      'bg-blue-100 text-blue-800': booking.status === 2,
+                      'bg-green-100 text-green-800': booking.status === 3,
+                    }"
+                  >
                     <span
-                      class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      class="w-1.5 h-1.5 rounded-full"
                       :class="{
-                        'bg-yellow-100 text-yellow-800': booking.status === 1,
-                        'bg-blue-100 text-blue-800': booking.status === 2,
-                        'bg-green-100 text-green-800': booking.status === 3,
+                        'bg-yellow-400': booking.status === 1,
+                        'bg-blue-400': booking.status === 2,
+                        'bg-green-400': booking.status === 3,
                       }"
-                    >
-                      <span class="flex items-center">
-                        <span
-                          class="h-1.5 w-1.5 rounded-full mr-1.5"
-                          :class="{
-                            'bg-yellow-500': booking.status === 1,
-                            'bg-blue-500': booking.status === 2,
-                            'bg-green-500': booking.status === 3,
-                          }"
-                        ></span>
-                        {{ statusMap.payment[booking.status] || "Unknown" }}
-                      </span>
-                    </span>
-                  </div>
+                    ></span>
+                    {{ statusMap.payment[booking.status] || "Unknown" }}
+                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="space-y-2">
-                    <span
-                      class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      :class="{
-                        'bg-yellow-100 text-yellow-800':
-                          booking.session_status === 1,
-                        'bg-green-100 text-green-800':
-                          booking.session_status === 2,
-                      }"
-                    >
-                      <span class="flex items-center">
-                        <span
-                          class="h-1.5 w-1.5 rounded-full mr-1.5"
-                          :class="{
-                            'bg-yellow-500': booking.session_status === 1,
-                            'bg-green-500': booking.session_status === 2,
-                          }"
-                        ></span>
-                        {{
-                          statusMap.session[booking.session_status] || "Unknown"
-                        }}
-                      </span>
-                    </span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-[#3C2A21]">
-                    {{ formatDate(booking.created_date) }}
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    {{ formatTime(booking.session_time) }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-[#3C2A21]">
+                  <div class="text-sm text-gray-900">
                     {{ formatDate(booking.session_date) }}
                   </div>
-                  <div class="text-xs text-gray-500">
+                  <div class="text-sm text-gray-500">
                     {{ formatTime(booking.session_time) }}
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center space-x-4">
+                  <div class="flex items-center gap-3">
                     <button
                       @click="openBookingDetails(booking)"
+                      class="text-gray-400 hover:text-[var(--color-bg-primary)] transition-colors"
                       :disabled="isLoadingDetails"
-                      class="text-[#3C2A21] hover:text-[#5C4033] transition-colors disabled:opacity-50 group relative"
-                      title="View Details"
                     >
-                      <template v-if="isLoadingDetails">
-                        <svg
-                          class="animate-spin h-5 w-5"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                          ></circle>
-                          <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      </template>
-                      <template v-else>
-                        <svg
-                          class="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        <span
-                          class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                        >
-                          View Details
-                        </span>
-                      </template>
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
                     </button>
                     <button
                       @click="generateAndSendReceipt(booking)"
+                      class="text-gray-400 hover:text-[var(--color-bg-primary)] transition-colors"
                       :disabled="isLoadingReceipt"
-                      class="text-[#3C2A21] hover:text-[#5C4033] transition-colors disabled:opacity-50 group relative"
-                      title="Generate & Send Receipt"
                     >
-                      <template v-if="isLoadingReceipt">
-                        <svg
-                          class="animate-spin h-5 w-5"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                          ></circle>
-                          <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      </template>
-                      <template v-else>
-                        <svg
-                          class="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span
-                          class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                        >
-                          Generate Receipt
-                        </span>
-                      </template>
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </td>
@@ -1568,26 +1607,165 @@ onMounted(() => {
           </table>
         </div>
 
-        <!-- Pagination Controls -->
-        <div class="px-6 py-4 border-t border-gray-200 bg-[#F5E6E0]">
+        <!-- Mobile View -->
+        <div class="md:hidden divide-y divide-gray-200">
+          <div
+            v-for="booking in paginatedBookings"
+            :key="booking.id"
+            class="p-4 space-y-4"
+          >
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 rounded-full bg-[var(--color-bg-primary)] bg-opacity-10 flex items-center justify-center"
+                >
+                  <span
+                    class="text-base font-medium text-[var(--color-bg-primary)]"
+                  >
+                    {{ booking.user_fullname.charAt(0) }}
+                  </span>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ booking.user_fullname }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ booking.user_email }}
+                  </div>
+                </div>
+              </div>
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                :class="{
+                  'bg-yellow-100 text-yellow-800': booking.status === 1,
+                  'bg-blue-100 text-blue-800': booking.status === 2,
+                  'bg-green-100 text-green-800': booking.status === 3,
+                }"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="{
+                    'bg-yellow-400': booking.status === 1,
+                    'bg-blue-400': booking.status === 2,
+                    'bg-green-400': booking.status === 3,
+                  }"
+                ></span>
+                {{ statusMap.payment[booking.status] || "Unknown" }}
+              </span>
+            </div>
+
+            <!-- Details -->
+            <div
+              class="grid grid-cols-2 gap-4 py-3 border-t border-b border-gray-100"
+            >
+              <div>
+                <div class="text-xs text-gray-500 mb-1">Theme</div>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] bg-opacity-10 text-[var(--color-primary)]"
+                >
+                  {{ booking.theme_title }}
+                </span>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500 mb-1">Session Date</div>
+                <div class="text-sm text-gray-900">
+                  {{ formatDate(booking.session_date) }}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500 mb-1">Session Time</div>
+                <div class="text-sm text-gray-900">
+                  {{ formatTime(booking.session_time) }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-3">
+              <button
+                @click="openBookingDetails(booking)"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+                :disabled="isLoadingDetails"
+              >
+                <svg
+                  class="w-4 h-4 mr-1.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                View Details
+              </button>
+              <button
+                @click="generateAndSendReceipt(booking)"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+                :disabled="isLoadingReceipt"
+              >
+                <svg
+                  class="w-4 h-4 mr-1.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Receipt
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-4 py-3 md:px-6 border-t border-gray-200 bg-gray-50">
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center gap-2">
               <button
                 @click="handlePageChange(currentPage - 1)"
                 :disabled="currentPage === 1"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                <svg
+                  class="w-5 h-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
                 Previous
               </button>
-              <div class="flex items-center space-x-2">
+              <div class="hidden md:flex items-center gap-2">
                 <template v-for="page in getPageNumbers()" :key="page">
                   <button
                     @click="handlePageChange(page)"
                     :class="[
                       'px-3 py-2 text-sm font-medium rounded-lg',
                       currentPage === page
-                        ? 'bg-[#785340] text-white'
-                        : 'text-gray-700 hover:bg-[#F5E6E0]',
+                        ? 'bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]'
+                        : 'text-gray-700 hover:bg-gray-50',
                     ]"
                   >
                     {{ page }}
@@ -1597,741 +1775,809 @@ onMounted(() => {
               <button
                 @click="handlePageChange(currentPage + 1)"
                 :disabled="currentPage === totalPages"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
+                <svg
+                  class="w-5 h-5 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
               </button>
+            </div>
+            <div class="text-sm text-gray-500 md:hidden">
+              Page {{ currentPage }} of {{ totalPages }}
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Booking Details Modal -->
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showModal"
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-      />
-    </Transition>
-
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-      <div v-if="showModal" class="fixed inset-0 z-10 overflow-y-auto">
+    <!-- Modal Area -->
+    <div>
+      <!-- Booking Details Modal -->
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
         <div
-          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
-        >
+          v-if="showModal"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        />
+      </Transition>
+
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      >
+        <div v-if="showModal" class="fixed inset-0 z-10 overflow-y-auto">
           <div
-            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
+            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
           >
-            <!-- Modal Header -->
-            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-[#3C2A21]">
-                  Booking Details
-                </h3>
-                <button
-                  @click="closeModal"
-                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
-                >
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div v-if="selectedBooking" class="px-6 py-4">
-              <div class="space-y-6">
-                <!-- Booking ID and Status -->
+            <div
+              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
+            >
+              <!-- Modal Header -->
+              <div
+                class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+              >
                 <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm text-gray-500">Booking ID</p>
-                    <p class="text-base font-medium text-[#3C2A21]">
-                      #{{ selectedBooking.id.toString().padStart(6, "0") }}
-                    </p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-sm text-gray-500">Status</p>
-                    <span
-                      class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      :class="{
-                        'bg-yellow-100 text-yellow-800':
-                          selectedBooking.status === 2,
-                        'bg-green-100 text-green-800':
-                          selectedBooking.status === 1,
-                        'bg-red-100 text-red-800': selectedBooking.status === 3,
-                        'bg-blue-100 text-blue-800':
-                          selectedBooking.status === 4,
-                      }"
-                    >
-                      {{
-                        selectedBooking.status === 1
-                          ? "Paid"
-                          : selectedBooking.status === 2
-                          ? "Pending"
-                          : selectedBooking.status === 3
-                          ? "Cancelled"
-                          : selectedBooking.status === 4
-                          ? "Completed"
-                          : "Unknown"
-                      }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Customer Information -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
-                    Customer Information
-                  </h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <p class="text-sm text-gray-500">Full Name</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ selectedBooking.user_fullname }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-500">Phone Number</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ selectedBooking.user_phoneno }}
-                      </p>
-                    </div>
-                    <div class="col-span-2">
-                      <p class="text-sm text-gray-500">Email Address</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ selectedBooking.user_email }}
-                      </p>
-                    </div>
-                    <div class="col-span-2">
-                      <p class="text-sm text-gray-500">Address</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ selectedBooking.user_address }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Session Details -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
-                    Session Details
-                  </h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <p class="text-sm text-gray-500">Theme</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ selectedBooking.theme }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-500">Session Date</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ formatDate(selectedBooking.session_date) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-500">Session Time</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ formatTime(selectedBooking.session_time) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-500">Created Date</p>
-                      <p class="text-sm font-medium text-[#3C2A21]">
-                        {{ formatDate(selectedBooking.created_date) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end space-x-3">
+                  <h3 class="text-xl font-semibold text-[#3C2A21]">
+                    Booking Details
+                  </h3>
                   <button
                     @click="closeModal"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+                    class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
                   >
-                    Close
+                    <svg
+                      class="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
                   </button>
+                </div>
+              </div>
+
+              <div v-if="selectedBooking" class="px-6 py-4">
+                <div class="space-y-6">
+                  <!-- Booking ID and Status -->
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-500">Booking ID</p>
+                      <p class="text-base font-medium text-[#3C2A21]">
+                        #{{ selectedBooking.id.toString().padStart(6, "0") }}
+                      </p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm text-gray-500">Status</p>
+                      <span
+                        class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        :class="{
+                          'bg-yellow-100 text-yellow-800':
+                            selectedBooking.status === 1,
+                          'bg-blue-100 text-blue-800':
+                            selectedBooking.status === 2,
+                          'bg-green-100 text-green-800':
+                            selectedBooking.status === 3,
+                          'bg-red-100 text-red-800':
+                            selectedBooking.status === 4,
+                        }"
+                      >
+                        {{
+                          selectedBooking.status === 1
+                            ? "Pending"
+                            : selectedBooking.status === 2
+                            ? "Partial"
+                            : selectedBooking.status === 3
+                            ? "Paid"
+                            : "Unknown"
+                        }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Customer Information -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+                      Customer Information
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <p class="text-sm text-gray-500">Full Name</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.user_fullname }}
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Phone Number</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.user_phoneno }}
+                        </p>
+                      </div>
+                      <div class="col-span-2">
+                        <p class="text-sm text-gray-500">Email Address</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.user_email }}
+                        </p>
+                      </div>
+                      <div class="col-span-2">
+                        <p class="text-sm text-gray-500">Source</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.user_source }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Session Details -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+                      Session Details
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <p class="text-sm text-gray-500">Theme</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.theme_title }}
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Session Date</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ formatDate(selectedBooking.session_date) }}
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Session Time</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ formatTime(selectedBooking.session_time) }}
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Created Date</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ formatDate(selectedBooking.created_date) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex justify-end space-x-3">
+                    <button
+                      @click="closeModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+                    >
+                      Close
+                    </button>
+                    <button
+                      v-if="selectedBooking?.session_status === 1"
+                      @click="showRescheduleModal = true"
+                      class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors"
+                    >
+                      Reschedule Session
+                    </button>
+                    <button
+                      v-if="
+                        selectedBooking?.status === 1 ||
+                        selectedBooking?.status === 2
+                      "
+                      @click="markAsPaid(selectedBooking?.id)"
+                      :disabled="isMarkingAsPaid"
+                      class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+                    >
+                      <span v-if="isMarkingAsPaid" class="flex items-center">
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Processing...
+                      </span>
+                      <span v-else>Mark as Paid</span>
+                    </button>
+                    <button
+                      v-if="
+                        selectedBooking?.status === 1 ||
+                        selectedBooking?.status === 2
+                      "
+                      @click="cancelBooking(selectedBooking?.id)"
+                      :disabled="isCancelling"
+                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                    >
+                      <span v-if="isCancelling" class="flex items-center">
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Cancelling...
+                      </span>
+                      <span v-else>Cancel Booking</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Receipt Preview Modal -->
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showReceiptModal"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        />
+      </Transition>
+
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      >
+        <div v-if="showReceiptModal" class="fixed inset-0 z-10 overflow-y-auto">
+          <div
+            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+          >
+            <div
+              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
+            >
+              <!-- Modal Header -->
+              <div
+                class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+              >
+                <div class="flex items-center justify-between">
+                  <h3
+                    class="text-xl font-semibold text-[var(--color-text-primary)]"
+                  >
+                    Receipt Preview
+                  </h3>
                   <button
-                    v-if="selectedBooking?.session_status === 1"
-                    @click="showRescheduleModal = true"
-                    class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors"
+                    @click="showReceiptModal = false"
+                    class="text-[var(--color-text-primary)]/60 hover:text-[var(--color-text-primary)] transition-colors"
+                  >
+                    <svg
+                      class="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="selectedReceiptBooking" class="px-6 py-4">
+                <div class="space-y-6">
+                  <!-- Receipt Preview -->
+                  <div class="bg-white rounded-lg border border-gray-200">
+                    <div class="text-center py-6 border-b border-gray-200">
+                      <h2
+                        class="text-2xl font-semibold text-[var(--color-text-primary)]"
+                      >
+                        Booking Receipt
+                      </h2>
+                      <p class="text-[var(--color-text-primary)] mt-1">
+                        Thank you for choosing our services!
+                      </p>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                      <!-- Booking Information -->
+                      <div>
+                        <h3
+                          class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+                        >
+                          Booking Information
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <p class="text-sm text-gray-500">Booking ID</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              #{{
+                                selectedReceiptBooking.id
+                                  .toString()
+                                  .padStart(6, "0")
+                              }}
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Status</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{
+                                selectedReceiptBooking.status === 1
+                                  ? "Pending"
+                                  : selectedReceiptBooking.status === 2
+                                  ? "Partial"
+                                  : selectedReceiptBooking.status === 3
+                                  ? "Cancelled"
+                                  : "Unknown"
+                              }}
+                            </p>
+                          </div>
+                          <div class="col-span-2">
+                            <p class="text-sm text-gray-500">Created Date</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{
+                                formatDate(selectedReceiptBooking.created_date)
+                              }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Customer Details -->
+                      <div>
+                        <h3
+                          class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+                        >
+                          Customer Details
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                          <div class="col-span-2">
+                            <p class="text-sm text-gray-500">Full Name</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ selectedReceiptBooking.user_fullname }}
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Email</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ selectedReceiptBooking.user_email }}
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Phone</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ selectedReceiptBooking.user_phoneno }}
+                            </p>
+                          </div>
+                          <div class="col-span-2">
+                            <p class="text-sm text-gray-500">Address</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ selectedReceiptBooking.user_address }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Session Details -->
+                      <div>
+                        <h3
+                          class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+                        >
+                          Session Details
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                          <div class="col-span-2">
+                            <p class="text-sm text-gray-500">Theme</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ selectedReceiptBooking.theme }}
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Session Date</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{
+                                formatDate(selectedReceiptBooking.session_date)
+                              }}
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Session Time</p>
+                            <p
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{
+                                formatTime(selectedReceiptBooking.session_time)
+                              }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="text-center py-4 border-t border-gray-200 text-sm text-gray-600"
+                    >
+                      <p>
+                        This is an automatically generated receipt. Please keep
+                        it for your records.
+                      </p>
+                      <p class="mt-1">
+                        If you have any questions, please contact us.
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex justify-end space-x-3">
+                    <button
+                      @click="downloadReceipt"
+                      :disabled="isLoadingReceipt"
+                      class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+                    >
+                      <span v-if="isLoadingReceipt" class="flex items-center">
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Downloading...
+                      </span>
+                      <span v-else>Download Receipt</span>
+                    </button>
+                    <button
+                      @click="sendReceiptEmail"
+                      :disabled="isLoadingEmail"
+                      class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+                    >
+                      <span v-if="isLoadingEmail" class="flex items-center">
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Sending...
+                      </span>
+                      <span v-else>Send via Email</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Reschedule Modal -->
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showRescheduleModal"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-20"
+        />
+      </Transition>
+
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      >
+        <div
+          v-if="showRescheduleModal"
+          class="fixed inset-0 z-30 overflow-y-auto"
+        >
+          <div
+            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+          >
+            <div
+              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+            >
+              <!-- Modal Header -->
+              <div
+                class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+              >
+                <div class="flex items-center justify-between">
+                  <h3
+                    class="text-xl font-semibold text-[var(--color-text-primary)]"
                   >
                     Reschedule Session
-                  </button>
+                  </h3>
                   <button
-                    v-if="selectedBooking?.status === 1 || selectedBooking?.status === 2"
-                    @click="markAsPaid(selectedBooking?.id)"
-                    :disabled="isMarkingAsPaid"
-                    class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
+                    @click="showRescheduleModal = false"
+                    class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
                   >
-                    <span v-if="isMarkingAsPaid" class="flex items-center">
-                      <svg
-                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
-                        ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Processing...
-                    </span>
-                    <span v-else>Mark as Paid</span>
-                  </button>
-                  <button
-                    v-if="selectedBooking?.status === 1 || selectedBooking?.status === 2"
-                    @click="cancelBooking(selectedBooking?.id)"
-                    :disabled="isCancelling"
-                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
-                  >
-                    <span v-if="isCancelling" class="flex items-center">
-                      <svg
-                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
-                        ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Cancelling...
-                    </span>
-                    <span v-else>Cancel Booking</span>
+                    <svg
+                      class="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
 
-    <!-- Receipt Preview Modal -->
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showReceiptModal"
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-      />
-    </Transition>
-
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-      <div v-if="showReceiptModal" class="fixed inset-0 z-10 overflow-y-auto">
-        <div
-          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
-        >
-          <div
-            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
-          >
-            <!-- Modal Header -->
-            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-[#3C2A21]">
-                  Receipt Preview
-                </h3>
-                <button
-                  @click="showReceiptModal = false"
-                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
-                >
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
+              <!-- Modal Content -->
+              <div class="px-6 py-4">
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                    >
+                      New Session Date
+                    </label>
+                    <input
+                      type="date"
+                      v-model="selectedDate"
+                      class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
+                      :min="new Date().toISOString().split('T')[0]"
                     />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div v-if="selectedReceiptBooking" class="px-6 py-4">
-              <div class="space-y-6">
-                <!-- Receipt Preview -->
-                <div class="bg-white rounded-lg border border-gray-200">
-                  <div class="text-center py-6 border-b border-gray-200">
-                    <h2 class="text-2xl font-semibold text-[#3C2A21]">
-                      Booking Receipt
-                    </h2>
-                    <p class="text-gray-600 mt-1">
-                      Thank you for choosing our services!
-                    </p>
                   </div>
-
-                  <div class="p-6 space-y-6">
-                    <!-- Booking Information -->
-                    <div>
-                      <h3 class="text-lg font-medium text-[#3C2A21] mb-3">
-                        Booking Information
-                      </h3>
-                      <div class="grid grid-cols-2 gap-4">
-                        <div>
-                          <p class="text-sm text-gray-500">Booking ID</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            #{{
-                              selectedReceiptBooking.id
-                                .toString()
-                                .padStart(6, "0")
-                            }}
-                          </p>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-500">Status</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{
-                              selectedReceiptBooking.status === 1
-                                ? "Paid"
-                                : selectedReceiptBooking.status === 2
-                                ? "Pending"
-                                : selectedReceiptBooking.status === 3
-                                ? "Cancelled"
-                                : selectedReceiptBooking.status === 4
-                                ? "Completed"
-                                : "Unknown"
-                            }}
-                          </p>
-                        </div>
-                        <div class="col-span-2">
-                          <p class="text-sm text-gray-500">Created Date</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{
-                              formatDate(selectedReceiptBooking.created_date)
-                            }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Customer Details -->
-                    <div>
-                      <h3 class="text-lg font-medium text-[#3C2A21] mb-3">
-                        Customer Details
-                      </h3>
-                      <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                          <p class="text-sm text-gray-500">Full Name</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{ selectedReceiptBooking.user_fullname }}
-                          </p>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-500">Email</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{ selectedReceiptBooking.user_email }}
-                          </p>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-500">Phone</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{ selectedReceiptBooking.user_phoneno }}
-                          </p>
-                        </div>
-                        <div class="col-span-2">
-                          <p class="text-sm text-gray-500">Address</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{ selectedReceiptBooking.user_address }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Session Details -->
-                    <div>
-                      <h3 class="text-lg font-medium text-[#3C2A21] mb-3">
-                        Session Details
-                      </h3>
-                      <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                          <p class="text-sm text-gray-500">Theme</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{ selectedReceiptBooking.theme }}
-                          </p>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-500">Session Date</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{
-                              formatDate(selectedReceiptBooking.session_date)
-                            }}
-                          </p>
-                        </div>
-                        <div>
-                          <p class="text-sm text-gray-500">Session Time</p>
-                          <p class="text-sm font-medium text-[#3C2A21]">
-                            {{
-                              formatTime(selectedReceiptBooking.session_time)
-                            }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    class="text-center py-4 border-t border-gray-200 text-sm text-gray-600"
-                  >
-                    <p>
-                      This is an automatically generated receipt. Please keep it
-                      for your records.
-                    </p>
-                    <p class="mt-1">
-                      If you have any questions, please contact us.
-                    </p>
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                    >
+                      New Session Time
+                    </label>
+                    <input
+                      type="time"
+                      v-model="selectedTime"
+                      class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
+                    />
                   </div>
                 </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end space-x-3">
-                  <button
-                    @click="downloadReceipt"
-                    :disabled="isLoadingReceipt"
-                    class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
-                  >
-                    <span v-if="isLoadingReceipt" class="flex items-center">
-                      <svg
-                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
-                        ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Downloading...
-                    </span>
-                    <span v-else>Download Receipt</span>
-                  </button>
-                  <button
-                    @click="sendReceiptEmail"
-                    :disabled="isLoadingEmail"
-                    class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
-                  >
-                    <span v-if="isLoadingEmail" class="flex items-center">
-                      <svg
-                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
-                        ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Sending...
-                    </span>
-                    <span v-else>Send via Email</span>
-                  </button>
-                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
 
-    <!-- Reschedule Modal -->
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showRescheduleModal"
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-20"
-      />
-    </Transition>
-
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-      <div
-        v-if="showRescheduleModal"
-        class="fixed inset-0 z-30 overflow-y-auto"
-      >
-        <div
-          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
-        >
-          <div
-            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
-          >
-            <!-- Modal Header -->
-            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-[#3C2A21]">
-                  Reschedule Session
-                </h3>
+              <!-- Modal Footer -->
+              <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                 <button
                   @click="showRescheduleModal = false"
-                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
                 >
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  Cancel
+                </button>
+                <button
+                  @click="rescheduleSession"
+                  :disabled="isRescheduling || !selectedDate || !selectedTime"
+                  class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+                >
+                  <span v-if="isRescheduling" class="flex items-center">
+                    <svg
+                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Rescheduling...
+                  </span>
+                  <span v-else>Confirm Reschedule</span>
                 </button>
               </div>
             </div>
-
-            <!-- Modal Content -->
-            <div class="px-6 py-4">
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-[#3C2A21] mb-1">
-                    New Session Date
-                  </label>
-                  <input
-                    type="date"
-                    v-model="selectedDate"
-                    class="block w-full rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
-                    :min="new Date().toISOString().split('T')[0]"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-[#3C2A21] mb-1">
-                    New Session Time
-                  </label>
-                  <input
-                    type="time"
-                    v-model="selectedTime"
-                    class="block w-full rounded-lg border-gray-300 focus:ring-[#785340] focus:border-[#785340] sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-              <button
-                @click="showRescheduleModal = false"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
-              >
-                Cancel
-              </button>
-              <button
-                @click="rescheduleSession"
-                :disabled="isRescheduling || !selectedDate || !selectedTime"
-                class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors disabled:opacity-50"
-              >
-                <span v-if="isRescheduling" class="flex items-center">
-                  <svg
-                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Rescheduling...
-                </span>
-                <span v-else>Confirm Reschedule</span>
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
 
-    <!-- Add Confirmation Modal -->
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showConfirmationModal"
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50"
-      />
-    </Transition>
-
-    <Transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-      enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-      leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-      <div
-        v-if="showConfirmationModal"
-        class="fixed inset-0 z-50 overflow-y-auto"
+      <!-- Add Confirmation Modal -->
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
         <div
-          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+          v-if="showConfirmationModal"
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50"
+        />
+      </Transition>
+
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+        leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      >
+        <div
+          v-if="showConfirmationModal"
+          class="fixed inset-0 z-50 overflow-y-auto"
         >
           <div
-            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+            class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
           >
-            <!-- Modal Header -->
-            <div class="bg-[#F5E6E0] px-6 py-4 border-b border-[#3C2A21]/10">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xl font-semibold text-[#3C2A21]">
-                  {{ confirmationTitle }}
-                </h3>
+            <div
+              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+            >
+              <!-- Modal Header -->
+              <div
+                class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+              >
+                <div class="flex items-center justify-between">
+                  <h3
+                    class="text-xl font-semibold text-[var(--color-text-primary)]"
+                  >
+                    {{ confirmationTitle }}
+                  </h3>
+                  <button
+                    @click="showConfirmationModal = false"
+                    class="text-[var(--color-text-primary)]/60 hover:text-[var(--color-text-primary)] transition-colors"
+                  >
+                    <svg
+                      class="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modal Content -->
+              <div class="px-6 py-4">
+                <p class="text-sm text-gray-600">
+                  {{ confirmationMessage }}
+                </p>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                 <button
                   @click="showConfirmationModal = false"
-                  class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
                 >
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  Cancel
+                </button>
+                <button
+                  @click="confirmationAction"
+                  class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors"
+                >
+                  Confirm
                 </button>
               </div>
             </div>
-
-            <!-- Modal Content -->
-            <div class="px-6 py-4">
-              <p class="text-sm text-gray-600">
-                {{ confirmationMessage }}
-              </p>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-              <button
-                @click="showConfirmationModal = false"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
-              >
-                Cancel
-              </button>
-              <button
-                @click="confirmationAction"
-                class="px-4 py-2 text-sm font-medium text-white bg-[#3C2A21] rounded-lg hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21] transition-colors"
-              >
-                Confirm
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </div>
   </div>
 </template>

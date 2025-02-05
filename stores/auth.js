@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
+    isAuthenticated: (state) => !!state.token && !!state.user,
     getUser: (state) => state.user || { name: 'U' },
     getError: (state) => state.error,
     getToken: (state) => state.token
@@ -139,33 +139,35 @@ export const useAuthStore = defineStore('auth', {
 
     async checkAuth() {
       if (this.isInitialized) {
-        return !!this.token;
+        return this.isAuthenticated;
       }
 
       const storage = useStorage()
       
-      const token = storage.getItem('token')
-      const refreshToken = storage.getItem('refreshToken')
-      const userData = storage.getItem('user')
+      try {
+        const token = storage.getItem('token')
+        const refreshToken = storage.getItem('refreshToken')
+        const userData = storage.getItem('user')
 
-      if (token && refreshToken && userData) {
-        this.token = token
-        this.refreshToken = refreshToken
-        this.user = JSON.parse(userData)
+        if (token && refreshToken && userData) {
+          this.token = token
+          this.refreshToken = refreshToken
+          this.user = JSON.parse(userData)
 
-        // Check if token needs refresh (e.g., if it's close to expiration)
-        // In a real app, you would decode the JWT and check its expiration
-        const tokenAge = Date.now() - parseInt(token.split('_')[2] || 0)
-        if (tokenAge > 3600000) { // Refresh if token is older than 1 hour
-          await this.refreshAuthToken()
+          // Check if token needs refresh
+          const tokenAge = Date.now() - parseInt(token.split('_')[2] || 0)
+          if (tokenAge > 3600000) { // Refresh if token is older than 1 hour
+            await this.refreshAuthToken()
+          }
         }
-
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        this.clearAuthData()
+      } finally {
         this.isInitialized = true
-        return true
       }
 
-      this.isInitialized = true
-      return false
+      return this.isAuthenticated
     },
 
     setAuthData(data) {
@@ -176,9 +178,14 @@ export const useAuthStore = defineStore('auth', {
       this.user = data.user
       this.isInitialized = true
 
-      storage.setItem('token', data.token)
-      storage.setItem('refreshToken', data.refreshToken)
-      storage.setItem('user', JSON.stringify(data.user))
+      // Persist to storage
+      try {
+        storage.setItem('token', data.token)
+        storage.setItem('refreshToken', data.refreshToken)
+        storage.setItem('user', JSON.stringify(data.user))
+      } catch (error) {
+        console.error('Error persisting auth data:', error)
+      }
     },
 
     clearAuthData() {
@@ -188,12 +195,16 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       this.user = null
       this.error = null
-      this.isInitialized = true
       
-      storage.removeItem('token')
-      storage.removeItem('refreshToken')
-      storage.removeItem('user')
-      storage.removeItem('redirectTo')
+      // Clear storage
+      try {
+        storage.removeItem('token')
+        storage.removeItem('refreshToken')
+        storage.removeItem('user')
+        storage.removeItem('redirectTo')
+      } catch (error) {
+        console.error('Error clearing auth data:', error)
+      }
     },
 
     clearError() {

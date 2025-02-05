@@ -348,27 +348,24 @@
             <div
               v-if="activeTab === 'payment'"
               key="payment"
-              class="p-6 space-y-6 relative"
+              class="space-y-6 relative"
             >
               <!-- Payment Provider Section -->
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
-                  <h3
-                    class="text-lg font-medium text-[var(--color-text-primary)]"
-                  >
-                    Payment Provider
+                  <h3 class="text-lg font-medium text-[var(--color-text-primary)]">
+                    Payment Provider Settings
                   </h3>
                   <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-                    Select and configure your payment gateway
+                    Configure your payment gateway settings
                   </p>
                 </div>
                 <div class="p-4">
-                  <div class="max-w-xs space-y-4">
+                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >Provider</label
-                      >
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        Payment Provider
+                      </label>
                       <select
                         v-model="settings.paymentProvider"
                         class="block w-full rounded-md border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
@@ -377,17 +374,32 @@
                         <option value="paypal">PayPal</option>
                       </select>
                     </div>
+
                     <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >API Key</label
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        Currency
+                      </label>
+                      <select
+                        v-model="settings.currency"
+                        class="block w-full rounded-md border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
                       >
-                      <div class="relative">
+                        <option value="MYR">MYR - Malaysian Ringgit</option>
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="SGD">SGD - Singapore Dollar</option>
+                      </select>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        API Key
+                      </label>
+                      <div class="relative" :class="{ 'has-error': errors.apiKey }">
                         <input
                           :type="showApiKey ? 'text' : 'password'"
                           v-model="settings.apiKey"
                           placeholder="Enter API key"
-                          class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] sm:text-sm"
+                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.apiKey }"
                         />
                         <button
                           @click="showApiKey = !showApiKey"
@@ -403,9 +415,7 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                            />
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -417,15 +427,78 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                            />
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
-                      <p class="text-sm text-[var(--color-text-secondary)]">
-                        Your API key will be encrypted before storing
+                      <p v-if="errors.apiKey" class="mt-1 text-sm text-red-600">
+                        {{ errors.apiKey }}
+                      </p>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        Webhook Secret
+                      </label>
+                      <div class="relative" :class="{ 'has-error': errors.webhookSecret }">
+                        <input
+                          :type="showWebhookSecret ? 'text' : 'password'"
+                          v-model="settings.webhookSecret"
+                          placeholder="Enter webhook secret"
+                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.webhookSecret }"
+                        />
+                        <button
+                          @click="showWebhookSecret = !showWebhookSecret"
+                          type="button"
+                          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 focus:outline-none"
+                        >
+                          <svg
+                            v-if="showWebhookSecret"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                          <svg
+                            v-else
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        </button>
+                      </div>
+                      <p v-if="errors.webhookSecret" class="mt-1 text-sm text-red-600">
+                        {{ errors.webhookSecret }}
+                      </p>
+                    </div>
+
+                    <div class="col-span-2">
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          v-model="settings.testMode"
+                          class="sr-only peer"
+                        />
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--color-primary)] peer-focus:ring-opacity-20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
+                        <span class="ml-3 text-sm font-medium text-[var(--color-text-primary)]">
+                          Test Mode
+                        </span>
+                      </label>
+                      <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
+                        Enable test mode to use sandbox credentials and test transactions
                       </p>
                     </div>
                   </div>
@@ -468,12 +541,10 @@
             </div>
 
             <!-- Password Panel -->
-            <div v-if="activeTab === 'password'" key="password" class="p-6">
+            <div v-if="activeTab === 'password'" key="password" class="space-y-6 relative">
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
-                  <h3
-                    class="text-lg font-medium text-[var(--color-text-primary)]"
-                  >
+                  <h3 class="text-lg font-medium text-[var(--color-text-primary)]">
                     Change Password
                   </h3>
                   <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
@@ -481,21 +552,18 @@
                   </p>
                 </div>
                 <div class="p-4">
-                  <form
-                    @submit.prevent="handlePasswordChange"
-                    class="space-y-4 max-w-md"
-                  >
+                  <form @submit.prevent="handlePasswordChange" class="space-y-4 max-w-md">
                     <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >Current Password</label
-                      >
-                      <div class="relative">
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        Current Password
+                      </label>
+                      <div class="relative" :class="{ 'has-error': errors.currentPassword }">
                         <input
                           :type="showCurrentPassword ? 'text' : 'password'"
                           v-model="passwordForm.currentPassword"
                           placeholder="Enter current password"
-                          class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] sm:text-sm"
+                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.currentPassword }"
                         />
                         <button
                           @click="showCurrentPassword = !showCurrentPassword"
@@ -511,9 +579,7 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                            />
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -525,26 +591,27 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                            />
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
+                      <p v-if="errors.currentPassword" class="mt-1 text-sm text-red-600">
+                        {{ errors.currentPassword }}
+                      </p>
                     </div>
 
                     <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >New Password</label
-                      >
-                      <div class="relative">
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        New Password
+                      </label>
+                      <div class="relative" :class="{ 'has-error': errors.newPassword }">
                         <input
                           :type="showNewPassword ? 'text' : 'password'"
                           v-model="passwordForm.newPassword"
                           placeholder="Enter new password"
-                          class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] sm:text-sm"
+                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.newPassword }"
                         />
                         <button
                           @click="showNewPassword = !showNewPassword"
@@ -560,9 +627,7 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                            />
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -574,26 +639,27 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                            />
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
+                      <p v-if="errors.newPassword" class="mt-1 text-sm text-red-600">
+                        {{ errors.newPassword }}
+                      </p>
                     </div>
 
                     <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >Confirm New Password</label
-                      >
-                      <div class="relative">
+                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                        Confirm New Password
+                      </label>
+                      <div class="relative" :class="{ 'has-error': errors.confirmPassword }">
                         <input
                           :type="showConfirmPassword ? 'text' : 'password'"
                           v-model="passwordForm.confirmPassword"
                           placeholder="Confirm new password"
-                          class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] sm:text-sm"
+                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.confirmPassword }"
                         />
                         <button
                           @click="showConfirmPassword = !showConfirmPassword"
@@ -609,9 +675,7 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                            />
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -623,13 +687,14 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path
-                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                            />
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
+                      <p v-if="errors.confirmPassword" class="mt-1 text-sm text-red-600">
+                        {{ errors.confirmPassword }}
+                      </p>
                     </div>
 
                     <div class="pt-4">
@@ -659,11 +724,7 @@
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        {{
-                          isChangingPassword
-                            ? "Changing Password..."
-                            : "Change Password"
-                        }}
+                        {{ isChangingPassword ? "Changing Password..." : "Change Password" }}
                       </button>
                     </div>
                   </form>
@@ -746,6 +807,9 @@ const settings = ref({
   restDuration: 15,
   paymentProvider: "stripe",
   apiKey: "",
+  webhookSecret: "",
+  testMode: true,
+  currency: "MYR",
 });
 
 // Password change form
@@ -763,6 +827,11 @@ const errors = ref({
   closingTime: "",
   breakStartTime: "",
   breakEndTime: "",
+  apiKey: "",
+  webhookSecret: "",
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
 });
 
 // Validate time ranges
@@ -804,25 +873,82 @@ watch(
   validateTimeRanges
 );
 
+// Add validation for payment settings
+const validatePaymentSettings = () => {
+  const paymentErrors = {};
+  
+  if (!settings.value.apiKey) {
+    paymentErrors.apiKey = "API Key is required";
+  }
+  
+  if (!settings.value.webhookSecret) {
+    paymentErrors.webhookSecret = "Webhook Secret is required";
+  }
+  
+  return paymentErrors;
+};
+
+// Add validation for password change
+const validatePasswordChange = () => {
+  const passwordErrors = {};
+  
+  if (!passwordForm.value.currentPassword) {
+    passwordErrors.currentPassword = "Current password is required";
+  }
+  
+  if (!passwordForm.value.newPassword) {
+    passwordErrors.newPassword = "New password is required";
+  } else if (passwordForm.value.newPassword.length < 8) {
+    passwordErrors.newPassword = "Password must be at least 8 characters";
+  }
+  
+  if (!passwordForm.value.confirmPassword) {
+    passwordErrors.confirmPassword = "Please confirm your new password";
+  } else if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordErrors.confirmPassword = "Passwords do not match";
+  }
+  
+  return passwordErrors;
+};
+
 // Handle password change
 async function handlePasswordChange() {
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    alert("New passwords do not match");
-    return;
-  }
-
   try {
     isChangingPassword.value = true;
-    // Add your password change API call here
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API call
-    alert("Password changed successfully");
-    passwordForm.value = {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    };
+    
+    // Validate password change
+    const passwordErrors = validatePasswordChange();
+    if (Object.keys(passwordErrors).length > 0) {
+      errors.value = { ...errors.value, ...passwordErrors };
+      return;
+    }
+
+    const response = await $fetch("/api/auth/change-password", {
+      method: "POST",
+      body: {
+        current_password: passwordForm.value.currentPassword,
+        new_password: passwordForm.value.newPassword,
+      },
+    });
+
+    if (response.statusCode === 200) {
+      ElMessage.success("Password changed successfully");
+      // Reset form
+      passwordForm.value = {
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      };
+      // Clear errors
+      errors.value.currentPassword = "";
+      errors.value.newPassword = "";
+      errors.value.confirmPassword = "";
+    } else {
+      ElMessage.error(response.message || "Failed to change password");
+    }
   } catch (error) {
-    alert("Failed to change password");
+    console.error("Failed to change password:", error);
+    ElMessage.error(error.message || "Failed to change password");
   } finally {
     isChangingPassword.value = false;
   }
@@ -881,9 +1007,30 @@ async function saveBookingSettings() {
 async function savePaymentSettings() {
   try {
     loadingStates.value.payment = true;
-    // Add your payment settings API call here
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API call
-    ElMessage.success("Payment settings saved successfully");
+    
+    // Validate payment settings
+    const paymentErrors = validatePaymentSettings();
+    if (Object.keys(paymentErrors).length > 0) {
+      errors.value = { ...errors.value, ...paymentErrors };
+      return;
+    }
+
+    const response = await $fetch("/api/setting/update-payment-config", {
+      method: "POST",
+      body: {
+        provider: settings.value.paymentProvider,
+        api_key: settings.value.apiKey,
+        webhook_secret: settings.value.webhookSecret,
+        test_mode: settings.value.testMode,
+        currency: settings.value.currency,
+      },
+    });
+
+    if (response.statusCode === 200) {
+      ElMessage.success("Payment settings saved successfully");
+    } else {
+      ElMessage.error("Failed to save payment settings");
+    }
   } catch (error) {
     console.error("Failed to save payment settings:", error);
     ElMessage.error("Failed to save payment settings");

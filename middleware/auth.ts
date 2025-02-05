@@ -1,9 +1,15 @@
 import { useAuthStore } from "~/stores/auth";
 
-export default defineNuxtRouteMiddleware(async (to) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  const nuxtApp = useNuxtApp();
   const auth = useAuthStore();
   const storage = useStorage();
-  const isAuthenticated = await auth.checkAuth();
+
+  // Ensure auth is initialized
+  if (nuxtApp.$initAuth) {
+    await nuxtApp.$initAuth();
+  }
+  const isAuthenticated = auth.isAuthenticated;
 
   // Public routes that don't require authentication
   const publicRoutes = ["/", "/book-a-session", "/login", "/register"];
