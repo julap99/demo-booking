@@ -36,10 +36,11 @@
               <h1
                 class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
               >
-                Pick a date & time
+                Choose your theme
               </h1>
               <p class="text-md text-[#6b7280]">
-                Choose a date and time that suits your Raya photo session
+                Choose your preferred studio theme asdnajk akjsdbakjsd k
+                ajsdnakjsdn akjsdn lorem
               </p>
             </div>
 
@@ -47,11 +48,10 @@
               <h1
                 class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
               >
-                Choose your theme
+                Pick a date & time
               </h1>
               <p class="text-md text-[var(--color-text-muted)]">
-                Choose your preferred studio theme asdnajk akjsdbakjsd k
-                ajsdnakjsdn akjsdn lorem
+                Choose a date and time that suits your Raya photo session
               </p>
             </div>
 
@@ -110,7 +110,7 @@
             </div>
 
             <!-- Desktop Progress Steps - Hidden on mobile -->
-            <div class="hidden sm:block my-4">
+            <div class="hidden sm:block my-4 px-5">
               <div class="max-w-2xl mx-auto">
                 <div class="relative flex items-center justify-between">
                   <!-- Progress Line -->
@@ -190,8 +190,88 @@
           <!-- Form Content -->
           <div class="px-4 sm:px-6 pb-4 sm:py-8">
             <div>
-              <!-- Step 1: Session (Select Date & Time) -->
+              <!-- Step 1: Choose Theme -->
               <div v-show="currentStep === 1" class="space-y-6">
+                <div class="max-w-2xl mx-auto">
+                  <!-- Session Type Cards -->
+                  <div class="space-y-6">
+                    <div
+                      v-for="type in sessionTypes"
+                      :key="type.value"
+                      @click="selectSessionType(type.id)"
+                      class="relative group cursor-pointer"
+                    >
+                      <div
+                        class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
+                        :class="[
+                          formData.sessionType === type.id
+                            ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
+                            : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
+                        ]"
+                      >
+                        <!-- Background Image -->
+                        <div class="absolute inset-0">
+                          <img
+                            :src="type.image"
+                            :alt="type.label"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                          <!-- Gradient Overlay -->
+                          <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+                          ></div>
+                        </div>
+
+                        <!-- Content -->
+                        <div
+                          class="relative h-full p-6 flex flex-col justify-end"
+                        >
+                          <!-- Theme Label -->
+                          <div class="mb-2">
+                            <h3
+                              class="text-2xl font-semibold text-white font-playfair mb-2"
+                            >
+                              {{ type.title }}
+                            </h3>
+                            <p class="text-sm text-white/90 line-clamp-2">
+                              {{ type.description }}
+                            </p>
+                          </div>
+
+                          <!-- Price and Features -->
+                          <div class="mt-4">
+                            <div class="flex items-center justify-between">
+                              <div>
+                                <p class="text-xs text-white/80">Price</p>
+                                <p class="text-xl font-semibold text-white">
+                                  {{ formatPrice(type.price) }}
+                                </p>
+                              </div>
+                              <div
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                                :class="[
+                                  formData.sessionType === type.id
+                                    ? 'bg-[var(--color-text-primary)] text-white'
+                                    : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
+                                ]"
+                              >
+                                {{
+                                  formData.sessionType === type.id
+                                    ? "Selected"
+                                    : "Select Theme"
+                                }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Session (Select Date & Time) -->
+              <div v-show="currentStep === 2" class="space-y-6">
                 <div class="max-w-2xl mx-auto">
                   <!-- Update the Month Selector -->
                   <div class="relative mb-8">
@@ -476,169 +556,6 @@
                           {{ slot.slot }}
                         </button>
                       </template>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Step 2: Choose Theme -->
-              <div v-show="currentStep === 2" key="step2" class="space-y-6">
-                <div class="max-w-2xl mx-auto">
-                  <!-- Session Type Cards -->
-                  <div class="space-y-6">
-                    <div
-                      v-for="type in sessionTypes"
-                      :key="type.value"
-                      @click="selectSessionType(type.id)"
-                      class="relative group cursor-pointer"
-                    >
-                      <div
-                        class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
-                        :class="[
-                          formData.sessionType === type.id
-                            ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
-                            : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
-                        ]"
-                      >
-                        <!-- Background Image -->
-                        <div class="absolute inset-0">
-                          <img
-                            :src="type.image"
-                            :alt="type.label"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                          <!-- Gradient Overlay -->
-                          <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
-                          ></div>
-                        </div>
-
-                        <!-- Content -->
-                        <div
-                          class="relative h-full p-6 flex flex-col justify-end"
-                        >
-                          <!-- Theme Label -->
-                          <div class="mb-2">
-                            <h3
-                              class="text-2xl font-semibold text-white font-playfair mb-2"
-                            >
-                              {{ type.title }}
-                            </h3>
-                            <p class="text-sm text-white/90 line-clamp-2">
-                              {{ type.description }}
-                            </p>
-                          </div>
-
-                          <!-- Price and Features -->
-                          <div class="mt-4">
-                            <div class="flex items-center justify-between">
-                              <div>
-                                <p class="text-xs text-white/80">Price</p>
-                                <p class="text-xl font-semibold text-white">
-                                  {{ formatPrice(type.price) }}
-                                </p>
-                              </div>
-                              <div
-                                class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                                :class="[
-                                  formData.sessionType === type.id
-                                    ? 'bg-[var(--color-text-primary)] text-white'
-                                    : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
-                                ]"
-                              >
-                                {{
-                                  formData.sessionType === type.id
-                                    ? "Selected"
-                                    : "Select Theme"
-                                }}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Number of Persons Selection -->
-                  <div class="space-y-6 mt-8">
-                    <div class="max-w-2xl mx-auto">
-                      <div class="relative">
-                        <div class="form-group">
-                          <div
-                            class="mb-2 text-sm font-medium text-[var(--color-text-primary)]"
-                          >
-                            Number of persons
-                          </div>
-                          <div class="flex items-center space-x-3">
-                            <button
-                              type="button"
-                              @click="decrementPax"
-                              class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                              :disabled="formData.numberOfPax <= 1"
-                            >
-                              <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M20 12H4"
-                                />
-                              </svg>
-                            </button>
-                            <div class="relative flex-1 max-w-[120px]">
-                              <input
-                                type="number"
-                                id="numberOfPax"
-                                v-model.number="formData.numberOfPax"
-                                class="form-input text-center h-12 px-3 py-0 text-lg font-medium"
-                                :class="{ error: errors.numberOfPax }"
-                                min="1"
-                                max="20"
-                                @blur="validateField('numberOfPax')"
-                                @input="handlePaxInput"
-                                aria-label="Number of persons"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              @click="incrementPax"
-                              class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                              :disabled="formData.numberOfPax >= 20"
-                            >
-                              <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M12 4v16m8-8H4"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                          <p v-if="errors.numberOfPax" class="form-error mt-2">
-                            {{ errors.numberOfPax }}
-                          </p>
-                          <p
-                            v-if="extraPaxCharge > 0"
-                            class="mt-2 text-xs text-[var(--color-text-muted)]"
-                          >
-                            Additional charge of
-                            {{ formatPrice(extraPaxCharge) }} for
-                            {{ formData.numberOfPax - MAX_FREE_PAX }}
-                            extra person(s)
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -946,6 +863,83 @@
                       <label for="email" class="form-label">Email</label>
                       <p v-if="errors.email" class="form-error">
                         {{ errors.email }}
+                      </p>
+                    </div>
+
+                    <!-- Number of Persons Selection -->
+                    <div class="form-group">
+                      <div
+                        class="mb-2 text-sm font-medium text-[var(--color-text-primary)]"
+                      >
+                        Number of persons
+                      </div>
+                      <div class="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          @click="decrementPax"
+                          class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          :disabled="formData.numberOfPax <= 1"
+                        >
+                          <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M20 12H4"
+                            />
+                          </svg>
+                        </button>
+                        <div class="relative flex-1 max-w-[120px]">
+                          <input
+                            type="number"
+                            id="numberOfPax"
+                            v-model.number="formData.numberOfPax"
+                            class="form-input text-center h-12 px-3 py-0 text-lg font-medium"
+                            :class="{ error: errors.numberOfPax }"
+                            min="1"
+                            max="20"
+                            @blur="validateField('numberOfPax')"
+                            @input="handlePaxInput"
+                            aria-label="Number of persons"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          @click="incrementPax"
+                          class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          :disabled="formData.numberOfPax >= 20"
+                        >
+                          <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <p v-if="errors.numberOfPax" class="form-error mt-2">
+                        {{ errors.numberOfPax }}
+                      </p>
+                      <p
+                        v-if="extraPaxCharge > 0"
+                        class="mt-2 text-xs text-[var(--color-text-muted)]"
+                      >
+                        Additional charge of
+                        {{ formatPrice(extraPaxCharge) }} for
+                        {{ formData.numberOfPax - MAX_FREE_PAX }}
+                        extra person(s)
                       </p>
                     </div>
 
@@ -1643,8 +1637,8 @@ const html2pdf = ref(null);
 
 // Load html2pdf only on client side
 onMounted(async () => {
-  // Fetch slots for initial month (February)
-  await fetchSlotsData(1);
+  // Fetch slots for current month
+  await fetchSlotsData(currentMonth.value + 1);
 
   // Wait for next tick before trying to scroll
   nextTick(() => {
@@ -1671,13 +1665,13 @@ onMounted(async () => {
 const steps = [
   {
     number: 1,
-    label: "Session",
-    description: "Select date and time for your session",
+    label: "Choose Theme",
+    description: "Select your preferred photography theme",
   },
   {
     number: 2,
-    label: "Choose Theme",
-    description: "Select your preferred photography theme",
+    label: "Session",
+    description: "Select date and time for your session",
   },
   {
     number: 3,
@@ -1806,6 +1800,7 @@ const currentMonth = computed({
     }
   },
 });
+console.log("Current month:", currentMonth.value);
 
 const currentYear = computed(() => {
   return currentDate.value.getFullYear();
@@ -1867,11 +1862,13 @@ const slotsData = ref({});
 
 // Add function to fetch slots data
 async function fetchSlotsData(month) {
+  console.log("Fetching slots data for month:", month);
   try {
     const response = await $fetch("/api/booking/get-slots", {
       params: {
         month: month,
         year: 2025,
+        theme_id: formData.value.sessionType,
       },
     });
 
@@ -1943,10 +1940,11 @@ const selectDate = async (date) => {
   isLoadingTimeSlots.value = true; // Set loading to true before fetching
 
   try {
-    // Fetch available slots for the selected date
+    // Fetch available slots for the selected date and theme
     const response = await $fetch("/api/booking/get-available-slots", {
       params: {
         date: date,
+        theme_id: formData.value.sessionType,
       },
     });
 
@@ -2004,6 +2002,14 @@ const formatDate = (dateString) => {
 const selectSessionType = (type) => {
   formData.value.sessionType = type;
   validateField("sessionType");
+
+  // Reset date and time when theme changes
+  formData.value.date = "";
+  formData.value.timeSlot = "";
+  formData.value.value.timeSlot = "";
+
+  // Fetch slots for the new theme
+  fetchSlotsData(currentMonth.value + 1);
 };
 
 const selectTimeSlot = (slot) => {
@@ -2138,21 +2144,12 @@ const formatCVV = (e) => {
 const validateStep = (step) => {
   switch (step) {
     case 1:
+      validateField("sessionType");
+      return !errors.value.sessionType;
+    case 2:
       validateField("date");
       validateField("timeSlot");
       return !errors.value.date && !errors.value.timeSlot;
-    case 2:
-      validateField("sessionType");
-      validateField("numberOfPax");
-      if (formData.value.numberOfPax === "more") {
-        validateField("customNumberOfPax");
-        return (
-          !errors.value.sessionType &&
-          !errors.value.numberOfPax &&
-          !errors.value.customNumberOfPax
-        );
-      }
-      return !errors.value.sessionType && !errors.value.numberOfPax;
     case 3:
       // Add-ons are optional, so always return true
       return true;
@@ -2162,12 +2159,14 @@ const validateStep = (step) => {
       validateField("phone");
       validateField("source");
       validateField("terms");
+      validateField("numberOfPax");
       return (
         !errors.value.name &&
         !errors.value.email &&
         !errors.value.phone &&
         !errors.value.source &&
-        !errors.value.terms
+        !errors.value.terms &&
+        !errors.value.numberOfPax
       );
     case 5:
       return true;
@@ -2627,6 +2626,22 @@ const handlePaxInput = (event) => {
   formData.value.numberOfPax = value;
   validateField("numberOfPax");
 };
+
+// Add a watch effect to refetch slots when theme changes
+watch(
+  () => formData.value.sessionType,
+  async (newTheme) => {
+    if (newTheme) {
+      // Reset date and time selection
+      formData.value.date = "";
+      formData.value.timeSlot = "";
+      formData.value.value.timeSlot = "";
+
+      // Fetch slots for the current month with the new theme
+      await fetchSlotsData(currentMonth.value + 1);
+    }
+  }
+);
 </script>
 
 <style lang="scss" scoped>

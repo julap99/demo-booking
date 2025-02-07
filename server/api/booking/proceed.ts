@@ -288,7 +288,10 @@ export default defineEventHandler(async (event) => {
         session_time: time,
         theme: theme,
         number_of_pax: number_of_pax,
-        number_of_extra_pax: number_of_pax - parseInt(maxFreePax.value),
+        number_of_extra_pax:
+          number_of_pax > parseInt(maxFreePax.value)
+            ? number_of_pax - parseInt(maxFreePax.value)
+            : 0,
         addon: addons.length > 0 ? JSON.stringify(addons) : null,
         payment_ref_number: receiptNumber,
         payment_type: payment_type,
@@ -297,7 +300,7 @@ export default defineEventHandler(async (event) => {
         payment_addon_total: paymentAddon,
         payment_total: paymentTotal,
         payment_extra_pax: paymentExtraPax,
-        status: 1, // Pending
+        status: payment_type, // Pending
         session_status: 1, // Pending
         created_date: new Date(),
       });

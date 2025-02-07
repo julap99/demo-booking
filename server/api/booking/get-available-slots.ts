@@ -6,20 +6,31 @@ interface TimeSlot {
   value: string;
 }
 
+interface CustomError extends Error {
+  statusCode?: number;
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event);
-    const { date } = query;
+    const { date, theme_id } = query;
 
-    if (!date || typeof date !== 'string') {
+    if (!date || typeof date !== "string") {
       throw createError({
         statusCode: 400,
-        message: "Date parameter is required"
+        message: "Date parameter is required",
+      });
+    }
+
+    if (!theme_id) {
+      throw createError({
+        statusCode: 400,
+        message: "Theme ID is required",
       });
     }
 
     const now = dayjs();
-    const isToday = now.format('YYYY-MM-DD') === date;
+    const isToday = now.format("YYYY-MM-DD") === date;
 
     // Get slot configuration
     const slotConfig = await db("slot_config")
@@ -29,24 +40,25 @@ export default defineEventHandler(async (event) => {
     if (!slotConfig) {
       throw createError({
         statusCode: 404,
-        message: "Slot configuration not found"
+        message: "Slot configuration not found",
       });
     }
 
-    // Get existing bookings for the date
+    // Get existing bookings for the date and theme
     const bookings = await db("booking")
       .where("session_date", date)
-      .where("status", "!=", 0)
+      .whereNot("status", 1)
+      .where("theme", theme_id)
       .select("session_time");
 
     const slots: TimeSlot[] = [];
-    
+
     // Convert times to dayjs objects
     const startTime = dayjs(`${date} ${slotConfig.start_time}`);
     const endTime = dayjs(`${date} ${slotConfig.end_time}`);
     const breakStart = dayjs(`${date} ${slotConfig.start_break}`);
     const breakEnd = dayjs(`${date} ${slotConfig.end_break}`);
-    
+
     // Generate slots
     let currentSlot = startTime;
     while (currentSlot.isBefore(endTime)) {
@@ -61,8 +73,10 @@ export default defineEventHandler(async (event) => {
       const slotWithRest = slotEnd.add(slotConfig.rest, "minute");
       if (
         !(
-          (currentSlot.isSameOrAfter(breakStart) && currentSlot.isBefore(breakEnd)) ||
-          (slotWithRest.isAfter(breakStart) && slotWithRest.isSameOrBefore(breakEnd)) ||
+          (currentSlot.isSameOrAfter(breakStart) &&
+            currentSlot.isBefore(breakEnd)) ||
+          (slotWithRest.isAfter(breakStart) &&
+            slotWithRest.isSameOrBefore(breakEnd)) ||
           (currentSlot.isBefore(breakStart) && slotWithRest.isAfter(breakEnd))
         )
       ) {
@@ -70,7 +84,7 @@ export default defineEventHandler(async (event) => {
         if (!isToday || currentSlot.isAfter(now)) {
           slots.push({
             slot: currentSlot.format("hh:mm A"),
-            value: currentSlot.format("HH:mm")
+            value: currentSlot.format("HH:mm"),
           });
         }
       }
@@ -82,15 +96,23 @@ export default defineEventHandler(async (event) => {
     // Filter out booked slots
     const availableSlots = slots.filter((slotItem) => {
       const slotTime = dayjs(`${date} ${slotItem.value}`);
-      const slotEnd = slotTime.add(slotConfig.duration + slotConfig.rest, "minute");
+      const slotEnd = slotTime.add(
+        slotConfig.duration + slotConfig.rest,
+        "minute"
+      );
 
       return !bookings.some((booking) => {
         const bookingStart = dayjs(`${date} ${booking.session_time}`);
-        const bookingEnd = bookingStart.add(slotConfig.duration + slotConfig.rest, "minute");
+        const bookingEnd = bookingStart.add(
+          slotConfig.duration + slotConfig.rest,
+          "minute"
+        );
 
         return (
-          (slotTime.isSameOrAfter(bookingStart) && slotTime.isBefore(bookingEnd)) ||
-          (slotEnd.isAfter(bookingStart) && slotEnd.isSameOrBefore(bookingEnd)) ||
+          (slotTime.isSameOrAfter(bookingStart) &&
+            slotTime.isBefore(bookingEnd)) ||
+          (slotEnd.isAfter(bookingStart) &&
+            slotEnd.isSameOrBefore(bookingEnd)) ||
           (slotTime.isBefore(bookingStart) && slotEnd.isAfter(bookingEnd))
         );
       });
@@ -101,13 +123,14 @@ export default defineEventHandler(async (event) => {
       status: "success",
       data: availableSlots,
       interval: slotConfig.duration,
-      rest: slotConfig.rest
+      rest: slotConfig.rest,
     };
-  } catch (error: any) {
-    console.error("Error fetching available slots:", error);
+  } catch (error) {
+    const customError = error as CustomError;
+    console.error("Error fetching available slots:", customError);
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || "Failed to fetch available slots"
+      statusCode: customError.statusCode || 500,
+      message: customError.message || "Failed to fetch available slots",
     });
   }
 });
