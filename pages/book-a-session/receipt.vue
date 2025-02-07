@@ -1,60 +1,33 @@
 <template>
   <div
-    class="min-h-screen font-sans flex items-center justify-center"
-    :style="{
-      background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`,
-    }"
+    class="min-h-screen font-sans flex items-center justify-center bg-gradient-radial from-[var(--color-bg-primary)] via-[var(--color-bg-secondary)] to-[var(--color-bg-tertiary)] py-6"
   >
-    <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="w-full max-w-2xl mx-auto px-4">
       <!-- Loading State -->
-      <div v-if="isLoading" class="text-center py-12">
-        <el-skeleton :rows="10" animated />
+      <div v-if="isLoading" class="text-center py-8">
+        <div class="animate-pulse space-y-3">
+          <div class="h-6 bg-gray-200 rounded w-2/3 mx-auto"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
+          <div class="space-y-2 mt-4">
+            <div class="h-3 bg-gray-200 rounded"></div>
+            <div class="h-3 bg-gray-200 rounded"></div>
+            <div class="h-3 bg-gray-200 rounded"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-white rounded-[20px] p-8 text-center">
-        <svg
-          class="w-16 h-16 mx-auto mb-4 text-red-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-        <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-2">
-          Error Loading Receipt
-        </h2>
-        <p class="text-[var(--color-text-primary)]/70 mb-6">{{ error }}</p>
-        <NuxtLink to="/book-a-session" class="btn btn-primary">
-          Return to Booking
-        </NuxtLink>
-      </div>
-
-      <!-- Receipt Card -->
       <div
-        v-else-if="bookingData"
-        class="bg-white rounded-[20px] sm:rounded-[32px] shadow-xl shadow-[var(--color-border-primary)] overflow-hidden relative"
+        v-else-if="error"
+        class="bg-white/80 backdrop-blur-lg rounded-2xl p-6 text-center transform hover:scale-[1.02] transition-all duration-300 shadow-xl"
       >
-        <!-- Decorative Elements -->
-        <div
-          class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)]"
-        ></div>
-        <!-- <div class="absolute top-2 right-4 text-xs text-[var(--color-text-primary)]/50">
-          {{ new Date().toLocaleDateString() }}
-        </div> -->
-
-        <!-- Receipt Content -->
-        <div class="p-4 sm:p-8" ref="receiptContent">
-          <!-- Header -->
-          <div class="text-center mb-8 sm:mb-12">
-            <div class="mb-6">
+        <div class="">
+          <div class="flex justify-center items-center">
+            <div
+              class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center"
+            >
               <svg
-                class="w-16 h-16 mx-auto mb-4 text-[var(--color-text-primary)]"
+                class="w-8 h-8 text-red-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -63,31 +36,49 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="1.5"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              <h1
-                class="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] font-playfair mb-2"
-              >
-                Booking Confirmation
-              </h1>
-              <p
-                class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium"
-              >
-                Receipt #{{ bookingData?.payment_ref_number || "N/A" }}
-              </p>
-              <p
-                class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium"
-              >
-                Payment Date: {{ formatDatetime(bookingData?.created_date) }}
-              </p>
             </div>
-            <div class="flex justify-center">
+          </div>
+          <h2
+            class="text-lg font-bold text-[var(--color-text-primary)] mt-6 mb-2"
+          >
+            Error Loading Receipt
+          </h2>
+          <p class="text-[var(--color-text-primary)]/70 mb-4">{{ error }}</p>
+          <NuxtLink
+            to="/book-a-session/test2"
+            class="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          >
+            Return to Booking
+          </NuxtLink>
+        </div>
+      </div>
+
+      <!-- Receipt Card -->
+      <div
+        v-else-if="bookingData"
+        class="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300"
+      >
+        <!-- Decorative Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-light)] to-[var(--color-primary-dark)]"
+        ></div>
+        <div
+          class="absolute top-1.5 left-0 w-full h-0.5 bg-gradient-to-r from-[var(--color-primary)]/20 via-[var(--color-primary-light)]/20 to-[var(--color-primary-dark)]/20 blur-sm"
+        ></div>
+
+        <!-- Receipt Content -->
+        <div class="p-5 sm:p-8" ref="receiptContent">
+          <!-- Header with Animated Success Icon -->
+          <div class="text-center mb-8">
+            <div class="mb-6 relative">
               <div
-                class="px-4 sm:px-6 py-2 sm:py-3 bg-[var(--color-bg-light)] text-[var(--color-text-primary)] rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
+                class="w-20 h-20 mx-auto bg-[var(--color-primary)]/10 rounded-full flex items-center justify-center animate-[pulse_2s_ease-in-out_infinite]"
               >
                 <svg
-                  class="w-4 h-4 mr-2"
+                  class="w-10 h-10 text-[var(--color-primary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -96,46 +87,73 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M5 13l4 4L19 7"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    class="animate-[dash_1.5s_ease-in-out_forwards]"
+                    style="stroke-dasharray: 100; stroke-dashoffset: 100"
                   />
                 </svg>
-                Payment Successful
               </div>
+              <div
+                class="absolute -bottom-3 left-1/2 transform -translate-x-1/2"
+              >
+                <div
+                  class="px-3 py-0.5 bg-[var(--color-primary)]/10 rounded-full"
+                >
+                  <span class="text-xs font-medium text-[var(--color-primary)]">
+                    Payment Successful
+                  </span>
+                </div>
+              </div>
+            </div>
+            <h1
+              class="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] font-playfair mb-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] bg-clip-text text-transparent"
+            >
+              Booking Confirmation
+            </h1>
+            <div class="space-y-0.5">
+              <p class="text-[var(--color-text-primary)]/70 text-base">
+                Receipt #{{ bookingData?.payment_ref_number || "N/A" }}
+              </p>
+              <p class="text-[var(--color-text-primary)]/70 text-sm">
+                {{ formatDatetime(bookingData?.created_date) }}
+              </p>
             </div>
           </div>
 
-          <!-- Customer Details -->
-          <div class="mb-8 sm:mb-12">
-            <div class="grid grid-cols-1 gap-6 sm:gap-8">
-              <div class="bg-[var(--color-bg-light)] p-4 rounded-xl">
-                <h3
-                  class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-3 font-playfair flex items-center"
+          <!-- Customer & Session Details in Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div
+              class="bg-[var(--color-bg-light)]/50 backdrop-blur p-4 rounded-xl hover:shadow-lg transition-all duration-300"
+            >
+              <h3
+                class="text-sm font-medium text-[var(--color-text-primary)] mb-3 font-playfair flex items-center"
+              >
+                <svg
+                  class="w-4 h-4 mr-2 text-[var(--color-primary)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    class="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  Customer Details
-                </h3>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Customer Details
+              </h3>
+              <div class="space-y-2">
                 <p
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium capitalize"
+                  class="text-base font-medium text-[var(--color-text-primary)] capitalize"
                 >
                   {{ bookingData?.user_fullname || "N/A" }}
                 </p>
-                <p
-                  class="text-sm sm:text-base text-[var(--color-text-primary)] mb-1 flex items-center"
+                <div
+                  class="flex items-center text-[var(--color-text-primary)]/70 text-sm"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
+                    class="w-3.5 h-3.5 mr-1.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -148,12 +166,12 @@
                     />
                   </svg>
                   {{ bookingData?.user_email || "N/A" }}
-                </p>
-                <p
-                  class="text-sm sm:text-base text-[var(--color-text-primary)] flex items-center"
+                </div>
+                <div
+                  class="flex items-center text-[var(--color-text-primary)]/70 text-sm"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
+                    class="w-3.5 h-3.5 mr-1.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -166,37 +184,42 @@
                     />
                   </svg>
                   {{ bookingData?.user_phoneno || "N/A" }}
-                </p>
+                </div>
               </div>
-              <div class="bg-[var(--color-bg-light)] p-4 rounded-xl">
-                <h3
-                  class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-3 font-playfair flex items-center"
+            </div>
+
+            <div
+              class="bg-[var(--color-bg-light)]/50 backdrop-blur p-4 rounded-xl hover:shadow-lg transition-all duration-300"
+            >
+              <h3
+                class="text-sm font-medium text-[var(--color-text-primary)] mb-3 font-playfair flex items-center"
+              >
+                <svg
+                  class="w-4 h-4 mr-2 text-[var(--color-primary)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    class="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Booking Date
-                </h3>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Session Details
+              </h3>
+              <div class="space-y-2">
                 <p
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium"
+                  class="text-base font-medium text-[var(--color-text-primary)]"
                 >
                   {{ formatDate(bookingData?.session_date) }}
                 </p>
                 <p
-                  class="text-sm sm:text-base text-[var(--color-text-primary)] flex items-center"
+                  class="text-[var(--color-text-primary)]/70 flex items-center text-sm"
                 >
                   <svg
-                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
+                    class="w-3.5 h-3.5 mr-1.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -208,19 +231,183 @@
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  {{ bookingData?.session_time || "N/A" }}
+                  {{ formatTime(bookingData?.session_time) || "N/A" }}
+                </p>
+                <p class="text-[var(--color-text-primary)]/70 text-sm">
+                  {{ bookingData?.title }}
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Session Details -->
+          <!-- Payment Summary -->
           <div
-            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8 mb-8 sm:mb-12"
+            class="bg-[var(--color-bg-light)]/50 backdrop-blur p-4 rounded-xl mb-6"
           >
             <h3
-              class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-4 sm:mb-6 font-playfair flex items-center"
+              class="text-sm font-medium text-[var(--color-text-primary)] mb-4 font-playfair"
             >
+              Payment Summary
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-1">
+                <span class="text-[var(--color-text-primary)]/70 text-sm"
+                  >Package Price</span
+                >
+                <span
+                  class="text-base font-medium text-[var(--color-text-primary)]"
+                >
+                  {{ formatPrice(bookingData?.price || 0) }}
+                </span>
+              </div>
+
+              <div
+                v-if="bookingData?.payment_extra_pax"
+                class="flex justify-between items-center py-1"
+              >
+                <span class="text-[var(--color-text-primary)]/70 text-sm">
+                  Extra Person ({{ bookingData?.number_of_extra_pax }} pax)
+                </span>
+                <span
+                  class="text-base font-medium text-[var(--color-text-primary)]"
+                >
+                  {{ formatPrice(bookingData?.payment_extra_pax || 0) }}
+                </span>
+              </div>
+
+              <div
+                v-if="bookingData?.addons?.length"
+                class="flex flex-col space-y-2 py-1"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--color-text-primary)]/70 text-sm"
+                    >Addon Charges</span
+                  >
+                  <span
+                    class="text-base font-medium text-[var(--color-text-primary)]"
+                  >
+                    {{ formatPrice(bookingData?.payment_addon_total || 0) }}
+                  </span>
+                </div>
+                <!-- Addon Details -->
+                <div class="pl-2 border-l-2 border-[var(--color-primary)]/20">
+                  <div
+                    v-for="(addon, index) in bookingData.addons"
+                    :key="index"
+                    class="text-sm space-y-0.5"
+                  >
+                    <div class="flex justify-between items-center">
+                      <span class="text-[var(--color-text-primary)]/90 font-medium">{{ addon.name }}</span>
+                      <span class="text-[var(--color-text-primary)]/70">{{ formatPrice(addon.price || 0) }}</span>
+                    </div>
+                    <p class="text-[var(--color-text-primary)]/60 text-xs">
+                      {{ addon.desc }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="border-t border-dashed border-[var(--color-border-primary)] pt-3 mt-2"
+              >
+                <div class="flex justify-between items-center">
+                  <span
+                    class="text-base font-medium text-[var(--color-text-primary)]"
+                    >Total Amount</span
+                  >
+                  <span
+                    class="text-lg font-semibold text-[var(--color-primary)]"
+                  >
+                    {{ formatPrice(bookingData?.payment_amount) }}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                v-if="bookingData?.payment_type == 2"
+                class="bg-[var(--color-primary)]/5 p-3 rounded-lg mt-3"
+              >
+                <div class="flex justify-between items-center mb-1.5">
+                  <span class="text-[var(--color-text-primary)] text-sm"
+                    >Deposit Paid</span
+                  >
+                  <span
+                    class="text-base font-medium text-[var(--color-primary)]"
+                  >
+                    {{ formatPrice(bookingData?.payment_amount || 0) }}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--color-text-primary)] text-sm"
+                    >Balance Due</span
+                  >
+                  <span
+                    class="text-base font-medium text-[var(--color-text-primary)]"
+                  >
+                    {{
+                      formatPrice(
+                        bookingData?.payment_total - bookingData?.payment_amount
+                      )
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div
+            class="space-y-3 text-xs text-[var(--color-text-primary)]/70 bg-[var(--color-bg-light)]/30 p-4 rounded-xl"
+          >
+            <div
+              v-if="bookingData?.payment_type == 2"
+              class="flex justify-center items-start space-x-2"
+            >
+              <svg
+                class="w-4 h-4 text-[var(--color-primary)] mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p>Balance payment is due on the day of the session.</p>
+            </div>
+            <div class="flex justify-center items-start space-x-2">
+              <svg
+                class="w-4 h-4 text-[var(--color-primary)] mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p class="text-center">
+                Please keep this receipt for your records.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div
+          class="border-t border-[var(--color-border-primary)] p-4 sm:p-6 bg-[var(--color-bg-light)]/50 backdrop-blur flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0"
+        >
+          <NuxtLink
+            to="/"
+            class="w-full sm:w-auto px-5 py-2 rounded-full border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 text-center"
+          >
+            <span class="flex items-center justify-center">
               <svg
                 class="w-4 h-4 mr-2"
                 fill="none"
@@ -231,220 +418,33 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              Session Details
-            </h3>
-            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
-              <div class="flex justify-between items-center">
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ bookingData.theme }}</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ formatPrice(bookingData?.theme_price || 0) }}</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Addon Details -->
-          <div
-            v-if="bookingData?.addons.length > 0"
-            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8"
-          >
-            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
-              <div class="flex justify-between items-center">
-                <span class="text-[var(--color-text-primary)]/70"
-                  >Addon Details</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ bookingData?.addons.length }} Addons</span
-                >
-              </div>
-
-              <div
-                v-for="(addon, index) in bookingData?.addons"
-                :key="index"
-                class="flex justify-between items-center"
-              >
-                <span>{{ addon.name }}</span>
-                <span>{{ formatPrice(addon.price) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Payment Details -->
-          <div
-            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8"
-          >
-            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
-              <div
-                class="flex justify-between items-center text-sm sm:text-base"
-              >
-                <span class="text-[var(--color-text-primary)]/70"
-                  >Package Price</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ formatPrice(bookingData?.theme_price || 0) }}</span
-                >
-              </div>
-              <div
-                v-if="bookingData?.number_of_extra_pax"
-                class="flex justify-between items-center text-sm sm:text-base"
-              >
-                <span class="text-[var(--color-text-primary)]/70"
-                  >Extra Person Charges ({{
-                    bookingData?.number_of_extra_pax
-                  }}
-                  pax)</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ formatPrice(bookingData?.payment_extra_pax || 0) }}</span
-                >
-              </div>
-              <div
-                v-if="bookingData?.addons.length > 0"
-                class="flex justify-between items-center text-sm sm:text-base"
-              >
-                <span class="text-[var(--color-text-primary)]/70"
-                  >Addon Charges</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{
-                    formatPrice(bookingData?.payment_addon_total || 0)
-                  }}</span
-                >
-              </div>
-              <div
-                class="flex justify-between items-center pt-4 border-t border-dashed border-[var(--color-border-primary)]"
-              >
-                <span class="text-[var(--color-text-primary)]/70"
-                  >Total Amount</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ formatPrice(calculateTotal) }}</span
-                >
-              </div>
-              <div class="flex justify-between items-center">
-                <span
-                  class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]"
-                  >Deposit Paid</span
-                >
-                <span
-                  class="text-lg sm:text-xl font-semibold text-[var(--color-primary)]"
-                  >{{ formatPrice(bookingData?.theme_deposit || 0) }}</span
-                >
-              </div>
-              <div
-                class="flex justify-between items-center pt-4 border-t border-dashed border-[var(--color-border-primary)]"
-              >
-                <span
-                  class="text-[var(--color-text-primary)]/70 text-sm sm:text-base"
-                  >Balance Due</span
-                >
-                <span
-                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
-                  >{{ formatPrice(calculateBalanceDue) }}</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div
-            class="mt-8 sm:mt-12 space-y-2 text-xs sm:text-sm text-[var(--color-text-primary)]/70 bg-[var(--color-bg-light)] p-4 rounded-xl"
-          >
-            <div class="flex items-start space-x-2">
-              <svg
-                class="w-4 h-4 text-[var(--color-text-primary)]/50 mt-0.5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p>Balance payment is due on the day of the session</p>
-            </div>
-            <div class="flex items-start space-x-2">
-              <svg
-                class="w-4 h-4 text-[var(--color-text-primary)]/50 mt-0.5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p>Please keep this receipt for your records</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div
-          class="border-t border-[var(--color-border-primary)] p-4 sm:px-8 sm:py-6 bg-[var(--color-bg-light)] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
-        >
-          <NuxtLink
-            to="/"
-            class="w-full sm:w-auto btn btn-secondary flex justify-center items-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              />
-            </svg>
-            Back to Home
+              Back to Home
+            </span>
           </NuxtLink>
 
           <button
             @click="downloadReceipt"
-            class="w-full sm:w-auto flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary-light)] transition-all duration-200 transform hover:scale-[1.02]"
+            class="w-full sm:w-auto px-5 py-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white text-sm font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
           >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Download PDF
+            <span class="flex items-center justify-center">
+              <svg
+                class="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Download PDF
+            </span>
           </button>
         </div>
       </div>
@@ -458,6 +458,7 @@ import { useRoute, useRouter } from "vue-router";
 
 definePageMeta({
   layout: "empty",
+  middleware: "auth",
 });
 
 const route = useRoute();
@@ -562,6 +563,24 @@ const formatDatetime = (dateString) => {
   });
 };
 
+const formatTime = (timeString) => {
+  if (!timeString) return "N/A";
+  
+  // Split the time string into hours and minutes
+  const [hours, minutes] = timeString.split(':');
+  
+  // Convert hours to number for 12-hour format calculation
+  let hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  
+  // Convert to 12-hour format
+  hour = hour % 12;
+  hour = hour ? hour : 12; // If hour is 0, make it 12
+  
+  // Return formatted time
+  return `${hour.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+};
+
 const downloadReceipt = async () => {
   if (!html2pdf.value) {
     console.error("html2pdf not loaded");
@@ -612,9 +631,9 @@ const getReceiptDetail = async () => {
 const calculateTotal = computed(() => {
   if (!bookingData.value) return 0;
   return (
-    (bookingData.value.theme_price || 0) +
-    (bookingData.value.extra_person_amount || 0) +
-    (bookingData.value.addon_charges || 0)
+    (bookingData.value.price || 0) +
+    (bookingData.value.payment_extra_pax || 0) +
+    (bookingData.value.payment_addon_total || 0)
   );
 });
 
@@ -626,23 +645,30 @@ const calculateBalanceDue = computed(() => {
 
 <style>
 /* Component specific styles */
-.btn {
-  @apply inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-.btn-primary {
-  @apply text-[var(--color-text-light)] bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] focus:ring-[var(--color-primary)];
-  @apply disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-.btn-secondary {
-  @apply text-[var(--color-primary)] bg-[var(--color-bg-light)] border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-primary)] focus:ring-[var(--color-primary)];
+.bg-gradient-radial {
+  background: radial-gradient(
+    circle at center,
+    var(--tw-gradient-from) 0%,
+    var(--tw-gradient-via) 50%,
+    var(--tw-gradient-to) 100%
+  );
 }
 
 @media print {
-  .btn {
-    display: none;
+  .btn,
+  button {
+    display: none !important;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }
 </style>

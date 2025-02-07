@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
 
     // Check if receiptNumber is a valid booking number
     const booking = await knex("booking")
+      .leftJoin("theme", "booking.theme", "theme.id")
       .where("payment_ref_number", receiptNumber)
       .first();
     if (!booking) {
@@ -24,10 +25,13 @@ export default defineEventHandler(async (event) => {
       const addonDetail = await knex("addon").where("id", addon.id).first();
       addons.push({
         name: addonDetail.title,
+        desc: addonDetail.description,
         quantity: addon.quantity,
         price: addonDetail.price,
       });
     }
+
+    console.log("Addons:", addons);
 
     result = {
       ...booking,

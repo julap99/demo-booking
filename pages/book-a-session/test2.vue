@@ -7,6 +7,23 @@
       }"
     >
       <div class="w-full max-w-2xl mx-auto px-4">
+        <div class="p-2 mb-3">
+          <!-- Logo -->
+          <div class="flex justify-start items-center gap-4">
+            <img
+              src="https://www.placehold.co/100x100"
+              alt="Logo"
+              class="w-14 h-14 rounded-full"
+            />
+            <div class="flex flex-col">
+              <span class="text-lg font-semibold">Studio Raya 2025</span>
+              <span class="text-sm text-[var(--color-text-muted)]"
+                >By Sticht & Shutter Studio</span
+              >
+            </div>
+          </div>
+        </div>
+
         <!-- Main Card -->
         <div
           class="bg-[var(--color-bg-white)] rounded-2xl sm:rounded-[32px] shadow-xl shadow-[var(--color-primary)]/10 overflow-hidden"
@@ -15,15 +32,65 @@
           <div
             class="relative bg-[var(--color-bg-light)] px-4 sm:px-6 py-4 sm:py-6 border-[var(--color-border-primary)]"
           >
-            <h1
-              class="text-lg sm:text-2xl font-semibold text-[var(--color-primary)] text-center mb-6 sm:mb-10"
-            >
-              Book Your Session
-            </h1>
+            <div v-if="currentStep === 1">
+              <h1
+                class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+              >
+                Pick a date & time
+              </h1>
+              <p class="text-md text-[#6b7280]">
+                Choose a date and time that suits your Raya photo session
+              </p>
+            </div>
+
+            <div v-else-if="currentStep === 2">
+              <h1
+                class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+              >
+                Choose your theme
+              </h1>
+              <p class="text-md text-[var(--color-text-muted)]">
+                Choose your preferred studio theme asdnajk akjsdbakjsd k
+                ajsdnakjsdn akjsdn lorem
+              </p>
+            </div>
+
+            <div v-else-if="currentStep === 3">
+              <h1
+                class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+              >
+                Enhance your session with add-ons
+              </h1>
+              <p class="text-md text-[var(--color-text-muted)]">
+                Add any additional services you want to enhance your session
+              </p>
+            </div>
+
+            <div v-else-if="currentStep === 4">
+              <h1
+                class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+              >
+                Customer Details
+              </h1>
+              <p class="text-md text-[var(--color-text-muted)]">
+                Add your personal details
+              </p>
+            </div>
+
+            <div v-else-if="currentStep === 5">
+              <h1
+                class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
+              >
+                Summary & Payment Details
+              </h1>
+              <p class="text-md text-[var(--color-text-muted)]">
+                Review your booking details and proceed to payment
+              </p>
+            </div>
 
             <!-- Mobile Step Indicator -->
-            <div class="block sm:hidden mb-4">
-              <div class="flex items-center justify-center space-x-2">
+            <div class="block sm:hidden my-4">
+              <div class="flex items-center justify-start space-x-2">
                 <span class="text-sm text-[var(--color-primary)]"
                   >Step {{ currentStep }} of {{ steps.length }}</span
                 >
@@ -43,7 +110,7 @@
             </div>
 
             <!-- Desktop Progress Steps - Hidden on mobile -->
-            <div class="hidden sm:block">
+            <div class="hidden sm:block my-4">
               <div class="max-w-2xl mx-auto">
                 <div class="relative flex items-center justify-between">
                   <!-- Progress Line -->
@@ -121,20 +188,11 @@
           </div>
 
           <!-- Form Content -->
-          <div class="px-4 sm:px-6 py-6 sm:py-8">
+          <div class="px-4 sm:px-6 pb-4 sm:py-8">
             <div>
               <!-- Step 1: Session (Select Date & Time) -->
               <div v-show="currentStep === 1" class="space-y-6">
                 <div class="max-w-2xl mx-auto">
-                  <h1
-                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
-                  >
-                    Pick a date & time
-                  </h1>
-                  <p class="text-md text-[#6b7280] mb-8">
-                    Choose a date and time that suits your Raya photo session
-                  </p>
-
                   <!-- Update the Month Selector -->
                   <div class="relative mb-8">
                     <select
@@ -426,16 +484,6 @@
               <!-- Step 2: Choose Theme -->
               <div v-show="currentStep === 2" key="step2" class="space-y-6">
                 <div class="max-w-2xl mx-auto">
-                  <h1
-                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
-                  >
-                    Choose your theme
-                  </h1>
-                  <p class="text-md text-[var(--color-text-muted)] mb-8">
-                    Choose your preferred studio theme asdnajk akjsdbakjsd k
-                    ajsdnakjsdn akjsdn lorem
-                  </p>
-
                   <!-- Session Type Cards -->
                   <div class="space-y-6">
                     <div
@@ -599,15 +647,6 @@
               <!-- Step 3: Add Ons -->
               <div v-show="currentStep === 3" key="step3" class="space-y-6">
                 <div class="max-w-2xl mx-auto">
-                  <h1
-                    class="text-2xl font-bold text-[var(--color-text-primary)] mb-2"
-                  >
-                    Enhance your session with add-ons
-                  </h1>
-                  <p class="text-md text-[var(--color-text-muted)] mb-6">
-                    Add any additional services you want to enhance your session
-                  </p>
-
                   <!-- Add-ons Cards -->
                   <div class="grid grid-cols-1 gap-3">
                     <div
@@ -1001,14 +1040,6 @@
                   <div
                     class="bg-white rounded-xl border border-[var(--color-border-primary)] overflow-hidden mb-6"
                   >
-                    <div class="p-4 bg-[var(--color-bg-primary)]">
-                      <h3
-                        class="text-base font-medium text-[var(--color-text-primary)] font-playfair"
-                      >
-                        Booking Summary
-                      </h3>
-                    </div>
-
                     <!-- Theme Details -->
                     <div
                       class="flex items-center p-3 border-b border-[var(--color-border-primary)]"

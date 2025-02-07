@@ -225,16 +225,6 @@ export default defineEventHandler(async (event) => {
 
     console.log("Theme Data:", themeData);
 
-    // Calculate payment amount
-    const paymentAmount =
-      payment_type === 2
-        ? themeData.deposit
-        : themeData.deposit +
-          themeData.price +
-          addons.reduce((acc, addon) => acc + addon.price * addon.qty, 0);
-
-    console.log("Payment Amount:", paymentAmount);
-
     // Calculate extra pax
     const chargePerPax = await knex("config")
       .select("value")
@@ -272,6 +262,14 @@ export default defineEventHandler(async (event) => {
     );
 
     console.log("Payment Addon:", paymentAddon);
+
+    // Calculate payment amount
+    const paymentAmount =
+      payment_type === 2
+        ? themeData.deposit
+        : themeData.price + paymentAddon + paymentExtraPax;
+
+    console.log("Payment Amount:", paymentAmount);
 
     // Calculate payment total
     let paymentTotal = themeData.price + paymentAddon + paymentExtraPax;
