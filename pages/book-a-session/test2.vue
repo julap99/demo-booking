@@ -195,77 +195,123 @@
                 <div class="max-w-2xl mx-auto">
                   <!-- Session Type Cards -->
                   <div class="space-y-6">
-                    <div
-                      v-for="type in sessionTypes"
-                      :key="type.value"
-                      @click="selectSessionType(type.id)"
-                      class="relative group cursor-pointer"
-                    >
-                      <div
-                        class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
-                        :class="[
-                          formData.sessionType === type.id
-                            ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
-                            : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
-                        ]"
-                      >
-                        <!-- Background Image -->
-                        <div class="absolute inset-0">
-                          <img
-                            :src="type.image"
-                            :alt="type.label"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                          <!-- Gradient Overlay -->
-                          <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
-                          ></div>
-                        </div>
-
-                        <!-- Content -->
+                    <!-- Loading Skeleton -->
+                    <template v-if="isLoadingThemes">
+                      <div v-for="n in 2" :key="n" class="relative">
                         <div
-                          class="relative h-full p-6 flex flex-col justify-end"
+                          class="relative h-[280px] rounded-2xl overflow-hidden bg-gray-100 animate-pulse"
                         >
-                          <!-- Theme Label -->
-                          <div class="mb-2">
-                            <h3
-                              class="text-2xl font-semibold text-white font-playfair mb-2"
-                            >
-                              {{ type.title }}
-                            </h3>
-                            <p class="text-sm text-white/90 line-clamp-2">
-                              {{ type.description }}
-                            </p>
+                          <div class="absolute inset-0">
+                            <div
+                              class="w-full h-full bg-gradient-to-t from-gray-200 via-gray-100 to-transparent"
+                            ></div>
                           </div>
-
-                          <!-- Price and Features -->
-                          <div class="mt-4">
-                            <div class="flex items-center justify-between">
-                              <div>
-                                <p class="text-xs text-white/80">Price</p>
-                                <p class="text-xl font-semibold text-white">
-                                  {{ formatPrice(type.price) }}
-                                </p>
-                              </div>
+                          <div
+                            class="relative h-full p-6 flex flex-col justify-end"
+                          >
+                            <div class="mb-2">
                               <div
-                                class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                                :class="[
-                                  formData.sessionType === type.id
-                                    ? 'bg-[var(--color-text-primary)] text-white'
-                                    : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
-                                ]"
-                              >
-                                {{
-                                  formData.sessionType === type.id
-                                    ? "Selected"
-                                    : "Select Theme"
-                                }}
+                                class="h-8 w-48 bg-gray-200 rounded-lg mb-2"
+                              ></div>
+                              <div
+                                class="h-4 w-full bg-gray-200 rounded mb-1"
+                              ></div>
+                              <div class="h-4 w-3/4 bg-gray-200 rounded"></div>
+                            </div>
+                            <div class="mt-4">
+                              <div class="flex items-center justify-between">
+                                <div>
+                                  <div
+                                    class="h-3 w-16 bg-gray-200 rounded mb-1"
+                                  ></div>
+                                  <div
+                                    class="h-6 w-24 bg-gray-200 rounded"
+                                  ></div>
+                                </div>
+                                <div
+                                  class="w-24 h-10 bg-gray-200 rounded-xl"
+                                ></div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </template>
+
+                    <!-- Actual Theme Cards -->
+                    <template v-else>
+                      <div
+                        v-for="type in sessionTypes"
+                        :key="type.value"
+                        @click="selectSessionType(type.id)"
+                        class="relative group cursor-pointer"
+                      >
+                        <div
+                          class="relative h-[280px] rounded-2xl overflow-hidden transition-all duration-300"
+                          :class="[
+                            formData.sessionType === type.id
+                              ? 'ring-4 ring-[var(--color-text-primary)] ring-offset-2'
+                              : 'hover:ring-2 hover:ring-[var(--color-text-primary)]/50 hover:ring-offset-2',
+                          ]"
+                        >
+                          <!-- Background Image -->
+                          <div class="absolute inset-0">
+                            <img
+                              :src="type.image"
+                              :alt="type.label"
+                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                            <!-- Gradient Overlay -->
+                            <div
+                              class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+                            ></div>
+                          </div>
+
+                          <!-- Content -->
+                          <div
+                            class="relative h-full p-6 flex flex-col justify-end"
+                          >
+                            <!-- Theme Label -->
+                            <div class="mb-2">
+                              <h3
+                                class="text-2xl font-semibold text-white font-playfair mb-2"
+                              >
+                                {{ type.title }}
+                              </h3>
+                              <p class="text-sm text-white/90 line-clamp-2">
+                                {{ type.description }}
+                              </p>
+                            </div>
+
+                            <!-- Price and Features -->
+                            <div class="mt-4">
+                              <div class="flex items-center justify-between">
+                                <div>
+                                  <p class="text-xs text-white/80">Price</p>
+                                  <p class="text-xl font-semibold text-white">
+                                    {{ formatPrice(type.price) }}
+                                  </p>
+                                </div>
+                                <div
+                                  class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                                  :class="[
+                                    formData.sessionType === type.id
+                                      ? 'bg-[var(--color-text-primary)] text-white'
+                                      : 'bg-white/90 text-[var(--color-text-primary)] group-hover:bg-[var(--color-text-primary)] group-hover:text-white',
+                                  ]"
+                                >
+                                  {{
+                                    formData.sessionType === type.id
+                                      ? "Selected"
+                                      : "Select Theme"
+                                  }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -1696,8 +1742,6 @@ const sessionTypes = ref([]);
 async function getConfig() {
   try {
     const config = await $fetch("/api/booking/get-config");
-    console.log("Config: ", config);
-
     EXTRA_PAX_CHARGE.value = parseInt(config.charge_per_pax);
     MAX_FREE_PAX.value = parseInt(config.max_free_pax);
     MAX_PAX.value = parseInt(config.max_pax);
@@ -1706,13 +1750,20 @@ async function getConfig() {
   }
 }
 
+// Add after other refs
+const isLoadingThemes = ref(true);
+
+// Update the getThemes function
 const getThemes = async () => {
+  isLoadingThemes.value = true;
   try {
     const themes = await $fetch("/api/booking/get-themes");
     sessionTypes.value = themes;
   } catch (error) {
     console.error("Failed to fetch themes:", error);
-    return [];
+    sessionTypes.value = [];
+  } finally {
+    isLoadingThemes.value = false;
   }
 };
 
@@ -1800,7 +1851,6 @@ const currentMonth = computed({
     }
   },
 });
-console.log("Current month:", currentMonth.value);
 
 const currentYear = computed(() => {
   return currentDate.value.getFullYear();
@@ -1872,7 +1922,7 @@ async function fetchSlotsData(month) {
       },
     });
 
-    console.log("Response slots: ", response);
+    // console.log("Response slots: ", response);
     if (response.status === "success") {
       slotsData.value = response.data;
     }
@@ -1948,7 +1998,7 @@ const selectDate = async (date) => {
       },
     });
 
-    console.log("Response available slots: ", response);
+    // console.log("Response available slots: ", response);
 
     if (response.status === "success") {
       slotInterval.value = response.interval;
@@ -2101,8 +2151,8 @@ const validateField = (field) => {
       } else if (paxValue < 1) {
         formData.value.numberOfPax = 1;
         errors.value.numberOfPax = "Minimum 1 person required";
-      } else if (paxValue > 20) {
-        formData.value.numberOfPax = 20;
+      } else if (paxValue > MAX_PAX.value) {
+        formData.value.numberOfPax = MAX_PAX.value;
         errors.value.numberOfPax = "Maximum 20 persons allowed";
       }
       break;
