@@ -5,7 +5,7 @@
       background: `linear-gradient(to bottom right, var(--color-bg-primary), var(--color-bg-secondary), var(--color-bg-tertiary))`,
     }"
   >
-    <div class="max-w-lg mx-auto  px-4 sm:px-6 lg:px-8 py-12 ">
+    <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-12">
         <el-skeleton :rows="10" animated />
@@ -71,16 +71,20 @@
               >
                 Booking Confirmation
               </h1>
-              <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
+              <p
+                class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium"
+              >
                 Receipt #{{ bookingData?.payment_ref_number || "N/A" }}
               </p>
-              <p class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium">
+              <p
+                class="text-[var(--color-text-primary)]/70 text-base sm:text-lg font-medium"
+              >
                 Payment Date: {{ formatDatetime(bookingData?.created_date) }}
               </p>
             </div>
             <div class="flex justify-center">
               <div
-                  class="px-4 sm:px-6 py-2 sm:py-3 bg-[var(--color-bg-light)] text-[var(--color-text-primary)] rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
+                class="px-4 sm:px-6 py-2 sm:py-3 bg-[var(--color-bg-light)] text-[var(--color-text-primary)] rounded-lg text-sm sm:text-base font-medium inline-flex items-center"
               >
                 <svg
                   class="w-4 h-4 mr-2"
@@ -183,7 +187,9 @@
                   </svg>
                   Booking Date
                 </h3>
-                <p class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium">
+                <p
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] mb-2 font-medium"
+                >
                   {{ formatDate(bookingData?.session_date) }}
                 </p>
                 <p
@@ -209,7 +215,9 @@
           </div>
 
           <!-- Session Details -->
-          <div class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8 mb-8 sm:mb-12">
+          <div
+            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8 mb-8 sm:mb-12"
+          >
             <h3
               class="text-sm sm:text-base font-medium text-[var(--color-text-primary)]/70 mb-4 sm:mb-6 font-playfair flex items-center"
             >
@@ -236,73 +244,122 @@
             </h3>
             <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
               <div class="flex justify-between items-center">
-                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
-                  bookingData.theme
-                }}</span>
-                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
-                  formatPrice(bookingData?.theme_price || 0)
-                }}</span>
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ bookingData.theme }}</span
+                >
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ formatPrice(bookingData?.theme_price || 0) }}</span
+                >
               </div>
+            </div>
+          </div>
+
+          <!-- Addon Details -->
+          <div
+            v-if="bookingData?.addons.length > 0"
+            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8"
+          >
+            <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
+              <div class="flex justify-between items-center">
+                <span class="text-[var(--color-text-primary)]/70"
+                  >Addon Details</span
+                >
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ bookingData?.addons.length }} Addons</span
+                >
+              </div>
+
               <div
-                class="flex justify-between items-center text-sm sm:text-base text-[var(--color-text-primary)]"
+                v-for="(addon, index) in bookingData?.addons"
+                :key="index"
+                class="flex justify-between items-center"
               >
-                <span class="flex items-center">
-                  <svg
-                    class="w-4 h-4 mr-2 text-[var(--color-text-primary)]/70"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Location
-                </span>
-                <span>{{ bookingData.user_address || "N/A" }}</span>
+                <span>{{ addon.name }}</span>
+                <span>{{ formatPrice(addon.price) }}</span>
               </div>
             </div>
           </div>
 
           <!-- Payment Details -->
-          <div class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8">
+          <div
+            class="border-t border-[var(--color-border-primary)] pt-6 sm:pt-8"
+          >
             <div class="space-y-4 bg-[var(--color-bg-light)] p-4 rounded-xl">
               <div
                 class="flex justify-between items-center text-sm sm:text-base"
               >
-                <span class="text-[var(--color-text-primary)]/70">Total Package Price</span>
-                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
-                  formatPrice(bookingData?.theme_price || 0)
-                }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]"
-                  >Deposit Paid</span
+                <span class="text-[var(--color-text-primary)]/70"
+                  >Package Price</span
                 >
-                <span class="text-lg sm:text-xl font-semibold text-[var(--color-primary)]">{{
-                  formatPrice(bookingData?.theme_deposit || 0)
-                }}</span>
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ formatPrice(bookingData?.theme_price || 0) }}</span
+                >
               </div>
               <div
-                class="flex justify-between items-center pt-4 border-t border-dashed border-[#3C2A21]/10"
+                v-if="bookingData?.number_of_extra_pax"
+                class="flex justify-between items-center text-sm sm:text-base"
               >
-                <span class="text-[var(--color-text-primary)]/70 text-sm sm:text-base"
+                <span class="text-[var(--color-text-primary)]/70"
+                  >Extra Person Charges ({{
+                    bookingData?.number_of_extra_pax
+                  }}
+                  pax)</span
+                >
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ formatPrice(bookingData?.payment_extra_pax || 0) }}</span
+                >
+              </div>
+              <div
+                v-if="bookingData?.addons.length > 0"
+                class="flex justify-between items-center text-sm sm:text-base"
+              >
+                <span class="text-[var(--color-text-primary)]/70"
+                  >Addon Charges</span
+                >
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{
+                    formatPrice(bookingData?.payment_addon_total || 0)
+                  }}</span
+                >
+              </div>
+              <div
+                class="flex justify-between items-center pt-4 border-t border-dashed border-[var(--color-border-primary)]"
+              >
+                <span class="text-[var(--color-text-primary)]/70"
+                  >Total Amount</span
+                >
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ formatPrice(calculateTotal) }}</span
+                >
+              </div>
+              <div class="flex justify-between items-center">
+                <span
+                  class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]"
+                  >Deposit Paid</span
+                >
+                <span
+                  class="text-lg sm:text-xl font-semibold text-[var(--color-primary)]"
+                  >{{ formatPrice(bookingData?.theme_deposit || 0) }}</span
+                >
+              </div>
+              <div
+                class="flex justify-between items-center pt-4 border-t border-dashed border-[var(--color-border-primary)]"
+              >
+                <span
+                  class="text-[var(--color-text-primary)]/70 text-sm sm:text-base"
                   >Balance Due</span
                 >
-                <span class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium">{{
-                  formatPrice(
-                    bookingData?.theme_price - bookingData?.theme_deposit || 0
-                  )
-                }}</span>
+                <span
+                  class="text-base sm:text-lg text-[var(--color-text-primary)] font-medium"
+                  >{{ formatPrice(calculateBalanceDue) }}</span
+                >
               </div>
             </div>
           </div>
@@ -348,7 +405,7 @@
 
         <!-- Actions -->
         <div
-            class="border-t border-[var(--color-border-primary)] p-4 sm:px-8 sm:py-6 bg-[var(--color-bg-light)] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
+          class="border-t border-[var(--color-border-primary)] p-4 sm:px-8 sm:py-6 bg-[var(--color-bg-light)] flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0"
         >
           <NuxtLink
             to="/"
@@ -537,6 +594,7 @@ const getReceiptDetail = async () => {
       query: { receiptNumber: route.query.booking },
     });
 
+    console.log("Response:", response);
     if (!response?.data) {
       throw new Error("Invalid response from server");
     }
@@ -550,10 +608,23 @@ const getReceiptDetail = async () => {
     isLoading.value = false;
   }
 };
+
+const calculateTotal = computed(() => {
+  if (!bookingData.value) return 0;
+  return (
+    (bookingData.value.theme_price || 0) +
+    (bookingData.value.extra_person_amount || 0) +
+    (bookingData.value.addon_charges || 0)
+  );
+});
+
+const calculateBalanceDue = computed(() => {
+  if (!bookingData.value) return 0;
+  return calculateTotal.value - (bookingData.value.theme_deposit || 0);
+});
 </script>
 
 <style>
-
 /* Component specific styles */
 .btn {
   @apply inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200;

@@ -16,7 +16,7 @@
             class="relative bg-[var(--color-bg-light)] px-4 sm:px-6 py-4 sm:py-6 border-[var(--color-border-primary)]"
           >
             <h1
-              class="text-lg sm:text-2xl font-semibold text-[var(--color-primary)] text-center mb-6 sm:mb-10 font-playfair"
+              class="text-lg sm:text-2xl font-semibold text-[var(--color-primary)] text-center mb-6 sm:mb-10"
             >
               Book Your Session
             </h1>
@@ -350,20 +350,50 @@
                       </template>
                       <template v-else-if="availableTimeSlots.length === 0">
                         <div class="col-span-3 py-8 text-center">
-                          <div class="flex flex-col items-center justify-center space-y-3">
-                            <svg class="w-12 h-12 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <div
+                            class="flex flex-col items-center justify-center space-y-3"
+                          >
+                            <svg
+                              class="w-12 h-12 text-[var(--color-text-muted)]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
-                            <h3 class="text-lg font-medium text-[var(--color-text-primary)]">No Time Slots Available</h3>
-                            <p class="text-sm text-[var(--color-text-muted)] max-w-sm">
-                              Sorry, all slots for this date are fully booked or already past the current time. Please select another date to continue.
+                            <h3
+                              class="text-lg font-medium text-[var(--color-text-primary)]"
+                            >
+                              No Time Slots Available
+                            </h3>
+                            <p
+                              class="text-sm text-[var(--color-text-muted)] max-w-sm"
+                            >
+                              Sorry, all slots for this date are fully booked or
+                              already past the current time. Please select
+                              another date to continue.
                             </p>
-                            <button 
-                              @click="formData.date = ''" 
+                            <button
+                              @click="formData.date = ''"
                               class="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/5 rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                             >
-                              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                              <svg
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M15 19l-7-7 7-7"
+                                />
                               </svg>
                               Choose Another Date
                             </button>
@@ -484,84 +514,80 @@
                   <!-- Number of Persons Selection -->
                   <div class="space-y-6 mt-8">
                     <div class="max-w-2xl mx-auto">
-                      <!-- <h3
-                        class="text-base font-medium text-[var(--color-text-primary)] mb-4 font-playfair"
-                      >
-                        Select Number of Persons
-                      </h3> -->
                       <div class="relative">
-                        <select
-                          id="numberOfPax"
-                          v-model="formData.numberOfPax"
-                          class="form-input peer"
-                          :class="{ error: errors.numberOfPax }"
-                          required
-                          @blur="validateField('numberOfPax')"
-                        >
-                          <option value="" disabled selected>
-                            Select an option
-                          </option>
-                          <option
-                            v-for="option in paxOptions"
-                            :key="option.value"
-                            :value="option.value"
-                            class="py-3 text-base font-medium"
-                          >
-                            {{ option.label }}
-                          </option>
-                        </select>
-                        <label for="numberOfPax" class="form-label"
-                          >Number of persons</label
-                        >
-                        <div
-                          class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex items-center space-x-2"
-                        >
-                          <div
-                            class="h-5 w-[1px] bg-[var(--color-text-primary)]/10"
-                          ></div>
-                          <svg
-                            class="w-5 h-5 text-[var(--color-text-primary)]/60"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                        <p
-                          v-if="errors.numberOfPax"
-                          class="mt-2 text-xs text-red-500"
-                        >
-                          {{ errors.numberOfPax }}
-                        </p>
-                      </div>
-
-                      <!-- Custom number of persons input -->
-                      <div v-if="formData.numberOfPax === 'more'" class="mt-4">
                         <div class="form-group">
-                          <input
-                            type="number"
-                            id="customNumberOfPax"
-                            v-model="formData.customNumberOfPax"
-                            class="form-input peer"
-                            :class="{ error: errors.customNumberOfPax }"
-                            placeholder="Enter number of extra persons"
-                            min="1"
-                            @blur="validateField('customNumberOfPax')"
-                          />
-                          <label for="customNumberOfPax" class="form-label"
-                            >Enter exact number of extra persons</label
+                          <div
+                            class="mb-2 text-sm font-medium text-[var(--color-text-primary)]"
                           >
+                            Number of persons
+                          </div>
+                          <div class="flex items-center space-x-3">
+                            <button
+                              type="button"
+                              @click="decrementPax"
+                              class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                              :disabled="formData.numberOfPax <= 1"
+                            >
+                              <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M20 12H4"
+                                />
+                              </svg>
+                            </button>
+                            <div class="relative flex-1 max-w-[120px]">
+                              <input
+                                type="number"
+                                id="numberOfPax"
+                                v-model.number="formData.numberOfPax"
+                                class="form-input text-center h-12 px-3 py-0 text-lg font-medium"
+                                :class="{ error: errors.numberOfPax }"
+                                min="1"
+                                max="20"
+                                @blur="validateField('numberOfPax')"
+                                @input="handlePaxInput"
+                                aria-label="Number of persons"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              @click="incrementPax"
+                              class="w-12 h-12 flex items-center justify-center rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-all duration-200 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                              :disabled="formData.numberOfPax >= 20"
+                            >
+                              <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M12 4v16m8-8H4"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <p v-if="errors.numberOfPax" class="form-error mt-2">
+                            {{ errors.numberOfPax }}
+                          </p>
                           <p
-                            v-if="errors.customNumberOfPax"
-                            class="mt-2 text-xs text-red-500"
+                            v-if="extraPaxCharge > 0"
+                            class="mt-2 text-xs text-[var(--color-text-muted)]"
                           >
-                            {{ errors.customNumberOfPax }}
+                            Additional charge of
+                            {{ formatPrice(extraPaxCharge) }} for
+                            {{ formData.numberOfPax - MAX_FREE_PAX }}
+                            extra person(s)
                           </p>
                         </div>
                       </div>
@@ -587,7 +613,6 @@
                     <div
                       v-for="addon in addOns"
                       :key="addon.id"
-                      @click="selectAddOn(addon.id)"
                       class="relative group"
                       :class="[
                         addon.status == 1
@@ -598,9 +623,9 @@
                       <div
                         class="relative rounded-xl overflow-hidden transition-all duration-300 bg-white border"
                         :class="[
-                          formData.addOn === addon.id
-                            ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
-                            : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]/50',
+                          hasAddon(addon.id)
+                            ? 'border-[var(--color-primary)] bg-opacity-5 bg-[var(--color-primary)]'
+                            : 'border-[var(--color-border-primary)] hover:border-[var(--color-primary)]',
                         ]"
                       >
                         <div class="flex items-center p-3">
@@ -627,43 +652,65 @@
                                 <p
                                   class="text-sm text-[var(--color-text-muted)] line-clamp-1 mt-0.5"
                                 >
-                                  <!-- {{ addon.desc }} -->
-                                  {{ formatPrice(addon.price) }}
+                                  {{ formatPrice(addon.price) }} each
                                 </p>
                               </div>
-                              <!-- <div class="ml-4 flex-shrink-0">
-                                <p class="text-base font-semibold text-[var(--color-text-primary)]">
-                                  {{ formatPrice(addon.price) }}
-                                </p>
-                              </div> -->
                             </div>
                           </div>
 
-                          <!-- Selection Indicator -->
+                          <!-- Quantity Controls -->
                           <div class="ml-4 flex-shrink-0">
                             <div
                               v-if="addon.status == 1"
-                              class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                              :class="[
-                                formData.addOn === addon.id
-                                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
-                                  : 'border-[var(--color-border-primary)]',
-                              ]"
+                              class="flex items-center space-x-2"
                             >
-                              <svg
-                                v-if="formData.addOn === addon.id"
-                                class="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                              <button
+                                @click.stop="decrementAddon(addon.id)"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-primary)]/5"
+                                :class="{
+                                  'opacity-50 cursor-not-allowed': !hasAddon(
+                                    addon.id
+                                  ),
+                                }"
+                                :disabled="!hasAddon(addon.id)"
                               >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
+                                <svg
+                                  class="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M20 12H4"
+                                  />
+                                </svg>
+                              </button>
+                              <span
+                                class="w-8 text-center text-[var(--color-text-primary)]"
+                              >
+                                {{ getAddonQuantity(addon.id) }}
+                              </span>
+                              <button
+                                @click.stop="incrementAddon(addon.id)"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-primary)]/5"
+                              >
+                                <svg
+                                  class="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                  />
+                                </svg>
+                              </button>
                             </div>
                             <span
                               v-else
@@ -705,7 +752,7 @@
                           <h3
                             class="text-base font-medium text-[var(--color-text-primary)] font-playfair"
                           >
-                            {{ selectedTheme?.label }}
+                            {{ selectedTheme?.title }}
                           </h3>
                           <p
                             class="text-xs text-[var(--color-text-muted)] line-clamp-2"
@@ -717,27 +764,37 @@
 
                       <!-- Add-on Details (if selected) -->
                       <div
-                        v-if="selectedAddOn"
+                        v-if="selectedAddOns.length > 0"
+                        v-for="addon in selectedAddOns"
+                        :key="addon.id"
                         class="flex items-center p-3 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-light)]"
                       >
                         <div
-                          class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0"
+                          class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
                         >
                           <img
-                            :src="selectedAddOn.image"
-                            :alt="selectedAddOn.label"
+                            :src="addon.image"
+                            :alt="addon.title"
                             class="w-full h-full object-cover"
                           />
                         </div>
-                        <div class="ml-3">
-                          <h4
-                            class="text-sm font-medium text-[var(--color-text-primary)]"
-                          >
-                            {{ selectedAddOn.label }}
-                          </h4>
-                          <p class="text-xs text-[var(--color-text-muted)]">
-                            {{ formatPrice(selectedAddOn.price) }}
-                          </p>
+                        <div class="ml-3 flex-1">
+                          <div class="flex justify-between items-center">
+                            <h4
+                              class="text-sm font-medium text-[var(--color-text-primary)]"
+                            >
+                              {{ addon.title }} (x{{
+                                getAddonQuantity(addon.id)
+                              }})
+                            </h4>
+                            <p class="text-sm text-[var(--color-text-primary)]">
+                              {{
+                                formatPrice(
+                                  addon.price * getAddonQuantity(addon.id)
+                                )
+                              }}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -969,7 +1026,7 @@
                         <h4
                           class="text-sm font-medium text-[var(--color-text-primary)]"
                         >
-                          {{ selectedTheme?.label }}
+                          {{ selectedTheme?.title }}
                         </h4>
                         <p class="text-xs text-[var(--color-text-muted)]">
                           {{ displayNumberOfPax }}
@@ -983,27 +1040,37 @@
 
                     <!-- Add-on Details (if selected) -->
                     <div
-                      v-if="selectedAddOn"
+                      v-if="selectedAddOns.length > 0"
+                      v-for="addon in selectedAddOns"
                       class="flex items-center p-3 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-light)]"
                     >
                       <div
                         class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
                       >
                         <img
-                          :src="selectedAddOn.image"
-                          :alt="selectedAddOn.label"
+                          :src="addon.image"
+                          :alt="addon.label"
                           class="w-full h-full object-cover"
                         />
                       </div>
                       <div class="ml-3 flex-1">
-                        <div class="flex justify-between items-center">
+                        <div
+                          :key="addon.id"
+                          class="flex justify-between items-center"
+                        >
                           <h4
                             class="text-sm font-medium text-[var(--color-text-primary)]"
                           >
-                            {{ selectedAddOn.label }}
+                            {{ addon.title }} (x{{
+                              getAddonQuantity(addon.id)
+                            }})
                           </h4>
                           <p class="text-sm text-[var(--color-text-primary)]">
-                            {{ formatPrice(selectedAddOn.price) }}
+                            {{
+                              formatPrice(
+                                addon.price * getAddonQuantity(addon.id)
+                              )
+                            }}
                           </p>
                         </div>
                       </div>
@@ -1018,11 +1085,23 @@
                         <span>{{ sessionPrice }}</span>
                       </div>
                       <div
-                        v-if="selectedAddOn"
+                        v-if="selectedAddOns.length > 0"
                         class="flex justify-between text-[var(--color-text-muted)]"
                       >
-                        <span>Add-on: {{ selectedAddOn.label }}</span>
-                        <span>{{ formatPrice(selectedAddOn.price) }}</span>
+                        <span>Add-ons: Total</span>
+                        <span>{{ formatPrice(totalAddOnsAmount) }}</span>
+                      </div>
+                      <div
+                        v-if="extraPaxCharge > 0"
+                        class="flex justify-between text-[var(--color-text-muted)]"
+                      >
+                        <span
+                          >Extra Person Charge ({{
+                            formData.numberOfPax - MAX_FREE_PAX
+                          }}
+                          pax)</span
+                        >
+                        <span>{{ formatPrice(extraPaxCharge) }}</span>
                       </div>
                       <div
                         class="flex justify-between font-medium text-[var(--color-text-primary)] pt-2 border-t border-[var(--color-border-primary)]"
@@ -1518,6 +1597,13 @@ definePageMeta({
         href: "https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap",
       },
     ],
+    meta: [
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+      },
+    ],
   },
 });
 
@@ -1536,6 +1622,7 @@ onMounted(async () => {
     scrollToDate(todayStr);
   });
 
+  await getConfig();
   await getThemes();
   await getAddons();
 
@@ -1581,6 +1668,19 @@ const steps = [
 // Session types configuration
 const sessionTypes = ref([]);
 
+async function getConfig() {
+  try {
+    const config = await $fetch("/api/booking/get-config");
+    console.log("Config: ", config);
+
+    EXTRA_PAX_CHARGE.value = parseInt(config.charge_per_pax);
+    MAX_FREE_PAX.value = parseInt(config.max_free_pax);
+    MAX_PAX.value = parseInt(config.max_pax);
+  } catch (error) {
+    console.error("Failed to fetch config:", error);
+  }
+}
+
 const getThemes = async () => {
   try {
     const themes = await $fetch("/api/booking/get-themes");
@@ -1601,20 +1701,6 @@ const getAddons = async () => {
   }
 };
 
-// Update paxOptions array
-const paxOptions = [
-  { value: "2", label: "2 persons" },
-  { value: "3", label: "3 persons" },
-  { value: "4", label: "4 persons" },
-  { value: "5", label: "5 persons" },
-  { value: "6", label: "6 persons" },
-  { value: "7", label: "7 persons" },
-  { value: "8", label: "8 persons" },
-  { value: "9", label: "9 persons" },
-  { value: "10", label: "10 persons" },
-  { value: "more", label: "More than 10 persons" },
-];
-
 // Add after sessionTypes array
 const addOns = ref([]);
 
@@ -1630,10 +1716,9 @@ const formData = ref({
   date: "",
   timeSlot: "",
   sessionType: "",
-  numberOfPax: "",
-  customNumberOfPax: "",
-  addOn: "",
-  paymentType: "deposit", // default to deposit payment
+  numberOfPax: 1,
+  addOns: [],
+  paymentType: "deposit",
   value: {
     timeSlot: "",
   },
@@ -1694,138 +1779,6 @@ const currentMonth = computed({
 const currentYear = computed(() => {
   return currentDate.value.getFullYear();
 });
-
-const weeklyCalendar = computed(() => {
-  const year = 2025;
-  const month = currentDate.value.getMonth();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Get the first day of the month
-  const firstDay = new Date(year, month, 1);
-
-  // Get the last day of the month
-  const lastDay = new Date(year, month + 1, 0);
-
-  // Get the start of the first week (Monday)
-  const startDate = new Date(firstDay);
-  startDate.setDate(startDate.getDate() - startDate.getDay() + 1);
-
-  // Get the end of the last week (Sunday)
-  const endDate = new Date(lastDay);
-  endDate.setDate(endDate.getDate() + (7 - endDate.getDay()));
-
-  const weeks = [];
-  let currentWeekDate = new Date(startDate);
-  let weekNumber = 1;
-
-  while (currentWeekDate <= endDate) {
-    const week = {
-      weekNumber,
-      startDate: new Date(currentWeekDate),
-      endDate: new Date(currentWeekDate),
-      days: [],
-    };
-
-    // Add 7 days to the week
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeekDate);
-      const dateStr = format(date, "yyyy-MM-dd");
-      const dayOfWeek = date.getDay();
-
-      const isSelectable =
-        dayOfWeek >= 1 && // Monday
-        dayOfWeek <= 5 && // Friday
-        date >= today && // Not in the past
-        date <= new Date(2025, 3, 30); // Not after April 2025
-
-      const isToday =
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear();
-
-      week.days.push({
-        date: dateStr,
-        isSelectable,
-        isToday,
-      });
-
-      currentWeekDate.setDate(currentWeekDate.getDate() + 1);
-    }
-
-    week.endDate = new Date(currentWeekDate);
-    week.endDate.setDate(week.endDate.getDate() - 1);
-    weeks.push(week);
-    weekNumber++;
-  }
-
-  return weeks;
-});
-
-const weekRanges = computed(() => {
-  return weeklyCalendar.value.map((week, index) => ({
-    weekNumber: week.weekNumber,
-    startDate: week.startDate,
-    endDate: week.endDate,
-  }));
-});
-
-const canGoToPreviousWeek = computed(() => {
-  if (!weeklyCalendar.value.length) return false;
-  const firstWeekStart = weeklyCalendar.value[0].startDate;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return firstWeekStart > today;
-});
-
-const canGoToNextWeek = computed(() => {
-  if (!weeklyCalendar.value.length) return false;
-  const lastWeekEnd =
-    weeklyCalendar.value[weeklyCalendar.value.length - 1].endDate;
-  return lastWeekEnd < new Date(2025, 3, 30); // Not after April 30, 2025
-});
-
-// Helper functions
-const isCurrentWeek = (date) => {
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 6);
-  return date >= startOfWeek && date <= endOfWeek;
-};
-
-const scrollToWeek = (startDate) => {
-  if (!dateScrollContainer.value) return;
-
-  const weekCard = dateScrollContainer.value
-    .querySelector(`[data-date="${format(startDate, "yyyy-MM-dd")}"]`)
-    ?.closest(".week-card");
-
-  if (weekCard) {
-    const container = dateScrollContainer.value;
-    const scrollLeft =
-      weekCard.offsetLeft -
-      container.clientWidth / 2 +
-      weekCard.clientWidth / 2;
-    container.scrollTo({
-      left: Math.max(0, scrollLeft),
-      behavior: "smooth",
-    });
-  }
-};
-
-function formatDateRange(startDate, endDate) {
-  return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d")}`;
-}
-
-function formatDayName(dateStr) {
-  return new Date(dateStr).toLocaleDateString("en-MY", { weekday: "short" });
-}
-
-function formatDayNumber(dateStr) {
-  return new Date(dateStr).getDate();
-}
 
 // Update months array to use 0-based indices for the v-model binding
 const months = [
@@ -2104,14 +2057,16 @@ const validateField = (field) => {
       }
       break;
     case "numberOfPax":
-      if (!formData.value.numberOfPax) {
-        errors.value.numberOfPax = "Please select number of persons";
-      }
-      if (
-        formData.value.numberOfPax === "more" &&
-        !formData.value.customNumberOfPax
-      ) {
-        errors.value.customNumberOfPax = "Please enter number of extra persons";
+      const paxValue = parseInt(formData.value.numberOfPax);
+      if (!paxValue || isNaN(paxValue)) {
+        formData.value.numberOfPax = 1;
+        errors.value.numberOfPax = "Please enter number of persons";
+      } else if (paxValue < 1) {
+        formData.value.numberOfPax = 1;
+        errors.value.numberOfPax = "Minimum 1 person required";
+      } else if (paxValue > 20) {
+        formData.value.numberOfPax = 20;
+        errors.value.numberOfPax = "Maximum 20 persons allowed";
       }
       break;
     case "customNumberOfPax":
@@ -2269,7 +2224,12 @@ const processPayment = async () => {
       time: formData.value.timeSlot,
       theme: formData.value.sessionType,
       number_of_pax: totalPax,
-      add_ons: formData.value.addOn ? [formData.value.addOn] : [],
+      add_ons: formData.value.addOns
+        ? formData.value.addOns.map((addon) => ({
+            id: addon.id,
+            quantity: addon.quantity,
+          }))
+        : [],
 
       // Customer Details
       name: formData.value.name,
@@ -2472,20 +2432,13 @@ const selectAddOn = (value) => {
   const addon = addOns.value.find((a) => a.id === value);
   if (addon && addon.status == 1) {
     // Changed from addon.available to addon.status == 1
-    formData.value.addOn = formData.value.addOn === value ? "" : value;
+    formData.value.addOns.push({ id: addon.id, quantity: 1 });
   }
 };
 
 // Add a computed property to display the number of persons
 const displayNumberOfPax = computed(() => {
-  if (formData.value.numberOfPax === "more") {
-    const baseNumber = 10;
-    const extraPersons = parseInt(formData.value.customNumberOfPax) || 0;
-    const totalPersons = baseNumber + extraPersons;
-    return `${totalPersons} persons (10 + ${extraPersons})`;
-  } else {
-    return `${formData.value.numberOfPax} persons`;
-  }
+  return `${formData.value.numberOfPax} persons`;
 });
 
 // Add a computed property to calculate the total amount
@@ -2493,10 +2446,26 @@ const totalAmount = computed(() => {
   const basePrice =
     sessionTypes.value.find((t) => t.id === formData.value.sessionType)
       ?.price || 0;
-  const addonPrice =
-    addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
 
-  return parseFloat(basePrice) + parseFloat(addonPrice);
+  const addonsTotal = formData.value.addOns.reduce((total, addon) => {
+    const addonData = addOns.value.find((a) => a.id === addon.id);
+    return total + (addonData?.price || 0) * addon.quantity;
+  }, 0);
+
+  const extraPaxTotal = extraPaxCharge.value;
+  console.log("extraPaxTotal: ", extraPaxTotal);
+
+  return (
+    parseFloat(basePrice) + parseFloat(addonsTotal) + parseFloat(extraPaxTotal)
+  );
+});
+
+// Add a computed property to calculate the total add-ons amount
+const totalAddOnsAmount = computed(() => {
+  return formData.value.addOns.reduce((total, addon) => {
+    const addonData = addOns.value.find((a) => a.id === addon.id);
+    return total + (addonData?.price || 0) * addon.quantity;
+  }, 0);
 });
 
 // Add a computed property to calculate the balance amount
@@ -2505,16 +2474,21 @@ const balanceAmount = computed(() => {
     (t) => t.id === formData.value.sessionType
   );
   const basePrice = selectedType?.price || 0;
-  const addonPrice =
-    addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
-  const total = basePrice + addonPrice;
+  const addonsTotal = formData.value.addOns.reduce((total, addon) => {
+    const addonData = addOns.value.find((a) => a.id === addon.id);
+    return total + (addonData?.price || 0) * addon.quantity;
+  }, 0);
+  const total = basePrice + addonsTotal;
   const deposit = selectedType?.deposit || 0;
   return formatPrice(total - deposit);
 });
 
 // Add a computed property to get the selected add-on
-const selectedAddOn = computed(() => {
-  return addOns.value.find((a) => a.id === formData.value.addOn);
+const selectedAddOns = computed(() => {
+  return formData.value.addOns.map((addon) => {
+    const addonData = addOns.value.find((a) => a.id === addon.id);
+    return { ...addonData, quantity: addon.quantity };
+  });
 });
 
 const amountToPay = computed(() => {
@@ -2527,9 +2501,11 @@ const amountToPay = computed(() => {
     const basePrice =
       sessionTypes.value.find((t) => t.id === formData.value.sessionType)
         ?.price || 0;
-    const addonPrice =
-      addOns.value.find((a) => a.id === formData.value.addOn)?.price || 0;
-    return formatPrice(basePrice + addonPrice);
+    const addonsTotal = formData.value.addOns.reduce((total, addon) => {
+      const addonData = addOns.value.find((a) => a.id === addon.id);
+      return total + (addonData?.price || 0) * addon.quantity;
+    }, 0);
+    return formatPrice(basePrice + addonsTotal);
   }
 });
 
@@ -2543,11 +2519,82 @@ const resetForm = () => {
     date: "",
     timeSlot: "",
     sessionType: "",
-    numberOfPax: "",
-    customNumberOfPax: "",
-    addOn: "",
+    numberOfPax: 1,
+    addOns: [],
     paymentType: "deposit",
+    value: {
+      timeSlot: "",
+    },
   };
+};
+
+// Add these new methods
+const hasAddon = (addonId) => {
+  return formData.value.addOns.some((addon) => addon.id === addonId);
+};
+
+const getAddonQuantity = (addonId) => {
+  const addon = formData.value.addOns.find((addon) => addon.id === addonId);
+  return addon ? addon.quantity : 0;
+};
+
+const incrementAddon = (addonId) => {
+  const existingAddon = formData.value.addOns.find(
+    (addon) => addon.id === addonId
+  );
+  if (existingAddon) {
+    existingAddon.quantity++;
+  } else {
+    formData.value.addOns.push({ id: addonId, quantity: 1 });
+  }
+};
+
+const decrementAddon = (addonId) => {
+  const index = formData.value.addOns.findIndex(
+    (addon) => addon.id === addonId
+  );
+  if (index !== -1) {
+    if (formData.value.addOns[index].quantity > 1) {
+      formData.value.addOns[index].quantity--;
+    } else {
+      formData.value.addOns.splice(index, 1);
+    }
+  }
+};
+
+// Add these new functions and computed properties in the script section:
+const EXTRA_PAX_CHARGE = ref(0); // RM20 per additional pax
+const MAX_FREE_PAX = ref(10);
+const MAX_PAX = ref(20);
+
+const extraPaxCharge = computed(() => {
+  const pax = parseInt(formData.value.numberOfPax) || 0;
+  return pax > MAX_FREE_PAX.value
+    ? (pax - MAX_FREE_PAX.value) * EXTRA_PAX_CHARGE.value
+    : 0;
+});
+
+const incrementPax = () => {
+  const currentPax = parseInt(formData.value.numberOfPax) || 0;
+  if (currentPax < MAX_PAX.value) {
+    formData.value.numberOfPax = currentPax + 1;
+    validateField("numberOfPax");
+  }
+};
+
+const decrementPax = () => {
+  const currentPax = parseInt(formData.value.numberOfPax) || 0;
+  if (currentPax > 1) {
+    formData.value.numberOfPax = currentPax - 1;
+    validateField("numberOfPax");
+  }
+};
+
+const handlePaxInput = (event) => {
+  let value = parseInt(event.target.value) || 1;
+  value = Math.max(1, Math.min(MAX_PAX.value, value));
+  formData.value.numberOfPax = value;
+  validateField("numberOfPax");
 };
 </script>
 
@@ -2567,11 +2614,17 @@ const resetForm = () => {
 }
 
 .form-input {
-  @apply block w-full px-3 sm:px-4 pt-5 sm:pt-6 pb-1.5 sm:pb-2 text-sm sm:text-base bg-white border rounded-xl appearance-none;
+  @apply block w-full px-3 sm:px-4 pt-5 sm:pt-6 pb-1.5 sm:pb-2 bg-white border rounded-xl appearance-none;
   @apply text-[var(--color-primary)] border-[var(--color-border-primary)];
   @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)];
   @apply placeholder-transparent;
+  font-size: 16px; /* Base font size for mobile */
+  line-height: 1.25;
   transition: var(--transition-all);
+
+  @screen sm {
+    font-size: 16px; /* Keep it 16px even on desktop for consistency */
+  }
 
   &.error {
     @apply border-red-500;
@@ -2582,15 +2635,22 @@ const resetForm = () => {
 }
 
 .form-label {
-  @apply absolute left-3 sm:left-4 top-3.5 sm:top-4 text-xs sm:text-sm cursor-text;
+  @apply absolute left-3 sm:left-4 top-4 sm:top-4 cursor-text;
   @apply pointer-events-none select-none;
   color: var(--color-text-muted);
+  font-size: 16px; /* Base font size for mobile */
+  line-height: 1.25;
   transition: all 0.2s ease;
   transform-origin: 0 0;
 
+  @screen sm {
+    font-size: 16px; /* Keep it 16px even on desktop for consistency */
+  }
+
   .form-input:focus + &,
   .form-input:not(:placeholder-shown) + & {
-    @apply text-xs transform -translate-y-2;
+    @apply transform -translate-y-2;
+    font-size: 12px; /* Smaller font size when label is floating */
     color: var(--color-primary);
   }
 
@@ -2605,18 +2665,25 @@ const resetForm = () => {
 }
 
 /* Custom Select Styles */
-select.form-input + .form-label {
-  @apply text-xs -translate-y-2;
-  color: var(--color-text-muted);
-}
+select.form-input {
+  font-size: 16px !important; /* Force 16px for select elements */
 
-select.form-input:focus + .form-label {
-  color: var(--color-primary);
+  & + .form-label {
+    font-size: 12px;
+    @apply -translate-y-2;
+    color: var(--color-text-muted);
+  }
+
+  &:focus + .form-label {
+    color: var(--color-primary);
+  }
 }
 
 /* Number Input Styles */
 input[type="number"].form-input {
   @apply pr-2;
+  font-size: 16px !important; /* Force 16px for number inputs */
+
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     @apply m-0;
@@ -2774,10 +2841,10 @@ select:-webkit-autofill {
 /* Smooth image scale transition */
 .group:hover .group-hover\:scale-110 {
   transform: scale(1.1);
-  transition: var(--transition-transform);
+  transition: transform 0.3s ease;
 }
 
-/* Music control animation */
+/* Animation */
 @keyframes pulse {
   0%,
   100% {
@@ -2790,5 +2857,23 @@ select:-webkit-autofill {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom number input styles for the stepper */
+.form-input[type="number"] {
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
+}
+
+/* Stepper input specific styles */
+.form-input[type="number"].text-center {
+  padding-top: 0;
+  padding-bottom: 0;
+  height: 48px;
+  line-height: 48px;
 }
 </style>

@@ -21,7 +21,7 @@ interface BookingFormData {
   date: string;
   time: string;
   number_of_pax: number;
-  add_ons: number[];
+  add_ons: { id: number; quantity: number }[];
 
   // Payment Details
   payment_type: number; // 1 = full, 2 = deposit
@@ -197,16 +197,23 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if the add-ons are selected and are valid
+    let addons = [];
 
     if (add_ons.length > 0) {
-      for (const addon_id of add_ons) {
-        const addOn = await knex("addon").where("id", addon_id).first();
+      for (const addon_ of add_ons) {
+        const addOn = await knex("addon").where("id", addon_.id).first();
         if (!addOn) {
           throw createError({
             statusCode: 400,
             message: "Invalid add-ons",
           });
         }
+
+        addons.push({
+          id: addOn.id,
+          qty: addon_.quantity,
+          price: addOn.price * addon_.quantity,
+        });
       }
     }
 
@@ -216,12 +223,60 @@ export default defineEventHandler(async (event) => {
     //   message: "Booking proceeded successfully",
     // };
 
+    console.log("Theme Data:", themeData);
+
     // Calculate payment amount
     const paymentAmount =
-      payment_type === 1 ? theme_price : themeData.deposit + themeData.price;
+      payment_type === 2
+        ? themeData.deposit
+        : themeData.deposit +
+          themeData.price +
+          addons.reduce((acc, addon) => acc + addon.price * addon.qty, 0);
 
-    // Addon is store in JSON format
-    const addon = JSON.stringify(add_ons);
+    console.log("Payment Amount:", paymentAmount);
+
+    // Calculate extra pax
+    const chargePerPax = await knex("config")
+      .select("value")
+      .where("code", "charge_per_pax")
+      .first();
+    console.log("Charge Per Pax:", chargePerPax);
+
+    const maxFreePax = await knex("config")
+      .select("value")
+      .where("code", "max_free_pax")
+      .first();
+
+    console.log("Max Free Pax:", maxFreePax);
+
+    const maxPax = await knex("config")
+      .select("value")
+      .where("code", "max_pax")
+      .first();
+
+    console.log("Max Pax:", maxPax);
+
+    let paymentExtraPax = 0;
+    if (number_of_pax > parseInt(maxFreePax.value)) {
+      paymentExtraPax =
+        (number_of_pax - parseInt(maxFreePax.value)) *
+        parseInt(chargePerPax.value);
+    }
+
+    console.log("Payment Extra Pax:", paymentExtraPax);
+
+    // Calculate payment addon
+    const paymentAddon = addons.reduce(
+      (acc, addon) => acc + addon.price * addon.qty,
+      0
+    );
+
+    console.log("Payment Addon:", paymentAddon);
+
+    // Calculate payment total
+    let paymentTotal = themeData.price + paymentAddon + paymentExtraPax;
+
+    console.log("Payment Total:", paymentTotal);
 
     // Use transaction to ensure data consistency
     const result = await knex.transaction(async (trx) => {
@@ -235,11 +290,15 @@ export default defineEventHandler(async (event) => {
         session_time: time,
         theme: theme,
         number_of_pax: number_of_pax,
-        addon: addon,
+        number_of_extra_pax: number_of_pax - parseInt(maxFreePax.value),
+        addon: addons.length > 0 ? JSON.stringify(addons) : null,
         payment_ref_number: receiptNumber,
         payment_type: payment_type,
         payment_method: payment_method,
         payment_amount: paymentAmount,
+        payment_addon_total: paymentAddon,
+        payment_total: paymentTotal,
+        payment_extra_pax: paymentExtraPax,
         status: 1, // Pending
         session_status: 1, // Pending
         created_date: new Date(),
