@@ -112,16 +112,9 @@ import {
   ExclamationCircleIcon,
   InformationCircleIcon,
 } from "@heroicons/vue/24/outline";
+import type { StatusModalProps } from "~/types/modal";
 
-interface Props {
-  isOpen: boolean;
-  status: "success" | "error" | "info";
-  title?: string;
-  message: string;
-  buttonText?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<StatusModalProps>(), {
   title: "",
   buttonText: "Close",
 });

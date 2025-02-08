@@ -363,7 +363,7 @@ const generateReceiptHtml = (booking) => {
             <h2>Booking Receipt</h2>
             <p>Thank you for choosing our services!</p>
           </div>
-          
+
           <div class="receipt-box">
             <div class="section">
               <div class="section-title">Booking Information</div>
@@ -558,7 +558,7 @@ watch(selectedDate, async (newDate) => {
 // Update rescheduleSession function
 const rescheduleSession = async () => {
   if (!selectedDate.value || !selectedSlot.value) {
-    alert("Please select both date and time slot");
+    showStatusModal("error", "Error", "Please select both date and time slot");
     return;
   }
 
@@ -583,14 +583,16 @@ const rescheduleSession = async () => {
           showRescheduleModal.value = false;
 
           showModal.value = false;
-          alert("Session rescheduled successfully");
+
+          alert("Session has been rescheduled successfully");
+
           getBookings(); // Refresh the bookings list
         } else {
-          throw new Error("Failed to reschedule session");
+          alert("Failed to reschedule session");
         }
       } catch (error) {
         console.error("Error rescheduling session:", error);
-        alert("Failed to reschedule session. Please try again.");
+        alert("Error rescheduling session");
       } finally {
         isRescheduling.value = false;
         showConfirmationModal.value = false;
@@ -617,14 +619,18 @@ const markAsPaid = async (bookingId) => {
 
         if (response.success) {
           selectedBooking.value.status = 3; // Set status to paid
+
+          showModal.value = false;
+
           alert("Booking has been marked as paid successfully");
+
           getBookings(); // Refresh the bookings list
         } else {
-          throw new Error("Failed to mark booking as paid");
+          alert("Failed to mark booking as paid");
         }
       } catch (error) {
         console.error("Error marking booking as paid:", error);
-        alert("Failed to mark booking as paid. Please try again.");
+        alert("Error marking booking as paid");
       } finally {
         isMarkingAsPaid.value = false;
         showConfirmationModal.value = false;
@@ -655,11 +661,11 @@ const cancelBooking = async (bookingId) => {
           alert("Booking has been cancelled successfully");
           getBookings(); // Refresh the bookings list
         } else {
-          throw new Error("Failed to cancel booking");
+          alert("Failed to cancel booking");
         }
       } catch (error) {
         console.error("Error cancelling booking:", error);
-        alert("Failed to cancel booking. Please try again.");
+        alert("Error cancelling booking");
       } finally {
         isCancelling.value = false;
         showConfirmationModal.value = false;
@@ -865,12 +871,14 @@ const handleSessionStatusChange = async (bookingId, newStatus) => {
       if (booking) {
         booking.session_status = parseInt(newStatus);
       }
+      // alert("Session status updated successfully");
+      // getBookings(); // Refresh the bookings list
     } else {
-      throw new Error("Failed to update session status");
+      alert("Failed to update session status");
     }
   } catch (error) {
     console.error("Error updating session status:", error);
-    alert("Failed to update session status. Please try again.");
+    alert("Error updating session status");
   }
 };
 
@@ -890,12 +898,14 @@ const handlePaymentStatusChange = async (bookingId, newStatus) => {
       if (booking) {
         booking.status = parseInt(newStatus);
       }
+      // alert("Payment status updated successfully");
+      // getBookings(); // Refresh the bookings list
     } else {
-      throw new Error("Failed to update payment status");
+      alert("Failed to update payment status");
     }
   } catch (error) {
     console.error("Error updating payment status:", error);
-    alert("Failed to update payment status. Please try again.");
+    alert("Error updating payment status");
   }
 };
 
@@ -914,12 +924,14 @@ const handleFrameStatusChange = async (bookingId, newStatus) => {
       if (booking) {
         booking.frame_status = parseInt(newStatus);
       }
+      // alert("Frame status updated successfully");
+      // getBookings(); // Refresh the bookings list
     } else {
-      throw new Error("Failed to update frame status");
+      alert("Failed to update frame status");
     }
   } catch (error) {
     console.error("Error updating frame status:", error);
-    alert("Failed to update frame status. Please try again.");
+    alert("Error updating frame status");
   }
 };
 
@@ -937,8 +949,6 @@ function formatTimeDisplay(timeString) {
   const displayHours = hours % 12 || 12;
   return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 }
-
-// ... rest of the existing code ...
 </script>
 
 <template>
