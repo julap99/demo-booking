@@ -1,139 +1,100 @@
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     token: null,
-    refreshToken: null,
     loading: false,
     error: null,
-    isInitialized: false
+    isInitialized: false,
+    isRefreshing: false,
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
-    getUser: (state) => state.user || { name: 'U' },
+    getUser: (state) => state.user || { name: "U" },
     getError: (state) => state.error,
-    getToken: (state) => state.token
+    getToken: (state) => state.token,
   },
 
   actions: {
-    async login(email, password) {
-      this.loading = true
-      this.error = null
+    async login(username, password) {
+      this.loading = true;
+      this.error = null;
 
       try {
-        // TODO: Implement actual login API call
-        // Example API call:
-        // const response = await fetch('/api/auth/login', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // })
-        // const data = await response.json()
-        // if (!response.ok) throw new Error(data.message)
+        const response = await $fetch("/api/auth/login", {
+          method: "POST",
+          body: { username, password },
+        });
 
-        // Simulated successful login
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        const data = {
-          token: 'dummy_token_' + Date.now(),
-          refreshToken: 'dummy_refresh_token_' + Date.now(),
-          user: {
-            id: 1,
-            name: 'John Doe',
-            email: email,
-            imageUrl: null
-          }
+        if (response.status === "success" && response.data) {
+          this.setAuthData(response.data);
+          return true;
+        } else {
+          throw new Error(response.message || "Login failed");
         }
-
-        this.setAuthData(data)
-        return true
       } catch (error) {
-        this.error = error.message
-        return false
+        // Handle H3Error format
+        if (error.data && error.data.message) {
+          this.error = error.data.message;
+        } else if (error.message) {
+          this.error = error.message;
+        } else {
+          this.error = "Failed to login";
+        }
+        return false;
       } finally {
-        this.loading = false
-      }
-    },
-
-    async register(name, email, password) {
-      this.loading = true
-      this.error = null
-
-      try {
-        // TODO: Implement actual registration API call
-        // Example API call:
-        // const response = await fetch('/api/auth/register', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ name, email, password })
-        // })
-        // const data = await response.json()
-        // if (!response.ok) throw new Error(data.message)
-
-        // Simulated successful registration
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return await this.login(email, password)
-      } catch (error) {
-        this.error = error.message
-        return false
-      } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
     async logout() {
-      this.loading = true
+      this.loading = true;
 
       try {
-        // TODO: Implement actual logout API call
-        // Example API call:
-        // const response = await fetch('/api/auth/logout', {
-        //   method: 'POST',
-        //   headers: { 
-        //     'Authorization': `Bearer ${this.token}`,
-        //     'Content-Type': 'application/json'
-        //   }
-        // })
+        // Clear refresh token cookie by making a request to the server
+        await $fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
 
-        // Simulated logout
-        await new Promise(resolve => setTimeout(resolve, 500))
-        this.clearAuthData()
-        return true
+        // Clear auth data from store and storage
+        this.clearAuthData();
+        return true;
       } catch (error) {
-        this.error = error.message
-        return false
+        this.error = error.message;
+        return false;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
     async refreshAuthToken() {
+      // Prevent multiple simultaneous refresh attempts
+      if (this.isRefreshing) {
+        return false;
+      }
+
+      this.isRefreshing = true;
+
       try {
-        if (!this.refreshToken) return false
+        const response = await $fetch("/api/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+        });
 
-        // TODO: Implement actual token refresh API call
-        // Example API call:
-        // const response = await fetch('/api/auth/refresh', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ refreshToken: this.refreshToken })
-        // })
-        // const data = await response.json()
-        // if (!response.ok) throw new Error(data.message)
-
-        // Simulated token refresh
-        const data = {
-          token: 'dummy_token_' + Date.now(),
-          refreshToken: 'dummy_refresh_token_' + Date.now(),
-          user: this.user
+        if (response.status === "success" && response.data) {
+          this.setAuthData(response.data);
+          return true;
         }
-
-        this.setAuthData(data)
-        return true
+        return false;
       } catch (error) {
-        this.clearAuthData()
-        return false
+        console.error("Token refresh error:", error);
+        this.clearAuthData();
+        return false;
+      } finally {
+        this.isRefreshing = false;
       }
     },
 
@@ -142,73 +103,79 @@ export const useAuthStore = defineStore('auth', {
         return this.isAuthenticated;
       }
 
-      const storage = useStorage()
-      
+      const storage = useStorage();
+
       try {
-        const token = storage.getItem('token')
-        const refreshToken = storage.getItem('refreshToken')
-        const userData = storage.getItem('user')
+        const token = storage.getItem("token");
+        const userData = storage.getItem("user");
 
-        if (token && refreshToken && userData) {
-          this.token = token
-          this.refreshToken = refreshToken
-          this.user = JSON.parse(userData)
+        if (token && userData) {
+          this.token = token;
+          this.user = JSON.parse(userData);
 
-          // Check if token needs refresh
-          const tokenAge = Date.now() - parseInt(token.split('_')[2] || 0)
-          if (tokenAge > 3600000) { // Refresh if token is older than 1 hour
-            await this.refreshAuthToken()
+          // Verify token validity by making a test request
+          const response = await $fetch("/api/auth/verify", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }).catch(() => null);
+
+          if (!response) {
+            // Token is invalid, try to refresh
+            const refreshSuccess = await this.refreshAuthToken();
+            if (!refreshSuccess) {
+              this.clearAuthData();
+            }
           }
         }
       } catch (error) {
-        console.error('Error checking auth:', error)
-        this.clearAuthData()
+        console.error("Error checking auth:", error);
+        this.clearAuthData();
       } finally {
-        this.isInitialized = true
+        this.isInitialized = true;
       }
 
-      return this.isAuthenticated
+      return this.isAuthenticated;
     },
 
     setAuthData(data) {
-      const storage = useStorage()
-      
-      this.token = data.token
-      this.refreshToken = data.refreshToken
-      this.user = data.user
-      this.isInitialized = true
+      const storage = useStorage();
+
+      this.token = data.token;
+      this.user = data.user;
+      this.isInitialized = true;
 
       // Persist to storage
       try {
-        storage.setItem('token', data.token)
-        storage.setItem('refreshToken', data.refreshToken)
-        storage.setItem('user', JSON.stringify(data.user))
+        storage.setItem("token", data.token);
+        storage.setItem("user", JSON.stringify(data.user));
       } catch (error) {
-        console.error('Error persisting auth data:', error)
+        console.error("Error persisting auth data:", error);
       }
     },
 
     clearAuthData() {
-      const storage = useStorage()
-      
-      this.token = null
-      this.refreshToken = null
-      this.user = null
-      this.error = null
-      
+      const storage = useStorage();
+
+      this.token = null;
+      this.user = null;
+      this.error = null;
+      this.isInitialized = false;
+      this.isRefreshing = false;
+
       // Clear storage
       try {
-        storage.removeItem('token')
-        storage.removeItem('refreshToken')
-        storage.removeItem('user')
-        storage.removeItem('redirectTo')
+        storage.removeItem("token");
+        storage.removeItem("user");
+        storage.removeItem("redirectTo");
       } catch (error) {
-        console.error('Error clearing auth data:', error)
+        console.error("Error clearing auth data:", error);
       }
     },
 
     clearError() {
-      this.error = null
-    }
-  }
-}) 
+      this.error = null;
+    },
+  },
+});

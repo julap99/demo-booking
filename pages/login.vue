@@ -21,17 +21,20 @@ const handleSubmit = async () => {
 
   try {
     if (!form.username || !form.password) {
-      throw new Error("All fields are required");
+      error.value = "All fields are required";
+      return;
     }
 
     const success = await auth.login(form.username, form.password);
     if (success) {
       navigateTo("/dashboard");
     } else {
-      error.value = auth.getError || "Login failed";
+      // Get error from auth store
+      error.value = auth.getError;
     }
   } catch (e) {
-    error.value = e.message;
+    console.error("Login error:", e);
+    error.value = "An unexpected error occurred";
   } finally {
     loading.value = false;
   }
@@ -124,7 +127,9 @@ onMounted(async () => {
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-5">
           <div>
-            <label for="username" class="block text-sm font-medium text-[var(--color-text-primary)]"
+            <label
+              for="username"
+              class="block text-sm font-medium text-[var(--color-text-primary)]"
               >Username</label
             >
             <div class="mt-1 relative rounded-lg shadow-sm">
@@ -185,7 +190,7 @@ onMounted(async () => {
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
                 required
-                  class="appearance-none block w-full pl-10 pr-10 py-2.5 border border-[var(--color-border-primary)] rounded-lg shadow-sm placeholder-[var(--color-text-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-primary)] focus:border-[var(--color-border-primary)] sm:text-sm transition-colors duration-200"
+                class="appearance-none block w-full pl-10 pr-10 py-2.5 border border-[var(--color-border-primary)] rounded-lg shadow-sm placeholder-[var(--color-text-primary)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-border-primary)] focus:border-[var(--color-border-primary)] sm:text-sm transition-colors duration-200"
                 placeholder="••••••••"
               />
               <button
@@ -229,7 +234,9 @@ onMounted(async () => {
               type="checkbox"
               class="h-4 w-4 text-[var(--color-text-primary)] focus:ring-[var(--color-border-primary)]/20 border-[var(--color-border-primary)]/20 rounded transition-colors duration-200"
             />
-            <label for="remember-me" class="ml-2 block text-sm text-[var(--color-text-primary)]"
+            <label
+              for="remember-me"
+              class="ml-2 block text-sm text-[var(--color-text-primary)]"
               >Remember me</label
             >
           </div>
@@ -291,7 +298,9 @@ onMounted(async () => {
             <span v-else>Sign in</span>
           </button>
 
-          <div class="text-center text-sm text-[var(--color-text-primary)]/70 mt-4">
+          <div
+            class="text-center text-sm text-[var(--color-text-primary)]/70 mt-4"
+          >
             <NuxtLink
               to="/"
               class="hover:text-[var(--color-primary)] transition-colors duration-200"
