@@ -6,6 +6,12 @@ interface TimeSlot {
   value: string;
 }
 
+interface BreakTime {
+  id: number;
+  start_time: string;
+  end_time: string;
+}
+
 interface CustomError extends Error {
   statusCode?: number;
 }
@@ -44,6 +50,9 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // Get break times
+    const breakTimes = await db("break_time").select("*");
+
     // Get existing bookings for the date and theme
     const bookings = await db("booking")
       .where("session_date", date)
@@ -56,8 +65,12 @@ export default defineEventHandler(async (event) => {
     // Convert times to dayjs objects
     const startTime = dayjs(`${date} ${slotConfig.start_time}`);
     const endTime = dayjs(`${date} ${slotConfig.end_time}`);
-    const breakStart = dayjs(`${date} ${slotConfig.start_break}`);
-    const breakEnd = dayjs(`${date} ${slotConfig.end_break}`);
+
+    // Convert break times to dayjs objects
+    const breaks = breakTimes.map(breakTime => ({
+      start: dayjs(`${date} ${breakTime.start_time}`),
+      end: dayjs(`${date} ${breakTime.end_time}`)
+    }));
 
     // Generate slots
     let currentSlot = startTime;
@@ -69,17 +82,15 @@ export default defineEventHandler(async (event) => {
         break;
       }
 
-      // Skip slots that overlap with break time
+      // Check if slot overlaps with any break time
       const slotWithRest = slotEnd.add(slotConfig.rest, "minute");
-      if (
-        !(
-          (currentSlot.isSameOrAfter(breakStart) &&
-            currentSlot.isBefore(breakEnd)) ||
-          (slotWithRest.isAfter(breakStart) &&
-            slotWithRest.isSameOrBefore(breakEnd)) ||
-          (currentSlot.isBefore(breakStart) && slotWithRest.isAfter(breakEnd))
-        )
-      ) {
+      const overlapsBreak = breaks.some(breakTime => 
+        (currentSlot.isSameOrAfter(breakTime.start) && currentSlot.isBefore(breakTime.end)) ||
+        (slotWithRest.isAfter(breakTime.start) && slotWithRest.isSameOrBefore(breakTime.end)) ||
+        (currentSlot.isBefore(breakTime.start) && slotWithRest.isAfter(breakTime.end))
+      );
+
+      if (!overlapsBreak) {
         // For current date, only add future slots
         if (!isToday || currentSlot.isAfter(now)) {
           slots.push({

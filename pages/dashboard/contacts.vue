@@ -88,6 +88,47 @@ const formatDate = (date) => {
   });
 };
 
+// Add export functionality
+const exportToCSV = () => {
+  // Define CSV headers
+  const headers = [
+    'Name',
+    'Email',
+    'Phone',
+    'Total Bookings',
+    'Paid Bookings',
+    'Pending Bookings',
+    'First Booking',
+    'Themes'
+  ].join(',');
+
+  // Convert contacts to CSV rows
+  const rows = filteredContacts.value.map(contact => [
+    contact.name,
+    contact.email,
+    contact.phone,
+    contact.total_bookings,
+    contact.paid_bookings,
+    contact.pending_bookings,
+    formatDate(contact.first_booking),
+    contact.themes
+  ].map(field => `"${field || ''}"`).join(','));
+
+  // Combine headers and rows
+  const csv = [headers, ...rows].join('\n');
+
+  // Create blob and download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `contacts-${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 // Loading states
 const isLoading = ref(false);
 
@@ -129,6 +170,15 @@ const openDetailsModal = (contact) => {
           View and manage all contact form submissions
         </p>
       </div>
+      <button
+        @click="exportToCSV"
+        class="inline-flex items-center px-4 py-2 border border-[var(--color-bg-primary)] rounded-lg shadow-sm text-sm font-medium text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-secondary)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+      >
+        <svg class="w-5 h-5 mr-2 text-[var(--color-text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Export Contacts
+      </button>
     </div>
 
     <!-- Main Content Area -->
@@ -331,22 +381,59 @@ const openDetailsModal = (contact) => {
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm text-[var(--color-text-secondary)]">Total:</span>
-                      <span class="text-sm font-medium text-[var(--color-text-primary)]">{{ contact.total_bookings }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm text-[var(--color-text-secondary)]">Paid:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {{ contact.paid_bookings }}
+                <td class="px-6 py-4">
+                  <div class="space-y-2.5">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-medium text-[var(--color-text-primary)]">Booking Summary</span>
+                      <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" :class="{
+                        'bg-green-100 text-green-800': contact.total_bookings > 0,
+                        'bg-gray-100 text-gray-800': contact.total_bookings === 0
+                      }">
+                        {{ contact.total_bookings }} Total
                       </span>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm text-[var(--color-text-secondary)]">Pending:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        {{ contact.pending_bookings }}
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex flex-col space-y-1">
+                        <div class="flex items-center justify-between bg-green-50 rounded-md px-2 py-1">
+                          <span class="text-xs text-green-700">Completed</span>
+                          <span class="text-xs font-medium text-green-800">{{ contact.completed_session }}</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-yellow-50 rounded-md px-2 py-1">
+                          <span class="text-xs text-yellow-700">Pending</span>
+                          <span class="text-xs font-medium text-yellow-800">{{ contact.pending_session }}</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-red-50 rounded-md px-2 py-1">
+                          <span class="text-xs text-red-700">Cancelled</span>
+                          <span class="text-xs font-medium text-red-800">{{ contact.cancelled_session }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="flex flex-col space-y-1">
+                        <div class="flex items-center justify-between bg-blue-50 rounded-md px-2 py-1">
+                          <span class="text-xs text-blue-700">Latest</span>
+                          <span class="text-xs font-medium text-blue-800">
+                            {{ contact.latest_booking ? new Date(contact.latest_booking).toLocaleDateString() : 'N/A' }}
+                          </span>
+                        </div>
+                        <div class="flex items-center justify-between bg-purple-50 rounded-md px-2 py-1">
+                          <span class="text-xs text-purple-700">First</span>
+                          <span class="text-xs font-medium text-purple-800">
+                            {{ contact.first_booking ? new Date(contact.first_booking).toLocaleDateString() : 'N/A' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-if="contact.themes" class="flex flex-wrap gap-1">
+                      <span v-for="theme in contact.themes.split(',').slice(0, 2)" 
+                            :key="theme" 
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]">
+                        {{ theme }}
+                      </span>
+                      <span v-if="contact.themes.split(',').length > 2" 
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                        +{{ contact.themes.split(',').length - 2 }}
                       </span>
                     </div>
                   </div>
@@ -484,12 +571,16 @@ const openDetailsModal = (contact) => {
                   <p class="text-2xl font-semibold text-[#3C2A21]">{{ selectedContact?.total_bookings }}</p>
                 </div>
                 <div class="bg-green-50 rounded-lg p-4">
-                  <p class="text-xs text-gray-500">Paid Bookings</p>
-                  <p class="text-2xl font-semibold text-green-600">{{ selectedContact?.paid_bookings }}</p>
+                  <p class="text-xs text-gray-500">Completed Session:</p>
+                  <p class="text-2xl font-semibold text-green-600">{{ selectedContact?.completed_session }}</p>
                 </div>
                 <div class="bg-yellow-50 rounded-lg p-4">
-                  <p class="text-xs text-gray-500">Pending Bookings</p>
-                  <p class="text-2xl font-semibold text-yellow-600">{{ selectedContact?.pending_bookings }}</p>
+                  <p class="text-xs text-gray-500">Pending Session:</p>
+                  <p class="text-2xl font-semibold text-yellow-600">{{ selectedContact?.pending_session }}</p>
+                </div>
+                <div class="bg-red-50 rounded-lg p-4">
+                  <p class="text-xs text-gray-500">Cancelled Session:</p>
+                  <p class="text-2xl font-semibold text-red-600">{{ selectedContact?.cancelled_session }}</p>
                 </div>
               </div>
             </div>

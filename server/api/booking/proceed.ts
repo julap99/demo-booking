@@ -293,6 +293,7 @@ export default defineEventHandler(async (event) => {
             ? number_of_pax - parseInt(maxFreePax.value)
             : 0,
         addon: addons.length > 0 ? JSON.stringify(addons) : null,
+        frame_status: addons.length > 0 ? 1 : 0,
         payment_ref_number: receiptNumber,
         payment_type: payment_type,
         payment_method: payment_method,
@@ -300,7 +301,7 @@ export default defineEventHandler(async (event) => {
         payment_addon_total: paymentAddon,
         payment_total: paymentTotal,
         payment_extra_pax: paymentExtraPax,
-        status: payment_type, // Pending
+        status: payment_type == 1 ? 3 : 2,
         session_status: 1, // Pending
         created_date: new Date(),
       });

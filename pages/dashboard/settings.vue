@@ -1,5 +1,14 @@
 <template>
   <div class="py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Status Modal -->
+    <StatusModal
+      :is-open="modalState.isOpen"
+      :status="modalState.status"
+      :title="modalState.title"
+      :message="modalState.message"
+      @close="closeModal"
+    />
+
     <!-- Page Header -->
     <div class="mb-8">
       <h1 class="text-2xl font-semibold text-[var(--color-text-primary)]">
@@ -210,101 +219,161 @@
               <!-- Break Time Section -->
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
-                  <h3
-                    class="text-lg font-medium text-[var(--color-text-primary)]"
-                  >
-                    Break Time
-                  </h3>
-                  <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-                    Set your daily break time period
-                  </p>
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <h3
+                        class="text-lg font-medium text-[var(--color-text-primary)]"
+                      >
+                        Break Times
+                      </h3>
+                      <p
+                        class="mt-1 text-sm text-[var(--color-text-secondary)]"
+                      >
+                        Set multiple break time periods throughout the day
+                      </p>
+                    </div>
+                    <button
+                      @click="
+                        settings.breakTimes.push({
+                          id: null,
+                          startTime: '',
+                          endTime: '',
+                        })
+                      "
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors duration-200"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Add Break Time
+                    </button>
+                  </div>
                 </div>
                 <div class="p-4">
-                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >Break Start Time</label
-                      >
+                  <div class="space-y-4">
+                    <TransitionGroup name="break-list">
                       <div
-                        class="relative time-input-wrapper"
-                        :class="{ 'has-error': errors.breakStartTime }"
+                        v-for="(breakTime, index) in settings.breakTimes"
+                        :key="index"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg relative group"
                       >
-                        <input
-                          type="time"
-                          v-model="settings.breakStartTime"
-                          :class="[
-                            'block w-full rounded-md border py-2.5 text-sm transition-all duration-200 bg-white',
-                            'pl-10 pr-4',
-                            'focus:outline-none focus:ring-2 focus:ring-offset-0',
-                            errors.breakStartTime
-                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500 focus:ring-opacity-20'
-                              : 'border-gray-300 hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-20',
-                          ]"
-                        />
-                        <div
-                          class="time-icon"
-                          :class="{ error: errors.breakStartTime }"
+                        <div class="space-y-2">
+                          <label
+                            class="block text-sm font-medium text-[var(--color-text-primary)]"
+                          >
+                            Break Start Time
+                          </label>
+                          <div class="relative time-input-wrapper">
+                            <input
+                              type="time"
+                              v-model="breakTime.startTime"
+                              :class="[
+                                'block w-full rounded-md border py-2.5 text-sm transition-all duration-200 bg-white',
+                                'pl-10 pr-4',
+                                'focus:outline-none focus:ring-2 focus:ring-offset-0',
+                                errors[`breakTime${index}Start`]
+                                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500 focus:ring-opacity-20'
+                                  : 'border-gray-300 hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-20',
+                              ]"
+                            />
+                            <div
+                              class="time-icon"
+                              :class="{
+                                error: errors[`breakTime${index}Start`],
+                              }"
+                            >
+                              <svg
+                                class="h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                              </svg>
+                            </div>
+                            <div
+                              v-if="errors[`breakTime${index}Start`]"
+                              class="error-message"
+                            >
+                              {{ errors[`breakTime${index}Start`] }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="space-y-2">
+                          <label
+                            class="block text-sm font-medium text-[var(--color-text-primary)]"
+                          >
+                            Break End Time
+                          </label>
+                          <div class="relative time-input-wrapper">
+                            <input
+                              type="time"
+                              v-model="breakTime.endTime"
+                              :class="[
+                                'block w-full rounded-md border py-2.5 text-sm transition-all duration-200 bg-white',
+                                'pl-10 pr-4',
+                                'focus:outline-none focus:ring-2 focus:ring-offset-0',
+                                errors[`breakTime${index}End`]
+                                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500 focus:ring-opacity-20'
+                                  : 'border-gray-300 hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-20',
+                              ]"
+                            />
+                            <div
+                              class="time-icon"
+                              :class="{ error: errors[`breakTime${index}End`] }"
+                            >
+                              <svg
+                                class="h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                              </svg>
+                            </div>
+                            <div
+                              v-if="errors[`breakTime${index}End`]"
+                              class="error-message"
+                            >
+                              {{ errors[`breakTime${index}End`] }}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          v-if="settings.breakTimes.length > 1"
+                          @click="settings.breakTimes.splice(index, 1)"
+                          class="absolute -right-2 -top-2 p-1 rounded-full bg-red-100 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
                           <svg
-                            class="h-5 w-5"
                             xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
+                            class="h-4 w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
                           >
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
+                            <path
+                              fill-rule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clip-rule="evenodd"
+                            />
                           </svg>
-                        </div>
-                        <div v-if="errors.breakStartTime" class="error-message">
-                          {{ errors.breakStartTime }}
-                        </div>
+                        </button>
                       </div>
-                    </div>
-                    <div class="space-y-2">
-                      <label
-                        class="block text-sm font-medium text-[var(--color-text-primary)]"
-                        >Break End Time</label
-                      >
-                      <div
-                        class="relative time-input-wrapper"
-                        :class="{ 'has-error': errors.breakEndTime }"
-                      >
-                        <input
-                          type="time"
-                          v-model="settings.breakEndTime"
-                          :class="[
-                            'block w-full rounded-md border py-2.5 text-sm transition-all duration-200 bg-white',
-                            'pl-10 pr-4',
-                            'focus:outline-none focus:ring-2 focus:ring-offset-0',
-                            errors.breakEndTime
-                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500 focus:ring-opacity-20'
-                              : 'border-gray-300 hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-20',
-                          ]"
-                        />
-                        <div
-                          class="time-icon"
-                          :class="{ error: errors.breakEndTime }"
-                        >
-                          <svg
-                            class="h-5 w-5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
-                          </svg>
-                        </div>
-                        <div v-if="errors.breakEndTime" class="error-message">
-                          {{ errors.breakEndTime }}
-                        </div>
-                      </div>
-                    </div>
+                    </TransitionGroup>
                   </div>
                 </div>
               </div>
@@ -344,161 +413,117 @@
               </div>
             </div>
 
-            <!-- Payment Gateway Panel -->
-            <div
-              v-if="activeTab === 'payment'"
-              key="payment"
-              class="space-y-6 relative"
-            >
-              <!-- Payment Provider Section -->
+            <div v-if="activeTab === 'number-of-pax'">
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
-                  <h3 class="text-lg font-medium text-[var(--color-text-primary)]">
-                    Payment Provider Settings
+                  <h3
+                    class="text-lg font-medium text-[var(--color-text-primary)]"
+                  >
+                    Number of Pax & Pricing
                   </h3>
                   <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-                    Configure your payment gateway settings
+                    Configure participant limits and pricing settings
                   </p>
                 </div>
                 <div class="p-4">
                   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
-                        Payment Provider
-                      </label>
-                      <select
-                        v-model="settings.paymentProvider"
-                        class="block w-full rounded-md border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
                       >
-                        <option value="stripe">Stripe</option>
-                        <option value="paypal">PayPal</option>
-                      </select>
-                    </div>
-
-                    <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
-                        Currency
+                        Maximum Participants
                       </label>
-                      <select
-                        v-model="settings.currency"
-                        class="block w-full rounded-md border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                      >
-                        <option value="MYR">MYR - Malaysian Ringgit</option>
-                        <option value="USD">USD - US Dollar</option>
-                        <option value="SGD">SGD - Singapore Dollar</option>
-                      </select>
-                    </div>
-
-                    <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
-                        API Key
-                      </label>
-                      <div class="relative" :class="{ 'has-error': errors.apiKey }">
+                      <div class="relative">
                         <input
-                          :type="showApiKey ? 'text' : 'password'"
-                          v-model="settings.apiKey"
-                          placeholder="Enter API key"
-                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.apiKey }"
+                          type="number"
+                          v-model="settings.maxPax"
+                          min="1"
+                          class="block w-full rounded-md border border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{
+                            'border-red-300 focus:border-red-500 focus:ring-red-500':
+                              errors.maxPax,
+                          }"
                         />
-                        <button
-                          @click="showApiKey = !showApiKey"
-                          type="button"
-                          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 focus:outline-none"
+                        <p
+                          v-if="errors.maxPax"
+                          class="mt-1 text-sm text-red-600"
                         >
-                          <svg
-                            v-if="showApiKey"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                          <svg
-                            v-else
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                          </svg>
-                        </button>
+                          {{ errors.maxPax }}
+                        </p>
                       </div>
-                      <p v-if="errors.apiKey" class="mt-1 text-sm text-red-600">
-                        {{ errors.apiKey }}
+                      <p class="text-sm text-[var(--color-text-secondary)]">
+                        Maximum number of participants allowed per session
                       </p>
                     </div>
 
                     <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
-                        Webhook Secret
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
+                      >
+                        Maximum Free Participants
                       </label>
-                      <div class="relative" :class="{ 'has-error': errors.webhookSecret }">
+                      <div class="relative">
                         <input
-                          :type="showWebhookSecret ? 'text' : 'password'"
-                          v-model="settings.webhookSecret"
-                          placeholder="Enter webhook secret"
-                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.webhookSecret }"
+                          type="number"
+                          v-model="settings.maxFreePax"
+                          min="0"
+                          :max="settings.maxPax"
+                          class="block w-full rounded-md border border-gray-300 pl-3 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{
+                            'border-red-300 focus:border-red-500 focus:ring-red-500':
+                              errors.maxFreePax,
+                          }"
                         />
-                        <button
-                          @click="showWebhookSecret = !showWebhookSecret"
-                          type="button"
-                          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500 focus:outline-none"
+                        <p
+                          v-if="errors.maxFreePax"
+                          class="mt-1 text-sm text-red-600"
                         >
-                          <svg
-                            v-if="showWebhookSecret"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                          <svg
-                            v-else
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                          </svg>
-                        </button>
+                          {{ errors.maxFreePax }}
+                        </p>
                       </div>
-                      <p v-if="errors.webhookSecret" class="mt-1 text-sm text-red-600">
-                        {{ errors.webhookSecret }}
+                      <p class="text-sm text-[var(--color-text-secondary)]">
+                        Number of participants that can join for free (0 for no
+                        free participants)
                       </p>
                     </div>
 
-                    <div class="col-span-2">
-                      <label class="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          v-model="settings.testMode"
-                          class="sr-only peer"
-                        />
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--color-primary)] peer-focus:ring-opacity-20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
-                        <span class="ml-3 text-sm font-medium text-[var(--color-text-primary)]">
-                          Test Mode
-                        </span>
+                    <div class="space-y-2">
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
+                      >
+                        Charge Per Additional Participant
                       </label>
-                      <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-                        Enable test mode to use sandbox credentials and test transactions
+                      <div class="relative">
+                        <div class="relative rounded-md shadow-sm">
+                          <div
+                            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                          >
+                            <span class="text-gray-500 sm:text-sm">{{
+                              settings.currency
+                            }}</span>
+                          </div>
+                          <input
+                            type="number"
+                            v-model="settings.chargePerPax"
+                            min="0"
+                            step="0.01"
+                            class="block w-full rounded-md border border-gray-300 pl-16 pr-8 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                            :class="{
+                              'border-red-300 focus:border-red-500 focus:ring-red-500':
+                                errors.chargePerPax,
+                            }"
+                          />
+                        </div>
+                        <p
+                          v-if="errors.chargePerPax"
+                          class="mt-1 text-sm text-red-600"
+                        >
+                          {{ errors.chargePerPax }}
+                        </p>
+                      </div>
+                      <p class="text-sm text-[var(--color-text-secondary)]">
+                        Amount to charge for each participant beyond the free
+                        limit
                       </p>
                     </div>
                   </div>
@@ -507,15 +532,15 @@
 
               <!-- Save Button -->
               <div
-                class="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex justify-end"
+                class="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex justify-end mt-6"
               >
                 <button
-                  @click="savePaymentSettings"
-                  :disabled="loadingStates.payment"
+                  @click="savePaxSettings"
+                  :disabled="loadingStates.pax"
                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   <svg
-                    v-if="loadingStates.payment"
+                    v-if="loadingStates.pax"
                     class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -535,16 +560,71 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  {{ loadingStates.payment ? "Saving..." : "Save Changes" }}
+                  {{ loadingStates.pax ? "Saving..." : "Save Changes" }}
                 </button>
               </div>
             </div>
 
+            <!-- Payment Gateway Panel -->
+            <div
+              v-if="activeTab === 'payment'"
+              key="payment"
+              class="space-y-6 relative"
+            >
+              <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
+                <div class="p-8 text-center">
+                  <div class="mx-auto flex justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-16 h-16 text-gray-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1"
+                    >
+                      <rect
+                        x="1"
+                        y="4"
+                        width="22"
+                        height="16"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                  </div>
+                  <h3
+                    class="mt-4 text-lg font-medium text-[var(--color-text-primary)]"
+                  >
+                    Payment Gateway Integration
+                  </h3>
+                  <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    This feature is currently under development. We're working
+                    hard to bring you secure payment processing capabilities
+                    soon.
+                  </p>
+                  <div class="mt-6">
+                    <span
+                      class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800"
+                    >
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Password Panel -->
-            <div v-if="activeTab === 'password'" key="password" class="space-y-6 relative">
+            <div
+              v-if="activeTab === 'password'"
+              key="password"
+              class="space-y-6 relative"
+            >
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
-                  <h3 class="text-lg font-medium text-[var(--color-text-primary)]">
+                  <h3
+                    class="text-lg font-medium text-[var(--color-text-primary)]"
+                  >
                     Change Password
                   </h3>
                   <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
@@ -552,18 +632,29 @@
                   </p>
                 </div>
                 <div class="p-4">
-                  <form @submit.prevent="handlePasswordChange" class="space-y-4 max-w-md">
+                  <form
+                    @submit.prevent="handlePasswordChange"
+                    class="space-y-4 max-w-md"
+                  >
                     <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
+                      >
                         Current Password
                       </label>
-                      <div class="relative" :class="{ 'has-error': errors.currentPassword }">
+                      <div
+                        class="relative"
+                        :class="{ 'has-error': errors.currentPassword }"
+                      >
                         <input
                           :type="showCurrentPassword ? 'text' : 'password'"
                           v-model="passwordForm.currentPassword"
                           placeholder="Enter current password"
-                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.currentPassword }"
+                          class="block w-full rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{
+                            'border-red-300 focus:border-red-500 focus:ring-red-500':
+                              errors.currentPassword,
+                          }"
                         />
                         <button
                           @click="showCurrentPassword = !showCurrentPassword"
@@ -579,7 +670,9 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <path
+                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                            />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -591,27 +684,40 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <path
+                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                            />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
-                      <p v-if="errors.currentPassword" class="mt-1 text-sm text-red-600">
+                      <p
+                        v-if="errors.currentPassword"
+                        class="mt-1 text-sm text-red-600"
+                      >
                         {{ errors.currentPassword }}
                       </p>
                     </div>
 
                     <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
+                      >
                         New Password
                       </label>
-                      <div class="relative" :class="{ 'has-error': errors.newPassword }">
+                      <div
+                        class="relative"
+                        :class="{ 'has-error': errors.newPassword }"
+                      >
                         <input
                           :type="showNewPassword ? 'text' : 'password'"
                           v-model="passwordForm.newPassword"
                           placeholder="Enter new password"
-                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.newPassword }"
+                          class="block w-full rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{
+                            'border-red-300 focus:border-red-500 focus:ring-red-500':
+                              errors.newPassword,
+                          }"
                         />
                         <button
                           @click="showNewPassword = !showNewPassword"
@@ -627,7 +733,9 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <path
+                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                            />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -639,27 +747,40 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <path
+                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                            />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
-                      <p v-if="errors.newPassword" class="mt-1 text-sm text-red-600">
+                      <p
+                        v-if="errors.newPassword"
+                        class="mt-1 text-sm text-red-600"
+                      >
                         {{ errors.newPassword }}
                       </p>
                     </div>
 
                     <div class="space-y-2">
-                      <label class="block text-sm font-medium text-[var(--color-text-primary)]">
+                      <label
+                        class="block text-sm font-medium text-[var(--color-text-primary)]"
+                      >
                         Confirm New Password
                       </label>
-                      <div class="relative" :class="{ 'has-error': errors.confirmPassword }">
+                      <div
+                        class="relative"
+                        :class="{ 'has-error': errors.confirmPassword }"
+                      >
                         <input
                           :type="showConfirmPassword ? 'text' : 'password'"
                           v-model="passwordForm.confirmPassword"
                           placeholder="Confirm new password"
-                          class="block w-full rounded-md border-gray-300 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
-                          :class="{ 'border-red-300 focus:border-red-500 focus:ring-red-500': errors.confirmPassword }"
+                          class="block w-full rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm transition-all duration-200 bg-white hover:border-[var(--color-primary-light)] focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-opacity-50"
+                          :class="{
+                            'border-red-300 focus:border-red-500 focus:ring-red-500':
+                              errors.confirmPassword,
+                          }"
                         />
                         <button
                           @click="showConfirmPassword = !showConfirmPassword"
@@ -675,7 +796,9 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <path
+                              d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                            />
                             <circle cx="12" cy="12" r="3" />
                           </svg>
                           <svg
@@ -687,12 +810,17 @@
                             stroke="currentColor"
                             stroke-width="2"
                           >
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <path
+                              d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                            />
                             <line x1="1" y1="1" x2="23" y2="23" />
                           </svg>
                         </button>
                       </div>
-                      <p v-if="errors.confirmPassword" class="mt-1 text-sm text-red-600">
+                      <p
+                        v-if="errors.confirmPassword"
+                        class="mt-1 text-sm text-red-600"
+                      >
                         {{ errors.confirmPassword }}
                       </p>
                     </div>
@@ -724,7 +852,11 @@
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        {{ isChangingPassword ? "Changing Password..." : "Change Password" }}
+                        {{
+                          isChangingPassword
+                            ? "Changing Password..."
+                            : "Change Password"
+                        }}
                       </button>
                     </div>
                   </form>
@@ -751,15 +883,96 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   layout: "dashboard",
 });
+
+import StatusModal from "~/components/common/StatusModal.vue";
+import type { FetchError } from "ofetch";
+
+interface BreakTime {
+  id: number | null;
+  startTime: string;
+  endTime: string;
+}
+
+interface Settings {
+  openingTime: string;
+  closingTime: string;
+  slotDuration: number;
+  breakTimes: BreakTime[];
+  restDuration: number;
+  paymentProvider: string;
+  apiKey: string;
+  webhookSecret: string;
+  testMode: boolean;
+  currency: string;
+  maxPax: number;
+  maxFreePax: number;
+  chargePerPax: number;
+}
+
+interface PasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface ApiResponse {
+  statusCode: number;
+  message?: string;
+  data?: {
+    slotConfig?: {
+      start_time: string;
+      end_time: string;
+      duration: number;
+      rest: number;
+    };
+    breaks?: Array<{
+      id: number;
+      start_time: string;
+      end_time: string;
+    }>;
+    chargePerPax?: number;
+    maxFreePax?: number;
+    maxPax?: number;
+  };
+}
+
+interface Errors {
+  openingTime?: string;
+  closingTime?: string;
+  apiKey?: string;
+  webhookSecret?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+  maxPax?: string;
+  maxFreePax?: string;
+  chargePerPax?: string;
+  waitlistLimit?: string;
+  [key: string]: string | undefined; // Add index signature for dynamic break time errors
+}
+
+type ModalStatus = "success" | "error";
 
 const tabs = [
   {
     name: "booking",
     label: "Booking Time & Slot",
+    icon: defineComponent({
+      template: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>`,
+    }),
+  },
+  {
+    name: "number-of-pax",
+    label: "Number of Pax",
     icon: defineComponent({
       template: `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -798,68 +1011,111 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
 // Settings state
-const settings = ref({
+const settings = ref<Settings>({
   openingTime: "09:00",
   closingTime: "17:00",
   slotDuration: 30,
-  breakStartTime: "12:00",
-  breakEndTime: "13:00",
+  breakTimes: [],
   restDuration: 15,
   paymentProvider: "stripe",
   apiKey: "",
   webhookSecret: "",
   testMode: true,
   currency: "MYR",
+  maxPax: 10,
+  maxFreePax: 1,
+  chargePerPax: 0,
 });
 
 // Password change form
-const passwordForm = ref({
+const passwordForm = ref<PasswordForm>({
   currentPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
-
-const isChangingPassword = ref(false);
 
 // Add form validation
-const errors = ref({
-  openingTime: "",
-  closingTime: "",
-  breakStartTime: "",
-  breakEndTime: "",
-  apiKey: "",
-  webhookSecret: "",
-  currentPassword: "",
-  newPassword: "",
-  confirmPassword: "",
+const errors = ref<Errors>({});
+
+// Add modal state
+const modalState = ref({
+  isOpen: false,
+  status: "success" as ModalStatus,
+  title: "",
+  message: "",
 });
+
+const isLoading = ref(true);
+const isSaving = ref(false);
+const isChangingPassword = ref(false);
+
+// Add loading states for each tab
+const loadingStates = ref({
+  booking: false,
+  payment: false,
+  password: false,
+  pax: false,
+});
+
+function showModal(status: ModalStatus, title: string, message: string) {
+  modalState.value = {
+    isOpen: true,
+    status,
+    title,
+    message,
+  };
+}
+
+function closeModal() {
+  modalState.value.isOpen = false;
+}
 
 // Validate time ranges
 function validateTimeRanges() {
-  errors.value = {
-    openingTime: "",
-    closingTime: "",
-    breakStartTime: "",
-    breakEndTime: "",
-  };
+  errors.value = {};
 
   const opening = new Date(`2000-01-01T${settings.value.openingTime}`);
   const closing = new Date(`2000-01-01T${settings.value.closingTime}`);
-  const breakStart = new Date(`2000-01-01T${settings.value.breakStartTime}`);
-  const breakEnd = new Date(`2000-01-01T${settings.value.breakEndTime}`);
 
   if (closing <= opening) {
     errors.value.closingTime = "Closing time must be after opening time";
   }
-  if (breakEnd <= breakStart) {
-    errors.value.breakEndTime = "Break end time must be after break start time";
-  }
-  if (breakStart < opening) {
-    errors.value.breakStartTime = "Break must be within business hours";
-  }
-  if (breakEnd > closing) {
-    errors.value.breakEndTime = "Break must be within business hours";
-  }
+
+  // Validate each break time
+  settings.value.breakTimes.forEach((breakTime, index) => {
+    const breakStart = new Date(`2000-01-01T${breakTime.startTime}`);
+    const breakEnd = new Date(`2000-01-01T${breakTime.endTime}`);
+
+    if (breakEnd <= breakStart) {
+      errors.value[`breakTime${index}End`] =
+        "Break end time must be after break start time";
+    }
+    if (breakStart < opening) {
+      errors.value[`breakTime${index}Start`] =
+        "Break must be within business hours";
+    }
+    if (breakEnd > closing) {
+      errors.value[`breakTime${index}End`] =
+        "Break must be within business hours";
+    }
+
+    // Check for overlapping breaks
+    settings.value.breakTimes.forEach((otherBreak, otherIndex) => {
+      if (index !== otherIndex) {
+        const otherStart = new Date(`2000-01-01T${otherBreak.startTime}`);
+        const otherEnd = new Date(`2000-01-01T${otherBreak.endTime}`);
+
+        if (
+          (breakStart >= otherStart && breakStart < otherEnd) ||
+          (breakEnd > otherStart && breakEnd <= otherEnd) ||
+          (breakStart <= otherStart && breakEnd >= otherEnd)
+        ) {
+          errors.value[`breakTime${index}Start`] = "Break times cannot overlap";
+          errors.value[`breakTime${index}End`] = "Break times cannot overlap";
+        }
+      }
+    });
+  });
 }
 
 // Watch for time changes
@@ -867,195 +1123,89 @@ watch(
   [
     () => settings.value.openingTime,
     () => settings.value.closingTime,
-    () => settings.value.breakStartTime,
-    () => settings.value.breakEndTime,
+    () => settings.value.breakTimes,
   ],
-  validateTimeRanges
+  validateTimeRanges,
+  { deep: true }
 );
-
-// Add validation for payment settings
-const validatePaymentSettings = () => {
-  const paymentErrors = {};
-  
-  if (!settings.value.apiKey) {
-    paymentErrors.apiKey = "API Key is required";
-  }
-  
-  if (!settings.value.webhookSecret) {
-    paymentErrors.webhookSecret = "Webhook Secret is required";
-  }
-  
-  return paymentErrors;
-};
 
 // Add validation for password change
 const validatePasswordChange = () => {
-  const passwordErrors = {};
-  
+  const passwordErrors: Errors = {};
+
   if (!passwordForm.value.currentPassword) {
     passwordErrors.currentPassword = "Current password is required";
   }
-  
+
   if (!passwordForm.value.newPassword) {
     passwordErrors.newPassword = "New password is required";
   } else if (passwordForm.value.newPassword.length < 8) {
     passwordErrors.newPassword = "Password must be at least 8 characters";
   }
-  
+
   if (!passwordForm.value.confirmPassword) {
     passwordErrors.confirmPassword = "Please confirm your new password";
-  } else if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+  } else if (
+    passwordForm.value.newPassword !== passwordForm.value.confirmPassword
+  ) {
     passwordErrors.confirmPassword = "Passwords do not match";
   }
-  
+
   return passwordErrors;
 };
 
-// Handle password change
-async function handlePasswordChange() {
-  try {
-    isChangingPassword.value = true;
-    
-    // Validate password change
-    const passwordErrors = validatePasswordChange();
-    if (Object.keys(passwordErrors).length > 0) {
-      errors.value = { ...errors.value, ...passwordErrors };
-      return;
-    }
-
-    const response = await $fetch("/api/auth/change-password", {
-      method: "POST",
-      body: {
-        current_password: passwordForm.value.currentPassword,
-        new_password: passwordForm.value.newPassword,
-      },
-    });
-
-    if (response.statusCode === 200) {
-      ElMessage.success("Password changed successfully");
-      // Reset form
-      passwordForm.value = {
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      };
-      // Clear errors
-      errors.value.currentPassword = "";
-      errors.value.newPassword = "";
-      errors.value.confirmPassword = "";
-    } else {
-      ElMessage.error(response.message || "Failed to change password");
-    }
-  } catch (error) {
-    console.error("Failed to change password:", error);
-    ElMessage.error(error.message || "Failed to change password");
-  } finally {
-    isChangingPassword.value = false;
-  }
-}
-
-// Watch for settings changes
-// watch(
-//   settings,
-//   async (newSettings) => {
-//     try {
-//       // Add your settings update API call here
-//       await new Promise((resolve) => setTimeout(resolve, 500)); // Simulated API call
-//       alert("Settings updated successfully");
-//     } catch (error) {
-//       alert("Failed to update settings");
-//     }
-//   },
-//   { deep: true }
-// );
-
-const isLoading = ref(true);
-const isSaving = ref(false);
-
-// Add loading states for each tab
-const loadingStates = ref({
-  booking: false,
-  payment: false,
-  password: false,
-});
-
-// Add save functions
-async function saveBookingSettings() {
-  try {
-    loadingStates.value.booking = true;
-    await $fetch("/api/setting/update-configs", {
-      method: "POST",
-      body: {
-        slotConfig: {
-          start_time: settings.value.openingTime,
-          end_time: settings.value.closingTime,
-          start_break: settings.value.breakStartTime,
-          end_break: settings.value.breakEndTime,
-          duration: settings.value.slotDuration,
-          rest: settings.value.restDuration,
-        },
-      },
-    });
-  } catch (error) {
-    console.error("Failed to save booking settings:", error);
-    ElMessage.error("Failed to save booking settings");
-  } finally {
-    loadingStates.value.booking = false;
-  }
-}
-
-async function savePaymentSettings() {
-  try {
-    loadingStates.value.payment = true;
-    
-    // Validate payment settings
-    const paymentErrors = validatePaymentSettings();
-    if (Object.keys(paymentErrors).length > 0) {
-      errors.value = { ...errors.value, ...paymentErrors };
-      return;
-    }
-
-    const response = await $fetch("/api/setting/update-payment-config", {
-      method: "POST",
-      body: {
-        provider: settings.value.paymentProvider,
-        api_key: settings.value.apiKey,
-        webhook_secret: settings.value.webhookSecret,
-        test_mode: settings.value.testMode,
-        currency: settings.value.currency,
-      },
-    });
-
-    if (response.statusCode === 200) {
-      ElMessage.success("Payment settings saved successfully");
-    } else {
-      ElMessage.error("Failed to save payment settings");
-    }
-  } catch (error) {
-    console.error("Failed to save payment settings:", error);
-    ElMessage.error("Failed to save payment settings");
-  } finally {
-    loadingStates.value.payment = false;
-  }
-}
-
-// Update fetchConfig
 async function fetchConfig() {
   try {
     isLoading.value = true;
-    const response = await $fetch("/api/setting/get-configs");
+    const response = await $fetch<ApiResponse>("/api/setting/get-configs");
 
-    if (response.statusCode === 200) {
-      settings.value.openingTime = response.data.slotConfig.start_time;
-      settings.value.closingTime = response.data.slotConfig.end_time;
-      settings.value.breakStartTime = response.data.slotConfig.start_break;
-      settings.value.breakEndTime = response.data.slotConfig.end_break;
-      settings.value.slotDuration = response.data.slotConfig.duration;
-      settings.value.restDuration = response.data.slotConfig.rest;
+    console.log("Response: ", response);
+
+    if (response.statusCode === 200 && response.data) {
+      if (response.data.slotConfig) {
+        settings.value.openingTime = response.data.slotConfig.start_time;
+        settings.value.closingTime = response.data.slotConfig.end_time;
+
+        // Handle multiple break times from API
+        if (Array.isArray(response.data.breaks)) {
+          settings.value.breakTimes = response.data.breaks.map((breakTime) => ({
+            id: breakTime.id,
+            startTime: breakTime.start_time,
+            endTime: breakTime.end_time,
+          }));
+        } else {
+          // Fallback for backward compatibility
+          // settings.value.breakTimes = [
+          //   {
+          //     id: 1,
+          //     startTime: response.data.breaks[0].start_time,
+          //     endTime: response.data.breaks[0].end_time,
+          //   },
+          // ];
+        }
+
+        settings.value.slotDuration = response.data.slotConfig.duration;
+        settings.value.restDuration = response.data.slotConfig.rest;
+      }
+
+      if (response.data.chargePerPax !== undefined) {
+        settings.value.chargePerPax = response.data.chargePerPax;
+      }
+      if (response.data.maxFreePax !== undefined) {
+        settings.value.maxFreePax = response.data.maxFreePax;
+      }
+      if (response.data.maxPax !== undefined) {
+        settings.value.maxPax = response.data.maxPax;
+      }
     }
   } catch (error) {
-    console.error(error);
-    ElMessage.error("Failed to load settings");
+    const fetchError = error as FetchError;
+    console.error(fetchError);
+    showModal(
+      "error",
+      "Error",
+      fetchError.message || "Failed to load settings"
+    );
   } finally {
     isLoading.value = false;
   }
@@ -1065,29 +1215,182 @@ async function saveSlotConfig() {
   try {
     loadingStates.value.booking = true;
 
-    let resp = await $fetch("/api/setting/update-slot-config", {
-      method: "POST",
-      body: {
-        start_time: settings.value.openingTime,
-        end_time: settings.value.closingTime,
-        start_break: settings.value.breakStartTime,
-        end_break: settings.value.breakEndTime,
-        duration: settings.value.slotDuration,
-        rest: settings.value.restDuration,
-      },
-    });
-    console.log(resp);
+    // Validate all break times are filled
+    const hasEmptyBreakTimes = settings.value.breakTimes.some(
+      (breakTime) => !breakTime.startTime || !breakTime.endTime
+    );
 
-    if (resp.statusCode === 200) {
-      alert("Slot config updated successfully");
+    if (hasEmptyBreakTimes) {
+      showModal("error", "Error", "Please fill in all break time fields");
+      return;
+    }
+
+    // Validate time ranges before saving
+    validateTimeRanges();
+    if (Object.keys(errors.value).length > 0) {
+      showModal(
+        "error",
+        "Error",
+        "Please fix the time range errors before saving"
+      );
+      return;
+    }
+
+    const response = await $fetch<ApiResponse>(
+      "/api/setting/update-slot-config",
+      {
+        method: "POST",
+        body: {
+          start_time: settings.value.openingTime,
+          end_time: settings.value.closingTime,
+          breaks: settings.value.breakTimes.map((breakTime) => ({
+            id: breakTime.id,
+            start_time: breakTime.startTime,
+            end_time: breakTime.endTime,
+          })),
+          duration: settings.value.slotDuration,
+          rest: settings.value.restDuration,
+        },
+      }
+    );
+
+    if (response.statusCode === 200) {
+      showModal(
+        "success",
+        "Success",
+        "Slot configuration has been updated successfully"
+      );
     } else {
-      alert("Failed to update slot config");
+      showModal(
+        "error",
+        "Error",
+        response.message || "Failed to update slot configuration"
+      );
     }
   } catch (error) {
-    console.error(error);
-    alert("Failed to update slot config");
+    const fetchError = error as FetchError;
+    console.error(fetchError);
+    showModal(
+      "error",
+      "Error",
+      fetchError.message || "Failed to update slot configuration"
+    );
   } finally {
     loadingStates.value.booking = false;
+  }
+}
+
+async function savePaxSettings() {
+  try {
+    loadingStates.value.pax = true;
+
+    // Validate pax settings
+    if (settings.value.maxPax < 1) {
+      errors.value.maxPax = "Maximum participants must be at least 1";
+      return;
+    }
+
+    if (settings.value.maxFreePax < 0) {
+      errors.value.maxFreePax = "Maximum free participants cannot be negative";
+      return;
+    }
+
+    if (settings.value.maxFreePax > settings.value.maxPax) {
+      errors.value.maxFreePax =
+        "Maximum free participants cannot exceed maximum participants";
+      return;
+    }
+
+    if (settings.value.chargePerPax < 0) {
+      errors.value.chargePerPax = "Charge per participant cannot be negative";
+      return;
+    }
+
+    const response = await $fetch<ApiResponse>(
+      "/api/setting/update-pax-config",
+      {
+        method: "PUT",
+        body: {
+          maxPax: settings.value.maxPax,
+          maxFreePax: settings.value.maxFreePax,
+          chargePerPax: settings.value.chargePerPax,
+        },
+      }
+    );
+
+    if (response.statusCode === 200) {
+      showModal(
+        "success",
+        "Success",
+        "Participant settings have been updated successfully"
+      );
+    } else {
+      showModal(
+        "error",
+        "Error",
+        response.message || "Failed to update participant settings"
+      );
+    }
+  } catch (error) {
+    const fetchError = error as FetchError;
+    console.error(fetchError);
+    showModal(
+      "error",
+      "Error",
+      fetchError.message || "Failed to update participant settings"
+    );
+  } finally {
+    loadingStates.value.pax = false;
+  }
+}
+
+async function handlePasswordChange() {
+  try {
+    isChangingPassword.value = true;
+
+    // Validate password change
+    const passwordErrors = validatePasswordChange();
+    if (Object.keys(passwordErrors).length > 0) {
+      errors.value = { ...errors.value, ...passwordErrors };
+      return;
+    }
+
+    const response = await $fetch<ApiResponse>("/api/setting/update-password", {
+      method: "POST",
+      body: {
+        currentPassword: passwordForm.value.currentPassword,
+        newPassword: passwordForm.value.newPassword,
+        confirmPassword: passwordForm.value.confirmPassword,
+      },
+    });
+
+    if (response.statusCode === 200) {
+      showModal("success", "Success", "Password has been changed successfully");
+      // Reset form
+      passwordForm.value = {
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      };
+      // Clear errors
+      errors.value = {};
+    } else {
+      showModal(
+        "error",
+        "Error",
+        response.message || "Failed to change password"
+      );
+    }
+  } catch (error) {
+    const fetchError = error as FetchError;
+    console.error(fetchError);
+    showModal(
+      "error",
+      "Error",
+      fetchError.message || "Failed to change password"
+    );
+  } finally {
+    isChangingPassword.value = false;
   }
 }
 
@@ -1336,5 +1639,18 @@ input[type="time"] {
 // Save button container
 .save-button-container {
   background: linear-gradient(to top, white, white, transparent);
+}
+
+.break-list-enter-active,
+.break-list-leave-active {
+  transition: all 0.3s ease;
+}
+.break-list-enter-from,
+.break-list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.break-list-move {
+  transition: transform 0.3s ease;
 }
 </style>

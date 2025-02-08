@@ -11,12 +11,22 @@ const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const pageSizeOptions = [5, 10, 25, 50];
 
+// Loading states
+const isLoading = ref(false);
+const isLoadingReceipt = ref(false);
+const isLoadingEmail = ref(false);
+const isMarkingAsPaid = ref(false);
+const isLoadingDetails = ref(false);
+const isRescheduling = ref(false);
+const isCancelling = ref(false);
+
 // Stats computed properties
 const stats = computed(() => ({
-  total: bookings.value.length,
-  pending: bookings.value.filter((b) => b.status === 1).length,
-  confirmed: bookings.value.filter((b) => b.status === 2 || b.status === 3).length,
-  revenue: bookings.value.reduce((sum, b) => sum + b.payment_amount, 0),
+  confirmed: bookings.value.filter((b) => b.status === 2 || b.status === 3)
+    .length,
+  partial: bookings.value.filter((b) => b.status === 2).length,
+  frames: bookings.value.reduce((sum, b) => sum + b.frame_quantity, 0),
+  sales: bookings.value.reduce((sum, b) => sum + b.payment_amount, 0),
 }));
 
 // Search and filter states
@@ -31,6 +41,25 @@ const dateRange = ref({
 const showFilters = ref(false);
 const isSearching = ref(false);
 let searchDebounceTimeout = null;
+
+// Add these constants after the existing statuses constant
+const sessionStatuses = [
+  { value: "all", label: "All Session Statuses" },
+  { value: 1, label: "Session Pending" },
+  { value: 2, label: "Session Completed" },
+  { value: 3, label: "Session Cancelled" },
+];
+
+const frameStatuses = [
+  { value: "all", label: "All Frame Statuses" },
+  { value: 1, label: "Unprinted" },
+  { value: 2, label: "Printed" },
+  { value: 3, label: "Delivered" },
+];
+
+// Add these refs after the existing filter refs
+const sessionStatusFilter = ref("all");
+const frameStatusFilter = ref("all");
 
 // Debounce search input
 watch(search, async (newValue) => {
@@ -52,6 +81,12 @@ const statusMap = {
   session: {
     1: "Pending",
     2: "Completed",
+    3: "Cancelled",
+  },
+  frame: {
+    1: "Unprinted",
+    2: "Printed",
+    3: "Delivered",
   },
 };
 
@@ -87,12 +122,23 @@ const filteredBookings = computed(() => {
 
     // Status match with mapping
     const statusMatch =
-      statusFilter.value === "all" || booking.status === statusFilter.value;
+      statusFilter.value === "all" ||
+      booking.status === parseInt(statusFilter.value);
 
     // Service match using theme_title
     const serviceMatch =
       serviceFilter.value === "all" ||
       booking.theme_title === serviceFilter.value;
+
+    // Session status match
+    const sessionStatusMatch =
+      sessionStatusFilter.value === "all" ||
+      booking.session_status === parseInt(sessionStatusFilter.value);
+
+    // Frame status match
+    const frameStatusMatch =
+      frameStatusFilter.value === "all" ||
+      booking.frame_status === parseInt(frameStatusFilter.value);
 
     // Date match using session_date
     const sessionDate = booking.session_date
@@ -108,7 +154,14 @@ const filteredBookings = computed(() => {
       ((!startDate || sessionDate >= startDate) &&
         (!endDate || sessionDate <= endDate));
 
-    return searchMatch && statusMatch && serviceMatch && dateMatch;
+    return (
+      searchMatch &&
+      statusMatch &&
+      serviceMatch &&
+      sessionStatusMatch &&
+      frameStatusMatch &&
+      dateMatch
+    );
   });
 
   // Apply sorting
@@ -124,6 +177,11 @@ const filteredBookings = computed(() => {
       case "session_status":
         comparison = (statusMap.session[a.session_status] || "").localeCompare(
           statusMap.session[b.session_status] || ""
+        );
+        break;
+      case "frame_status":
+        comparison = (statusMap.frame[a.frame_status] || "").localeCompare(
+          statusMap.frame[b.frame_status] || ""
         );
         break;
       case "created_date":
@@ -164,6 +222,8 @@ const activeFiltersCount = computed(() => {
   if (debouncedSearch.value) count++;
   if (statusFilter.value !== "all") count++;
   if (serviceFilter.value !== "all") count++;
+  if (sessionStatusFilter.value !== "all") count++;
+  if (frameStatusFilter.value !== "all") count++;
   if (dateRange.value.start || dateRange.value.end) count++;
   return count;
 });
@@ -174,6 +234,8 @@ const clearFilters = () => {
   debouncedSearch.value = "";
   statusFilter.value = "all";
   serviceFilter.value = "all";
+  sessionStatusFilter.value = "all";
+  frameStatusFilter.value = "all";
   dateRange.value.start = "";
   dateRange.value.end = "";
   currentPage.value = 1;
@@ -243,6 +305,16 @@ const formatTime = (time) => {
   return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
 };
 
+const formatDateMY = (date) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleString("en-MY", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Kuala_Lumpur",
+  });
+};
+
 // Modal state
 const selectedBooking = ref(null);
 const showModal = ref(false);
@@ -260,37 +332,6 @@ const openBookingDetails = async (booking) => {
 const closeModal = () => {
   showModal.value = false;
   selectedBooking.value = null;
-};
-
-// Add loading states
-const isLoading = ref(false);
-const isLoadingReceipt = ref(false);
-const isLoadingEmail = ref(false);
-const isMarkingAsPaid = ref(false);
-const isLoadingDetails = ref(false);
-
-const getBookings = async () => {
-  isLoading.value = true;
-  try {
-    const resp = await $fetch("/api/booking/get-bookings");
-    bookings.value = resp;
-
-    // Extract unique themes from bookings and update services
-    const uniqueThemes = [
-      ...new Set(bookings.value.map((booking) => booking.theme_title)),
-    ];
-    services.value = [
-      { value: "all", label: "All Themes" },
-      ...uniqueThemes.map((theme) => ({
-        value: theme,
-        label: theme,
-      })),
-    ];
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-  } finally {
-    isLoading.value = false;
-  }
 };
 
 // Add new refs for receipt modal
@@ -471,7 +512,6 @@ const sendReceiptEmail = async () => {
 const showRescheduleModal = ref(false);
 const selectedDate = ref("");
 const selectedTime = ref("");
-const isRescheduling = ref(false);
 
 // Add confirmation modal state
 const showConfirmationModal = ref(false);
@@ -487,10 +527,38 @@ const showConfirmation = (title, message, action) => {
   showConfirmationModal.value = true;
 };
 
+// Add these refs for available slots and loading state
+const isLoadingSlots = ref(false);
+const availableSlots = ref([]);
+const selectedSlot = ref("");
+
+// Add watch for selectedDate to fetch available slots
+watch(selectedDate, async (newDate) => {
+  if (!newDate || !selectedBooking.value) return;
+
+  selectedSlot.value = "";
+  isLoadingSlots.value = true;
+  try {
+    const response = await $fetch("/api/booking/get-available-slots", {
+      params: {
+        date: newDate,
+        theme_id: selectedBooking.value.theme,
+      },
+    });
+    if (response.status === "success") {
+      availableSlots.value = response.data;
+    }
+  } catch (error) {
+    console.error("Error fetching available slots:", error);
+  } finally {
+    isLoadingSlots.value = false;
+  }
+});
+
 // Update rescheduleSession function
 const rescheduleSession = async () => {
-  if (!selectedDate.value || !selectedTime.value) {
-    alert("Please select both date and time");
+  if (!selectedDate.value || !selectedSlot.value) {
+    alert("Please select both date and time slot");
     return;
   }
 
@@ -500,21 +568,21 @@ const rescheduleSession = async () => {
     async () => {
       isRescheduling.value = true;
       try {
-        const response = await $fetch(
-          `/api/booking/reschedule/${selectedBooking.value.id}`,
-          {
-            method: "PUT",
-            body: {
-              session_date: selectedDate.value,
-              session_time: selectedTime.value,
-            },
-          }
-        );
+        const response = await $fetch(`/api/booking/reschedule`, {
+          method: "PUT",
+          body: {
+            bookingId: selectedBooking.value.id,
+            session_date: selectedDate.value,
+            session_time: selectedSlot.value,
+          },
+        });
 
         if (response.success) {
           selectedBooking.value.session_date = selectedDate.value;
-          selectedBooking.value.session_time = selectedTime.value;
+          selectedBooking.value.session_time = selectedSlot.value;
           showRescheduleModal.value = false;
+
+          showModal.value = false;
           alert("Session rescheduled successfully");
           getBookings(); // Refresh the bookings list
         } else {
@@ -539,8 +607,12 @@ const markAsPaid = async (bookingId) => {
     async () => {
       isMarkingAsPaid.value = true;
       try {
-        const response = await $fetch(`/api/booking/mark-paid/${bookingId}`, {
+        const response = await $fetch(`/api/booking/update-payment-status`, {
           method: "PUT",
+          body: {
+            bookingId: bookingId,
+            status: 3,
+          },
         });
 
         if (response.success) {
@@ -569,8 +641,12 @@ const cancelBooking = async (bookingId) => {
     async () => {
       isCancelling.value = true;
       try {
-        const response = await $fetch(`/api/booking/cancel/${bookingId}`, {
+        const response = await $fetch(`/api/booking/update-session-status`, {
           method: "PUT",
+          body: {
+            bookingId: bookingId,
+            status: 3,
+          },
         });
 
         if (response.success) {
@@ -592,9 +668,277 @@ const cancelBooking = async (bookingId) => {
   );
 };
 
+const getBookings = async () => {
+  isLoading.value = true;
+  try {
+    const resp = await $fetch("/api/booking/get-bookings");
+
+    // console.log(resp);
+
+    bookings.value = resp;
+
+    // Extract unique themes from bookings and update services
+    const uniqueThemes = [
+      ...new Set(bookings.value.map((booking) => booking.theme_title)),
+    ];
+    services.value = [
+      { value: "all", label: "All Themes" },
+      ...uniqueThemes.map((theme) => ({
+        value: theme,
+        label: theme,
+      })),
+    ];
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Remove the duplicate exportToCSV function and template code
+const exportToCSV = () => {
+  const headers = [
+    "Booking ID",
+    "Customer Name",
+    "Email",
+    "Phone",
+    "Address",
+    "Theme",
+    "Theme Price",
+    "Session Date",
+    "Session Time",
+    "Number of Pax",
+    "Extra Pax",
+    "Extra Pax Charges",
+    "Payment Status",
+    "Payment Type",
+    "Payment Method",
+    "Payment Amount",
+    "Session Status",
+    "Frame Status",
+    "Frame Quantity",
+    "Frame Total Price",
+    "Addon Details",
+    "Total Amount",
+    "Balance",
+    "Source",
+    "Created Date",
+  ];
+
+  const csvData = filteredBookings.value.map((booking) => {
+    // Format addon details as a string
+    const addonDetails =
+      booking.addons
+        ?.map(
+          (addon) =>
+            `${addon.title} (${addon.qty}x - ${formatCurrency(addon.price)})`
+        )
+        .join("; ") || "-";
+
+    const frameTotals = calculateFrameTotals(booking.addons);
+
+    return [
+      booking.id,
+      booking.user_fullname,
+      booking.user_email,
+      booking.user_phoneno,
+      booking.user_address || "-",
+      booking.theme_title,
+      formatCurrency(booking.theme_price || 0),
+      formatDateMY(booking.session_date),
+      booking.session_time,
+      booking.number_of_pax || 0,
+      booking.number_of_extra_pax || 0,
+      formatCurrency(booking.payment_extra_pax || 0),
+      statusMap.payment[booking.status] || "Unknown",
+      getPaymentType(booking.payment_type),
+      getPaymentMethod(booking.payment_method),
+      formatCurrency(booking.payment_amount || 0),
+      statusMap.session[booking.session_status] || "Unknown",
+      statusMap.frame[booking.frame_status] || "N/A",
+      frameTotals.quantity,
+      formatCurrency(frameTotals.price),
+      addonDetails,
+      formatCurrency(calculateTotalAmount(booking)),
+      formatCurrency(calculateBalance(booking)),
+      formatSource(booking.user_source),
+      formatDateMY(booking.created_date),
+    ];
+  });
+
+  const csvContent = [headers, ...csvData]
+    .map((row) => row.join(","))
+    .join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute(
+    "download",
+    `bookings-${new Date().toISOString().split("T")[0]}.csv`
+  );
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 onMounted(() => {
   getBookings();
 });
+
+// Add helper function for formatting source
+const formatSource = (source) => {
+  if (!source) return "-";
+  return source
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+// Add helper function for payment method
+const getPaymentMethod = (method) => {
+  switch (method) {
+    case 1:
+      return "FPX / Online Banking";
+    case 2:
+      return "Credit / Debit Card";
+    default:
+      return "-";
+  }
+};
+
+// Add helper function to calculate total frame quantity and price
+const calculateFrameTotals = (addons) => {
+  if (!addons?.length) return { quantity: 0, price: 0 };
+  return addons.reduce(
+    (acc, addon) => ({
+      quantity: acc.quantity + (addon.qty || 0),
+      price: acc.price + (addon.price || 0),
+    }),
+    { quantity: 0, price: 0 }
+  );
+};
+
+// Add helper function for payment type
+const getPaymentType = (type) => {
+  switch (type) {
+    case 1:
+      return "Full Payment";
+    case 2:
+      return "Deposit Payment";
+    default:
+      return "-";
+  }
+};
+
+// Add helper function to calculate balance
+const calculateBalance = (booking) => {
+  if (!booking) return 0;
+  const totalPrice =
+    (booking.payment_amount || 0) + (booking.payment_extra_pax || 0);
+  const depositAmount = booking.payment_deposit || 0;
+  return booking.payment_type === 2 ? totalPrice - depositAmount : 0;
+};
+
+// Add helper function to calculate total amount
+const calculateTotalAmount = (booking) => {
+  if (!booking) return 0;
+  const themePrice = booking.theme_price || 0;
+  const addonTotal = calculateFrameTotals(booking.addons).price;
+  const extraPaxCharges = booking.payment_extra_pax || 0;
+  return themePrice + addonTotal + extraPaxCharges;
+};
+
+const handleSessionStatusChange = async (bookingId, newStatus) => {
+  try {
+    const response = await $fetch(`/api/booking/update-session-status`, {
+      method: "PUT",
+      body: {
+        bookingId: bookingId,
+        status: parseInt(newStatus),
+      },
+    });
+
+    if (response.success) {
+      const booking = bookings.value.find((b) => b.id === bookingId);
+      if (booking) {
+        booking.session_status = parseInt(newStatus);
+      }
+    } else {
+      throw new Error("Failed to update session status");
+    }
+  } catch (error) {
+    console.error("Error updating session status:", error);
+    alert("Failed to update session status. Please try again.");
+  }
+};
+
+// Add these new functions for handling status changes
+const handlePaymentStatusChange = async (bookingId, newStatus) => {
+  try {
+    const response = await $fetch(`/api/booking/update-payment-status`, {
+      method: "PUT",
+      body: {
+        bookingId: bookingId,
+        status: newStatus,
+      },
+    });
+
+    if (response.success) {
+      const booking = bookings.value.find((b) => b.id === bookingId);
+      if (booking) {
+        booking.status = parseInt(newStatus);
+      }
+    } else {
+      throw new Error("Failed to update payment status");
+    }
+  } catch (error) {
+    console.error("Error updating payment status:", error);
+    alert("Failed to update payment status. Please try again.");
+  }
+};
+
+const handleFrameStatusChange = async (bookingId, newStatus) => {
+  try {
+    const response = await $fetch(`/api/booking/update-frame-status`, {
+      method: "PUT",
+      body: {
+        bookingId: bookingId,
+        status: newStatus,
+      },
+    });
+
+    if (response.success) {
+      const booking = bookings.value.find((b) => b.id === bookingId);
+      if (booking) {
+        booking.frame_status = parseInt(newStatus);
+      }
+    } else {
+      throw new Error("Failed to update frame status");
+    }
+  } catch (error) {
+    console.error("Error updating frame status:", error);
+    alert("Failed to update frame status. Please try again.");
+  }
+};
+
+// Add helper function to check if date is weekend
+function isWeekend(dateString) {
+  const date = new Date(dateString);
+  const day = date.getDay();
+  return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+}
+
+// Add helper function to format time for display
+function formatTimeDisplay(timeString) {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+}
+
+// ... rest of the existing code ...
 </script>
 
 <template>
@@ -652,10 +996,10 @@ onMounted(() => {
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div
-                class="w-12 h-12 bg-[var(--color-bg-primary)] bg-opacity-10 rounded-lg flex items-center justify-center"
+                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
               >
                 <svg
-                  class="h-6 w-6 text-[var(--color-bg-secondary)]"
+                  class="h-6 w-6 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -664,7 +1008,7 @@ onMounted(() => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
@@ -672,11 +1016,11 @@ onMounted(() => {
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">
-                  Total Bookings
+                  Total Confirmed
                 </dt>
                 <dd class="flex items-baseline">
                   <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.total }}
+                    {{ stats.confirmed }}
                   </div>
                 </dd>
               </dl>
@@ -707,7 +1051,7 @@ onMounted(() => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
@@ -715,11 +1059,11 @@ onMounted(() => {
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">
-                  Pending
+                  Total Partially Paid
                 </dt>
                 <dd class="flex items-baseline">
                   <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.pending }}
+                    {{ stats.partial }}
                   </div>
                 </dd>
               </dl>
@@ -732,16 +1076,16 @@ onMounted(() => {
         class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
       >
         <div
-          class="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+          class="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
         ></div>
         <div class="p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div
-                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+                class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
               >
                 <svg
-                  class="h-6 w-6 text-green-600"
+                  class="h-6 w-6 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -750,7 +1094,7 @@ onMounted(() => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
               </div>
@@ -758,11 +1102,11 @@ onMounted(() => {
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">
-                  Confirmed
+                  Total Frame Quantity
                 </dt>
                 <dd class="flex items-baseline">
                   <div class="text-2xl font-bold text-gray-900">
-                    {{ stats.confirmed }}
+                    {{ stats.frames }}
                   </div>
                 </dd>
               </dl>
@@ -801,11 +1145,11 @@ onMounted(() => {
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">
-                  Total Revenue
+                  Total Sales
                 </dt>
                 <dd class="flex items-baseline">
                   <div class="text-2xl font-bold text-gray-900">
-                    {{ formatCurrency(stats.revenue) }}
+                    {{ formatCurrency(stats.sales) }}
                   </div>
                 </dd>
               </dl>
@@ -909,6 +1253,25 @@ onMounted(() => {
               >
                 Clear Filters
               </button>
+              <button
+                @click="exportToCSV"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+              >
+                <svg
+                  class="h-4 w-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Export Data
+              </button>
             </div>
           </div>
         </div>
@@ -972,6 +1335,78 @@ onMounted(() => {
                     :value="service.value"
                   >
                     {{ service.label }}
+                  </option>
+                </select>
+                <div
+                  class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                >
+                  <svg
+                    class="h-5 w-5 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Session Status Filter -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+                >Session Status</label
+              >
+              <div class="relative">
+                <select
+                  v-model="sessionStatusFilter"
+                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+                >
+                  <option
+                    v-for="status in sessionStatuses"
+                    :key="status.value"
+                    :value="status.value"
+                  >
+                    {{ status.label }}
+                  </option>
+                </select>
+                <div
+                  class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                >
+                  <svg
+                    class="h-5 w-5 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Frame Status Filter -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+                >Frame Status</label
+              >
+              <div class="relative">
+                <select
+                  v-model="frameStatusFilter"
+                  class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+                >
+                  <option
+                    v-for="status in frameStatuses"
+                    :key="status.value"
+                    :value="status.value"
+                  >
+                    {{ status.label }}
                   </option>
                 </select>
                 <div
@@ -1100,6 +1535,62 @@ onMounted(() => {
                 Theme: {{ serviceFilter }}
                 <button
                   @click="serviceFilter = 'all'"
+                  class="ml-1 hover:text-gray-200"
+                >
+                  <svg
+                    class="h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </span>
+              <span
+                v-if="sessionStatusFilter !== 'all'"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+              >
+                Session Status:
+                {{
+                  sessionStatuses.find((s) => s.value === sessionStatusFilter)
+                    ?.label || sessionStatusFilter
+                }}
+                <button
+                  @click="sessionStatusFilter = 'all'"
+                  class="ml-1 hover:text-gray-200"
+                >
+                  <svg
+                    class="h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </span>
+              <span
+                v-if="frameStatusFilter !== 'all'"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+              >
+                Frame Status:
+                {{
+                  frameStatuses.find((s) => s.value === frameStatusFilter)
+                    ?.label || frameStatusFilter
+                }}
+                <button
+                  @click="frameStatusFilter = 'all'"
                   class="ml-1 hover:text-gray-200"
                 >
                   <svg
@@ -1330,6 +1821,8 @@ onMounted(() => {
             search ||
             statusFilter !== "all" ||
             serviceFilter !== "all" ||
+            sessionStatusFilter !== "all" ||
+            frameStatusFilter !== "all" ||
             dateRange.start ||
             dateRange.end
               ? "Try adjusting your filters or search terms"
@@ -1344,6 +1837,8 @@ onMounted(() => {
               search ||
               statusFilter !== 'all' ||
               serviceFilter !== 'all' ||
+              sessionStatusFilter !== 'all' ||
+              frameStatusFilter !== 'all' ||
               dateRange.start ||
               dateRange.end
             "
@@ -1426,7 +1921,7 @@ onMounted(() => {
                   >
                     <span
                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >Status</span
+                      >Payment</span
                     >
                     <svg
                       :class="{
@@ -1454,11 +1949,43 @@ onMounted(() => {
                 <th scope="col" class="px-6 py-4 text-left">
                   <div
                     class="flex items-center gap-2 cursor-pointer group"
-                    @click="toggleSort('session')"
+                    @click="toggleSort('session_status')"
                   >
                     <span
                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >Session</span
+                    >
+                    <svg
+                      :class="{
+                        'h-4 w-4 transition-transform': true,
+                        'rotate-180':
+                          sortBy === 'session_status' && sortOrder === 'desc',
+                        'text-[var(--color-bg-primary)]':
+                          sortBy === 'session_status',
+                        'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+                          sortBy !== 'session_status',
+                      }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div
+                    class="flex items-center gap-2 cursor-pointer group"
+                    @click="toggleSort('frame')"
+                  >
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Frame</span
                     >
                     <svg
                       :class="{
@@ -1482,6 +2009,38 @@ onMounted(() => {
                     </svg>
                   </div>
                 </th>
+                <th scope="col" class="px-6 py-4 text-left">
+                  <div
+                    class="flex items-center gap-2 cursor-pointer group"
+                    @click="toggleSort('session')"
+                  >
+                    <span
+                      class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >Date & Slot</span
+                    >
+                    <svg
+                      :class="{
+                        'h-4 w-4 transition-transform': true,
+                        'rotate-180':
+                          sortBy === 'session' && sortOrder === 'desc',
+                        'text-[var(--color-bg-primary)]': sortBy === 'session',
+                        'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+                          sortBy !== 'session',
+                      }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </th>
+
                 <th scope="col" class="px-6 py-4 text-left">
                   <span
                     class="text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -1527,24 +2086,146 @@ onMounted(() => {
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-yellow-100 text-yellow-800': booking.status === 1,
-                      'bg-blue-100 text-blue-800': booking.status === 2,
-                      'bg-green-100 text-green-800': booking.status === 3,
-                    }"
-                  >
-                    <span
-                      class="w-1.5 h-1.5 rounded-full"
+                  <div class="relative group">
+                    <select
+                      :value="booking.status"
+                      @change="
+                        handlePaymentStatusChange(
+                          booking.id,
+                          $event.target.value
+                        )
+                      "
+                      class="appearance-none w-full cursor-pointer"
                       :class="{
-                        'bg-yellow-400': booking.status === 1,
-                        'bg-blue-400': booking.status === 2,
-                        'bg-green-400': booking.status === 3,
+                        'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+                        'bg-yellow-100 text-yellow-800': booking.status === 1,
+                        'bg-blue-100 text-blue-800': booking.status === 2,
+                        'bg-green-100 text-green-800': booking.status === 3,
                       }"
-                    ></span>
-                    {{ statusMap.payment[booking.status] || "Unknown" }}
-                  </span>
+                    >
+                      <option value="1">Pending</option>
+                      <option value="2">Partial</option>
+                      <option value="3">Paid</option>
+                    </select>
+                    <div
+                      class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                    >
+                      <svg
+                        class="h-4 w-4"
+                        :class="{
+                          'text-yellow-800': booking.status === 1,
+                          'text-blue-800': booking.status === 2,
+                          'text-green-800': booking.status === 3,
+                        }"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="relative group">
+                    <select
+                      :value="booking.session_status"
+                      @change="
+                        handleSessionStatusChange(
+                          booking.id,
+                          parseInt($event.target.value)
+                        )
+                      "
+                      class="appearance-none w-full cursor-pointer"
+                      :class="{
+                        'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+                        'bg-yellow-100 text-yellow-800':
+                          parseInt(booking.session_status) === 1,
+                        'bg-green-100 text-green-800':
+                          parseInt(booking.session_status) === 2,
+                        'bg-red-100 text-red-800':
+                          parseInt(booking.session_status) === 3,
+                      }"
+                    >
+                      <option value="1">Pending</option>
+                      <option value="2">Completed</option>
+                      <option value="3">Cancelled</option>
+                    </select>
+                    <div
+                      class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                    >
+                      <svg
+                        class="h-4 w-4"
+                        :class="{
+                          'text-yellow-800':
+                            parseInt(booking.session_status) === 1,
+                          'text-green-800':
+                            parseInt(booking.session_status) === 2,
+                        }"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div v-if="booking.frame_status" class="relative group">
+                    <select
+                      :value="booking.frame_status"
+                      @change="
+                        handleFrameStatusChange(booking.id, $event.target.value)
+                      "
+                      class="appearance-none w-full cursor-pointer"
+                      :class="{
+                        'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+                        'bg-yellow-100 text-yellow-800':
+                          booking.frame_status === 1,
+                        'bg-blue-100 text-blue-800': booking.frame_status === 2,
+                        'bg-green-100 text-green-800':
+                          booking.frame_status === 3,
+                      }"
+                    >
+                      <option value="1">Unprinted</option>
+                      <option value="2">Printed</option>
+                      <option value="3">Delivered</option>
+                    </select>
+                    <div
+                      class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+                    >
+                      <svg
+                        class="h-4 w-4"
+                        :class="{
+                          'text-yellow-800': booking.frame_status === 1,
+                          'text-blue-800': booking.frame_status === 2,
+                          'text-green-800': booking.frame_status === 3,
+                        }"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div v-else>
+                    <span
+                      class="flex justify-center text-xs font-medium text-gray-500"
+                    >
+                      -
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">
@@ -1831,7 +2512,7 @@ onMounted(() => {
             class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
           >
             <div
-              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
+              class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl"
             >
               <!-- Modal Header -->
               <div
@@ -1864,42 +2545,6 @@ onMounted(() => {
 
               <div v-if="selectedBooking" class="px-6 py-4">
                 <div class="space-y-6">
-                  <!-- Booking ID and Status -->
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-500">Booking ID</p>
-                      <p class="text-base font-medium text-[#3C2A21]">
-                        #{{ selectedBooking.id.toString().padStart(6, "0") }}
-                      </p>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-sm text-gray-500">Status</p>
-                      <span
-                        class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                        :class="{
-                          'bg-yellow-100 text-yellow-800':
-                            selectedBooking.status === 1,
-                          'bg-blue-100 text-blue-800':
-                            selectedBooking.status === 2,
-                          'bg-green-100 text-green-800':
-                            selectedBooking.status === 3,
-                          'bg-red-100 text-red-800':
-                            selectedBooking.status === 4,
-                        }"
-                      >
-                        {{
-                          selectedBooking.status === 1
-                            ? "Pending"
-                            : selectedBooking.status === 2
-                            ? "Partial"
-                            : selectedBooking.status === 3
-                            ? "Paid"
-                            : "Unknown"
-                        }}
-                      </span>
-                    </div>
-                  </div>
-
                   <!-- Customer Information -->
                   <div class="bg-gray-50 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
@@ -1918,16 +2563,16 @@ onMounted(() => {
                           {{ selectedBooking.user_phoneno }}
                         </p>
                       </div>
-                      <div class="col-span-2">
+                      <div>
                         <p class="text-sm text-gray-500">Email Address</p>
                         <p class="text-sm font-medium text-[#3C2A21]">
                           {{ selectedBooking.user_email }}
                         </p>
                       </div>
-                      <div class="col-span-2">
+                      <div>
                         <p class="text-sm text-gray-500">Source</p>
                         <p class="text-sm font-medium text-[#3C2A21]">
-                          {{ selectedBooking.user_source }}
+                          {{ formatSource(selectedBooking.user_source) }}
                         </p>
                       </div>
                     </div>
@@ -1938,7 +2583,7 @@ onMounted(() => {
                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
                       Session Details
                     </h4>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-4">
                       <div>
                         <p class="text-sm text-gray-500">Theme</p>
                         <p class="text-sm font-medium text-[#3C2A21]">
@@ -1958,11 +2603,278 @@ onMounted(() => {
                         </p>
                       </div>
                       <div>
+                        <p class="text-sm text-gray-500">Number of Pax</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{ selectedBooking.number_of_pax || 0 }}
+                          <span
+                            v-if="selectedBooking.number_of_extra_pax > 0"
+                            class="text-amber-600"
+                          >
+                            (+ {{ selectedBooking.number_of_extra_pax }} extra
+                            pax)
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Extra Pax Charges</p>
+                        <p class="text-sm font-medium text-[#3C2A21]">
+                          {{
+                            selectedBooking.number_of_extra_pax > 0
+                              ? formatCurrency(
+                                  selectedBooking.payment_extra_pax
+                                )
+                              : "-"
+                          }}
+                        </p>
+                      </div>
+                      <div>
                         <p class="text-sm text-gray-500">Created Date</p>
                         <p class="text-sm font-medium text-[#3C2A21]">
                           {{ formatDate(selectedBooking.created_date) }}
                         </p>
                       </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Session Status</p>
+                        <span
+                          class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                          :class="{
+                            'bg-yellow-100 text-yellow-800':
+                              selectedBooking.session_status === 1,
+                            'bg-green-100 text-green-800':
+                              selectedBooking.session_status === 2,
+                          }"
+                        >
+                          {{
+                            statusMap.session[selectedBooking.session_status] ||
+                            "Unknown"
+                          }}
+                        </span>
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-500">Frame Status</p>
+                        <span
+                          class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                          :class="{
+                            'bg-yellow-100 text-yellow-800':
+                              selectedBooking.frame_status === 1,
+                            'bg-blue-100 text-blue-800':
+                              selectedBooking.frame_status === 2,
+                            'bg-green-100 text-green-800':
+                              selectedBooking.frame_status === 3,
+                          }"
+                        >
+                          {{
+                            statusMap.frame[selectedBooking.frame_status] ||
+                            "Unknown"
+                          }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Addons -->
+                  <div
+                    v-if="selectedBooking.addons?.length"
+                    class="bg-gray-50 rounded-lg p-4"
+                  >
+                    <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+                      Add-ons
+                    </h4>
+                    <div class="divide-y divide-gray-200">
+                      <div
+                        v-for="(addon, index) in selectedBooking.addons"
+                        :key="index"
+                        class="py-3 first:pt-0 last:pb-0"
+                      >
+                        <div class="flex justify-between items-center">
+                          <div>
+                            <p class="text-sm font-medium text-[#3C2A21]">
+                              {{ addon.title }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                              Quantity: {{ addon.qty }}
+                            </p>
+                          </div>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{ formatCurrency(addon.price || 0) }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Payment Details -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+                      Payment Details
+                    </h4>
+                    <div class="space-y-6">
+                      <!-- Payment Information -->
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <p class="text-sm text-gray-500">Payment Type</p>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{ getPaymentType(selectedBooking.payment_type) }}
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-500">Payment Method</p>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{
+                              getPaymentMethod(selectedBooking.payment_method)
+                            }}
+                          </p>
+                        </div>
+                        <div v-if="selectedBooking.payment_type === 2">
+                          <p class="text-sm text-gray-500">Deposit Paid</p>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{
+                              formatCurrency(
+                                selectedBooking.payment_amount || 0
+                              )
+                            }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Amount Breakdown -->
+                      <div
+                        class="bg-white rounded-lg p-4 border border-gray-200"
+                      >
+                        <h5 class="text-sm font-medium text-[#3C2A21] mb-3">
+                          Amount Breakdown
+                        </h5>
+                        <div class="space-y-2">
+                          <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">Theme Price</span>
+                            <span class="font-medium text-[#3C2A21]">
+                              {{
+                                formatCurrency(selectedBooking.theme_price || 0)
+                              }}
+                            </span>
+                          </div>
+                          <div
+                            v-if="selectedBooking.addons?.length"
+                            class="flex justify-between text-sm"
+                          >
+                            <span class="text-gray-500">Add-ons Total</span>
+                            <span class="font-medium text-[#3C2A21]">
+                              {{
+                                formatCurrency(
+                                  calculateFrameTotals(selectedBooking.addons)
+                                    .price
+                                )
+                              }}
+                            </span>
+                          </div>
+                          <div
+                            v-if="selectedBooking.number_of_extra_pax > 0"
+                            class="flex justify-between text-sm"
+                          >
+                            <span class="text-gray-500">Extra Pax Charges</span>
+                            <span class="font-medium text-[#3C2A21]">
+                              {{
+                                formatCurrency(
+                                  selectedBooking.payment_extra_pax || 0
+                                )
+                              }}
+                            </span>
+                          </div>
+                          <div
+                            class="pt-2 mt-2 border-t border-gray-200 flex justify-between text-sm"
+                          >
+                            <span class="font-medium text-gray-500"
+                              >Total Amount</span
+                            >
+                            <span class="font-semibold text-[#3C2A21]">
+                              {{
+                                formatCurrency(
+                                  calculateTotalAmount(selectedBooking)
+                                )
+                              }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Balance Information for Deposit Payment -->
+                      <div
+                        v-if="selectedBooking.payment_type === 2"
+                        class="bg-amber-50 rounded-lg p-4 border border-amber-200"
+                      >
+                        <div class="space-y-3">
+                          <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-amber-800"
+                              >Total Amount</span
+                            >
+                            <span class="text-sm font-medium text-amber-800">
+                              {{
+                                formatCurrency(
+                                  calculateTotalAmount(selectedBooking)
+                                )
+                              }}
+                            </span>
+                          </div>
+                          <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-amber-800"
+                              >Deposit Paid</span
+                            >
+                            <span class="text-sm font-medium text-amber-800">
+                              -
+                              {{
+                                formatCurrency(
+                                  selectedBooking.payment_amount || 0
+                                )
+                              }}
+                            </span>
+                          </div>
+                          <div
+                            class="pt-2 border-t border-amber-200 flex justify-between items-center"
+                          >
+                            <div>
+                              <p class="text-sm font-medium text-amber-800">
+                                Balance to Collect
+                              </p>
+                              <p class="text-xs text-amber-600 mt-0.5">
+                                Please collect the remaining balance before the
+                                session
+                              </p>
+                            </div>
+                            <p class="text-lg font-semibold text-amber-800">
+                              {{
+                                formatCurrency(
+                                  calculateTotalAmount(selectedBooking) -
+                                    (selectedBooking.payment_amount || 0)
+                                )
+                              }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Frame Information -->
+                      <!-- <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <p class="text-sm text-gray-500">Frame Quantity</p>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{
+                              calculateFrameTotals(selectedBooking.addons)
+                                .quantity
+                            }}
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-sm text-gray-500">Frame Price</p>
+                          <p class="text-sm font-medium text-[#3C2A21]">
+                            {{
+                              formatCurrency(
+                                calculateFrameTotals(selectedBooking.addons)
+                                  .price
+                              )
+                            }}
+                          </p>
+                        </div>
+                      </div> -->
                     </div>
                   </div>
 
@@ -2017,8 +2929,8 @@ onMounted(() => {
                     </button>
                     <button
                       v-if="
-                        selectedBooking?.status === 1 ||
-                        selectedBooking?.status === 2
+                        selectedBooking?.session_status == 1 ||
+                        selectedBooking?.session_status == 2
                       "
                       @click="cancelBooking(selectedBooking?.id)"
                       :disabled="isCancelling"
@@ -2425,21 +3337,94 @@ onMounted(() => {
                     <input
                       type="date"
                       v-model="selectedDate"
-                      class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
                       :min="new Date().toISOString().split('T')[0]"
+                      class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
+                      :class="{ 'cursor-not-allowed': isWeekend(selectedDate) }"
+                      @change="
+                        (e) => {
+                          if (isWeekend(e.target.value)) {
+                            alert(
+                              'Weekend dates are not available for booking'
+                            );
+                            selectedDate = '';
+                          }
+                        }
+                      "
                     />
+                    <p
+                      v-if="selectedDate && isWeekend(selectedDate)"
+                      class="mt-1 text-sm text-red-600"
+                    >
+                      Weekend dates are not available for booking
+                    </p>
                   </div>
-                  <div>
+
+                  <div v-if="!isWeekend(selectedDate)">
                     <label
                       class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
                     >
                       New Session Time
                     </label>
-                    <input
-                      type="time"
-                      v-model="selectedTime"
-                      class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
-                    />
+                    <div class="relative">
+                      <div
+                        v-if="isLoadingSlots"
+                        class="flex items-center justify-center py-8"
+                      >
+                        <svg
+                          class="animate-spin h-8 w-8 text-gray-400"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+
+                      <div
+                        v-else-if="!selectedDate"
+                        class="text-center py-8 text-gray-500"
+                      >
+                        Please select a date first
+                      </div>
+
+                      <div
+                        v-else-if="availableSlots.length === 0"
+                        class="text-center py-8 text-red-600"
+                      >
+                        No available slots for this date
+                      </div>
+
+                      <div
+                        v-else
+                        class="grid grid-cols-3 gap-3 overflow-y-auto p-2"
+                      >
+                        <button
+                          v-for="slot in availableSlots"
+                          :key="slot.value"
+                          @click="selectedSlot = slot.value"
+                          class="p-3 rounded-lg border text-sm font-medium transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                          :class="[
+                            selectedSlot === slot.value
+                              ? 'border-[var(--color-bg-primary)] bg-[var(--color-bg-primary)] bg-opacity-10 text-[var(--color-text-primary)]'
+                              : 'border-gray-200 hover:border-[var(--color-bg-primary)] text-gray-700',
+                          ]"
+                        >
+                          {{ formatTimeDisplay(slot.value) }}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2454,7 +3439,12 @@ onMounted(() => {
                 </button>
                 <button
                   @click="rescheduleSession"
-                  :disabled="isRescheduling || !selectedDate || !selectedTime"
+                  :disabled="
+                    isRescheduling ||
+                    !selectedDate ||
+                    !selectedSlot ||
+                    isLoadingSlots
+                  "
                   class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
                 >
                   <span v-if="isRescheduling" class="flex items-center">

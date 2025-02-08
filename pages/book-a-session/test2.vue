@@ -197,7 +197,7 @@
                   <div class="space-y-6">
                     <!-- Loading Skeleton -->
                     <template v-if="isLoadingThemes">
-                      <div v-for="n in 2" :key="n" class="relative">
+                      <div v-for="n in 1" :key="n" class="relative">
                         <div
                           class="relative h-[280px] rounded-2xl overflow-hidden bg-gray-100 animate-pulse"
                         >
@@ -2533,7 +2533,6 @@ const totalAmount = computed(() => {
   }, 0);
 
   const extraPaxTotal = extraPaxCharge.value;
-  console.log("extraPaxTotal: ", extraPaxTotal);
 
   return (
     parseFloat(basePrice) + parseFloat(addonsTotal) + parseFloat(extraPaxTotal)

@@ -8,6 +8,12 @@ interface SlotsResponse {
   [key: string]: number;
 }
 
+interface BreakTime {
+  id: number;
+  start_time: string;
+  end_time: string;
+}
+
 // Helper function to normalize date to YYYY-MM-DD format
 function normalizeDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
@@ -51,6 +57,15 @@ function timeToMinutes(timeStr: string): number {
   return (hours * 60) + minutes;
 }
 
+// Helper function to calculate total break time in minutes
+function calculateTotalBreakTime(breaks: BreakTime[]): number {
+  return breaks.reduce((total, breakTime) => {
+    const start = timeToMinutes(breakTime.start_time);
+    const end = timeToMinutes(breakTime.end_time);
+    return total + (end - start);
+  }, 0);
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event);
@@ -77,14 +92,15 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // Get break times
+    const breakTimes = await db("break_time").select("*");
+
     console.log("Slot config:", slotConfig);
 
     // Convert slot config values to numbers and validate
     const config = {
       start_time: timeToMinutes(slotConfig.start_time),
       end_time: timeToMinutes(slotConfig.end_time),
-      start_break: timeToMinutes(slotConfig.start_break),
-      end_break: timeToMinutes(slotConfig.end_break),
       duration: Number(slotConfig.duration),
       rest: Number(slotConfig.rest)
     };
@@ -102,14 +118,16 @@ export default defineEventHandler(async (event) => {
     console.log("Raw slot config:", slotConfig);
     console.log("Converted config (in minutes):", config);
 
+    // Calculate total break time
+    const totalBreakTime = calculateTotalBreakTime(breakTimes);
+
     // Validate the calculation inputs
     const availableTime = config.end_time - config.start_time;
-    const breakTime = config.end_break - config.start_break;
     const slotTime = config.duration + config.rest;
 
     console.log("Calculation components:");
     console.log("Available time:", availableTime);
-    console.log("Break time:", breakTime);
+    console.log("Total break time:", totalBreakTime);
     console.log("Slot time:", slotTime);
 
     if (slotTime <= 0) {
@@ -155,20 +173,12 @@ export default defineEventHandler(async (event) => {
       if (dayOfWeek >= 1 && dayOfWeek <= 5) {
         // Calculate total possible slots for the day
         const totalSlots = Math.floor(
-          (config.end_time -
-            config.start_time -
-            (config.end_break - config.start_break)) /
-            (config.duration + config.rest)
+          (availableTime - totalBreakTime) / slotTime
         );
 
         console.log("Slot calculation:");
         console.log(
-          `(${config.end_time} - ${config.start_time} - (${config.end_break} - ${config.start_break})) / (${config.duration} + ${config.rest})`
-        );
-        console.log(
-          `= (${config.end_time - config.start_time} - ${
-            config.end_break - config.start_break
-          }) / ${config.duration + config.rest}`
+          `(${availableTime} - ${totalBreakTime}) / ${slotTime}`
         );
         console.log(`= ${totalSlots}`);
 

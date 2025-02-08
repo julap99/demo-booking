@@ -5,14 +5,24 @@ export default defineEventHandler(async (event) => {
     // Get slot config
     const slotConfig = await db("slot_config")
       .where("title", "Main Slot")
-      .select(
-        "start_time",
-        "end_time",
-        "duration",
-        "rest",
-        "start_break",
-        "end_break"
-      )
+      .select("start_time", "end_time", "duration", "rest")
+      .first();
+
+    const breaks = await db("break_time");
+
+    const chargePerPax = await db("config")
+      .where("code", "charge_per_pax")
+      .select("value")
+      .first();
+
+    const maxFreePax = await db("config")
+      .where("code", "max_free_pax")
+      .select("value")
+      .first();
+
+    const maxPax = await db("config")
+      .where("code", "max_pax")
+      .select("value")
       .first();
 
     return {
@@ -20,13 +30,17 @@ export default defineEventHandler(async (event) => {
       status: "success",
       data: {
         slotConfig,
+        breaks,
+        chargePerPax: chargePerPax.value,
+        maxFreePax: maxFreePax.value,
+        maxPax: maxPax.value,
       },
     };
   } catch (error) {
     console.error("Error fetching configurations:", error);
     throw createError({
       statusCode: 500,
-      message: "Failed to fetch configurations"
+      message: "Failed to fetch configurations",
     });
   }
 });
