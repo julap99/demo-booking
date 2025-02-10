@@ -1,0 +1,3368 @@
+// <script setup lang="ts">
+// import { ref, shallowRef, computed, reactive, onMounted, onUnmounted, watch } from 'vue';
+// import type { Ref } from 'vue';
+// import useApi from '~/plugins/api';
+
+// // Type definitions
+// interface Booking {
+//   id: number;
+//   user_fullname: string;
+//   user_email: string;
+//   user_phone?: string;
+//   user_phoneno?: string;
+//   user_source?: string;
+//   user_address?: string;
+//   theme_title: string;
+//   theme_price: number;
+//   theme?: {
+//     id: number;
+//     title: string;
+//     price: number;
+//   };
+//   session_date: string;
+//   session_time: string;
+//   status: StatusNumber;
+//   session_status: StatusNumber;
+//   frame_status?: StatusNumber;
+//   created_date: string;
+//   number_of_pax: number;
+//   number_of_extra_pax?: number;
+//   payment_type: number;
+//   payment_method: number;
+//   payment_amount: number;
+//   payment_extra_pax?: number;
+//   frame_quantity?: number;
+//   addons?: Array<{
+//     id: number;
+//     title: string;
+//     price: number;
+//     qty: number;
+//   }>;
+//   [key: string]: any; // Index signature for dynamic property access
+// }
+
+// type StatusNumber = 1 | 2 | 3;
+// type StatusType = 'payment' | 'session' | 'frame';
+
+// interface StatusMappings {
+//   general: Record<StatusNumber, string>;
+//   session: Record<StatusNumber, string>;
+//   frame: Record<StatusNumber, string>;
+// }
+
+// interface TableState {
+//   currentPage: number;
+//   itemsPerPage: number;
+//   sortBy: keyof Booking | 'payment_status' | 'session';
+//   sortOrder: 'asc' | 'desc';
+// }
+
+// interface LoadingStates {
+//   isLoadingBookings: boolean;
+//   isUpdatingStatus: boolean;
+//   isGeneratingReceipt: boolean;
+//   isSendingEmail: boolean;
+//   isLoadingDetails: boolean;
+//   isRescheduling: boolean;
+//   isCancelling: boolean;
+//   isLoadingSlots: boolean;
+//   isSearching: boolean;
+//   isLoading?: boolean; // Added for backward compatibility
+// }
+
+// interface Filters {
+//   search: string;
+//   debouncedSearch: string;
+//   statusFilter: string;
+//   sessionStatusFilter: string;
+//   frameStatusFilter: string;
+//   serviceFilter: string;
+//   dateRange: {
+//     start: string;
+//     end: string;
+//   };
+//   showFilters: boolean;
+// }
+
+// // Constants
+// const STATUS_MAPPINGS: StatusMappings = {
+//   general: {
+//     1: 'Pending',
+//     2: 'Confirmed',
+//     3: 'Cancelled'
+//   },
+//   session: {
+//     1: 'Pending',
+//     2: 'Completed',
+//     3: 'Cancelled'
+//   },
+//   frame: {
+//     1: 'Pending',
+//     2: 'Completed',
+//     3: 'Cancelled'
+//   }
+// } as const;
+
+// // State
+// const bookings = shallowRef<Booking[]>([]);
+// const selectedBooking = ref<Booking | null>(null);
+// const selectedReceiptBooking = ref<Booking | null>(null);
+// const selectedDate = ref<string>("");
+// const selectedSlot = ref<string>("");
+// const searchDebounceTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+// const showModalFn = ref<(type: string, title: string, message: string) => void>((type, title, message) => {
+//   console.log(type, title, message); // Default implementation
+// });
+// const showReceiptModal = ref<boolean>(false);
+// const showRescheduleModal = ref<boolean>(false);
+// const showConfirmationModal = ref<boolean>(false);
+// const confirmationTitle = ref<string>("");
+// const confirmationMessage = ref<string>("");
+// const confirmationAction = ref<((e: MouseEvent) => Promise<void>) | null>(null);
+// const availableSlots = ref<Array<{value: string; label: string}>>([]);
+// const services = ref<Array<{value: string; label: string}>>([
+//   { value: "all", label: "All Themes" }
+// ]);
+
+// const tableState = reactive<TableState>({
+//   currentPage: 1,
+//   itemsPerPage: 10,
+//   sortBy: 'created_date',
+//   sortOrder: 'desc'
+// });
+
+// const loadingStates = reactive<LoadingStates>({
+//   isLoadingBookings: false,
+//   isUpdatingStatus: false,
+//   isGeneratingReceipt: false,
+//   isSendingEmail: false,
+//   isLoadingDetails: false,
+//   isRescheduling: false,
+//   isCancelling: false,
+//   isLoadingSlots: false,
+//   isSearching: false,
+//   isLoading: false
+// });
+
+// const filters = reactive<Filters>({
+//   search: '',
+//   debouncedSearch: '',
+//   statusFilter: 'all',
+//   sessionStatusFilter: 'all',
+//   frameStatusFilter: 'all',
+//   serviceFilter: 'all',
+//   dateRange: {
+//     start: '',
+//     end: ''
+//   },
+//   showFilters: false
+// });
+
+// // Computed properties
+// const filteredBookings = computed(() => {
+//   return bookings.value.filter(booking => {
+//     const matchesSearch = booking.user_fullname.toLowerCase().includes(filters.debouncedSearch.toLowerCase()) ||
+//                          booking.user_email.toLowerCase().includes(filters.debouncedSearch.toLowerCase());
+    
+//     const matchesStatus = filters.statusFilter === 'all' || booking.status.toString() === filters.statusFilter;
+//     const matchesSessionStatus = filters.sessionStatusFilter === 'all' || booking.session_status.toString() === filters.sessionStatusFilter;
+//     const matchesFrameStatus = filters.frameStatusFilter === 'all' || booking.frame_status?.toString() === filters.frameStatusFilter;
+//     const matchesService = filters.serviceFilter === 'all' || booking.theme_title === filters.serviceFilter;
+    
+//     const bookingDate = new Date(booking.created_date);
+//     const matchesDateRange = (!filters.dateRange.start || bookingDate >= new Date(filters.dateRange.start)) &&
+//                            (!filters.dateRange.end || bookingDate <= new Date(filters.dateRange.end));
+    
+//     return matchesSearch && matchesStatus && matchesSessionStatus && matchesFrameStatus && matchesService && matchesDateRange;
+//   });
+// });
+
+// // Event handlers
+// const handleSearchInput = (event: Event): void => {
+//   const target = event.target as HTMLInputElement;
+//   if (!target) return;
+  
+//   filters.search = target.value;
+//   if (searchDebounceTimeout.value) {
+//     clearTimeout(searchDebounceTimeout.value);
+//   }
+  
+//   searchDebounceTimeout.value = setTimeout(() => {
+//     filters.debouncedSearch = filters.search;
+//   }, 300);
+// };
+
+// const handlePageSizeChange = (event: Event): void => {
+//   const target = event.target as HTMLSelectElement;
+//   if (!target) return;
+  
+//   const value = parseInt(target.value, 10);
+//   if (!isNaN(value)) {
+//     tableState.itemsPerPage = value;
+//     tableState.currentPage = 1;
+//   }
+// };
+
+// const handleStatusChange = async (bookingId: number, newStatus: string, type: StatusType): Promise<void> => {
+//   try {
+//     loadingStates.isUpdatingStatus = true;
+//     const endpoint = `/api/booking/update-${type}-status`;
+//     const response = await $fetch<{ success: boolean }>(endpoint, {
+//       method: 'POST',
+//       body: {
+//         bookingId,
+//         status: parseInt(newStatus, 10)
+//       }
+//     });
+
+//     if (response.success) {
+//       const booking = bookings.value.find(b => b.id === bookingId);
+//       if (booking) {
+//         const statusKey = type === 'payment' ? 'status' : `${type}_status`;
+//         booking[statusKey] = parseInt(newStatus, 10) as StatusNumber;
+//       }
+//       showModalFn.value('success', 'Success', `${type} status updated successfully`);
+//     }
+//   } catch (error) {
+//     console.error(`Error updating ${type} status:`, error);
+//     showModalFn.value('error', 'Error', `Failed to update ${type} status`);
+//   } finally {
+//     loadingStates.isUpdatingStatus = false;
+//   }
+// };
+
+// const handlePageChange = (page: number): void => {
+//   tableState.currentPage = page;
+// };
+
+// // Utility functions
+// const formatCurrency = (amount: number): string => {
+//   return new Intl.NumberFormat('en-MY', {
+//     style: 'currency',
+//     currency: 'MYR'
+//   }).format(amount);
+// };
+
+// const formatDate = (date: string): string => {
+//   if (!date) return '-';
+//   return new Date(date).toLocaleDateString('en-MY', {
+//     year: 'numeric',
+//     month: 'long',
+//     day: 'numeric'
+//   });
+// };
+
+// const formatTime = (time: string): string => {
+//   if (!time) return '-';
+//   return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-MY', {
+//     hour: '2-digit',
+//     minute: '2-digit',
+//     hour12: true
+//   });
+// };
+
+// const formatTimeDisplay = (time: string): string => {
+//   if (!time) return "";
+//   const [hours, minutes] = time.split(':').map(Number);
+//   const date = new Date();
+//   date.setHours(hours);
+//   date.setMinutes(minutes);
+//   return date.toLocaleTimeString('en-MY', {
+//     hour: '2-digit',
+//     minute: '2-digit',
+//     hour12: true
+//   });
+// };
+
+// const formatSource = (source: string | null): string => {
+//   if (!source) return 'N/A';
+//   return source.charAt(0).toUpperCase() + source.slice(1).toLowerCase();
+// };
+
+// const isWeekend = (date: string): boolean => {
+//   if (!date) return false;
+//   const d = new Date(date);
+//   return d.getDay() === 0 || d.getDay() === 6;
+// };
+
+// // Initialize API
+// const api = useApi();
+
+// // Expose state to template
+// const state = {
+//   bookings,
+//   showModal: showModalFn,
+//   showReceiptModal,
+//   showRescheduleModal,
+//   showConfirmationModal,
+//   selectedBooking,
+//   selectedDate: ref(""),
+//   selectedSlot: ref(""),
+//   availableSlots,
+//   services,
+//   tableState,
+//   loadingStates,
+//   filters,
+//   pageSizeOptions: [5, 10, 25, 50],
+//   STATUS_MAPPINGS
+// };
+
+// // Expose functions to template
+// const methods = {
+//   getStatusText: (status: StatusNumber, type: keyof StatusMappings): string => {
+//     return STATUS_MAPPINGS[type][status] || 'Unknown';
+//   },
+//   handleSearchInput,
+//   handlePageSizeChange,
+//   updateStatus,
+//   // ... other methods
+// };
+
+// // Expose everything to template
+// defineExpose({
+//   ...state,
+//   ...methods
+// });
+
+// // Memoized services ref
+// const services = ref([{ value: "all", label: "All Themes" }]);
+
+// // Memoized computed properties
+// const stats = computed(() => {
+//   const confirmedBookings = bookings.value.filter(b => b.status === 2 || b.status === 3);
+//   const partialBookings = bookings.value.filter(b => b.status === 2);
+  
+//   return {
+//     confirmed: confirmedBookings.length,
+//     partial: partialBookings.length,
+//     frames: bookings.value.reduce((sum, b) => sum + (b.frame_quantity || 0), 0),
+//     sales: bookings.value.reduce((sum, b) => sum + (b.payment_amount || 0), 0)
+//   };
+// });
+
+// const sortedBookings = computed(() => {
+//   return [...filteredBookings.value].sort((a, b) => {
+//     let comparison = 0;
+    
+//     switch (tableState.sortBy) {
+//       case 'payment_status':
+//         comparison = (STATUS_MAPPINGS.general[a.status] || '').localeCompare(STATUS_MAPPINGS.general[b.status] || '');
+//         break;
+//       case 'session_status':
+//         comparison = (STATUS_MAPPINGS.session[a.session_status] || '').localeCompare(STATUS_MAPPINGS.session[b.session_status] || '');
+//         break;
+//       case 'frame_status':
+//         comparison = (STATUS_MAPPINGS.frame[a.frame_status] || '').localeCompare(STATUS_MAPPINGS.frame[b.frame_status] || '');
+//         break;
+//       case 'created_date':
+//         comparison = new Date(a.created_date).getTime() - new Date(b.created_date).getTime();
+//         break;
+//       default:
+//         comparison = String(a[tableState.sortBy] || '').localeCompare(String(b[tableState.sortBy] || ''));
+//     }
+    
+//     return tableState.sortOrder === 'asc' ? comparison : -comparison;
+//   });
+// });
+
+// const paginatedBookings = computed(() => {
+//   const start = (tableState.currentPage - 1) * tableState.itemsPerPage;
+//   const end = start + tableState.itemsPerPage;
+//   return sortedBookings.value.slice(start, end);
+// });
+
+// const totalPages = computed(() => Math.ceil(sortedBookings.value.length / tableState.itemsPerPage));
+
+// const activeFiltersCount = computed(() => {
+//   let count = 0;
+//   if (filters.search) count++;
+//   if (filters.statusFilter !== 'all') count++;
+//   if (filters.serviceFilter !== 'all') count++;
+//   if (filters.sessionStatusFilter !== 'all') count++;
+//   if (filters.frameStatusFilter !== 'all') count++;
+//   if (filters.dateRange.start || filters.dateRange.end) count++;
+//   return count;
+// });
+
+// // Debounced search with proper cleanup
+// watch(() => filters.search, (newValue) => {
+//   loadingStates.isSearching = true;
+//   if (searchDebounceTimeout.value) clearTimeout(searchDebounceTimeout.value);
+  
+//   searchDebounceTimeout.value = setTimeout(() => {
+//     filters.debouncedSearch = newValue;
+//     loadingStates.isSearching = false;
+//   }, 300);
+// }, { flush: 'post' });
+
+// // Optimized data fetching with error handling
+// const getBookings = async () => {
+//   loadingStates.isLoadingBookings = true;
+//   try {
+//     const resp = await $fetch("/api/booking/get-bookings");
+//     bookings.value = resp;
+
+//     // Extract and cache unique themes
+//     const uniqueThemes = [...new Set(resp.map(booking => booking.theme_title))];
+//     services.value = [
+//       { value: "all", label: "All Themes" },
+//       ...uniqueThemes.map(theme => ({
+//         value: theme,
+//         label: theme
+//       }))
+//     ];
+//   } catch (error) {
+//     console.error("Error fetching bookings:", error);
+//     // You could add error handling UI here
+//   } finally {
+//     loadingStates.isLoadingBookings = false;
+//   }
+// };
+
+// // Memoized utility functions
+// const formatCurrency = memoize((amount) => {
+//   return new Intl.NumberFormat("en-MY", {
+//     style: "currency",
+//     currency: "MYR"
+//   }).format(amount || 0);
+// });
+
+// const formatDate = memoize((date) => {
+//   if (!date) return '-';
+//   return new Date(date).toLocaleDateString("en-US", {
+//     year: "numeric",
+//     month: "long",
+//     day: "numeric"
+//   });
+// });
+
+// const formatTime = memoize((time) => {
+//   if (!time) return '-';
+//   const [hours, minutes] = time.split(":").map(Number);
+//   const period = hours >= 12 ? "PM" : "AM";
+//   const formattedHours = hours % 12 || 12;
+//   return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+// });
+
+// // Memoization helper
+// function memoize(fn) {
+//   const cache = new Map();
+//   return (...args) => {
+//     const key = args.join('|');
+//     if (cache.has(key)) return cache.get(key);
+//     const result = fn(...args);
+//     cache.set(key, result);
+//     return result;
+//   };
+// }
+
+// // Optimized handlers with debouncing
+// const handleStatusChange = debounce(async (bookingId, newStatus, type) => {
+//   try {
+//     const endpoint = `/api/booking/update-${type}-status`;
+//     const response = await $fetch(endpoint, {
+//       method: "PUT",
+//       body: {
+//         bookingId,
+//         status: parseInt(newStatus)
+//       }
+//     });
+
+//     if (response.success) {
+//       const booking = bookings.value.find(b => b.id === bookingId);
+//       if (booking) {
+//         booking[type === 'payment' ? 'status' : `${type}_status`] = parseInt(newStatus);
+//       }
+//     }
+//   } catch (error) {
+//     console.error(`Error updating ${type} status:`, error);
+//   }
+// }, 300);
+
+// // Lifecycle hooks
+// onMounted(() => {
+//   getBookings();
+// });
+
+// onUnmounted(() => {
+//   if (searchDebounceTimeout.value) clearTimeout(searchDebounceTimeout.value);
+// });
+
+// // Add getPageNumbers function
+// function getPageNumbers() {
+//   const maxVisiblePages = 5;
+//   const pages = [];
+//   const totalPagesCount = totalPages.value;
+//   const currentPage = tableState.currentPage;
+
+//   if (totalPagesCount <= maxVisiblePages) {
+//     // If total pages are less than max visible, show all pages
+//     for (let i = 1; i <= totalPagesCount; i++) {
+//       pages.push(i);
+//     }
+//   } else {
+//     // Always include first page
+//     pages.push(1);
+
+//     let startPage = Math.max(2, currentPage - Math.floor(maxVisiblePages / 2));
+//     let endPage = Math.min(
+//       totalPagesCount - 1,
+//       startPage + maxVisiblePages - 3
+//     );
+
+//     // Adjust if we're near the end
+//     if (endPage - startPage < maxVisiblePages - 3) {
+//       startPage = Math.max(2, endPage - (maxVisiblePages - 3));
+//     }
+
+//     // Add ellipsis if needed
+//     if (startPage > 2) {
+//       pages.push("...");
+//     }
+
+//     // Add middle pages
+//     for (let i = startPage; i <= endPage; i++) {
+//       pages.push(i);
+//     }
+
+//     // Add ellipsis if needed
+//     if (endPage < totalPagesCount - 1) {
+//       pages.push("...");
+//     }
+
+//     // Always include last page
+//     pages.push(totalPagesCount);
+//   }
+
+//   return pages;
+// }
+
+// // ... rest of your existing code ...
+
+// // Add modal states
+// const confirmationTitle = ref("");
+// const confirmationMessage = ref("");
+// const confirmationAction = ref(() => {});
+
+// // Add reschedule states
+// const availableSlots = ref([]);
+
+// // Modal action functions
+// async function openBookingDetails(booking) {
+//   try {
+//     loadingStates.isLoadingDetails = true;
+//     selectedBooking.value = booking;
+
+//     // If you need to fetch additional booking details from the API
+//     // const details = await $fetch(`/api/booking/get-details/${booking.id}`);
+//     // selectedBooking.value = { ...booking, ...details };
+
+//     showModalFn.value = true;
+//       } catch (error) {
+//     console.error("Error loading booking details:", error);
+//       } finally {
+//     loadingStates.isLoadingDetails = false;
+//   }
+// }
+
+// function closeModal() {
+//           showModalFn.value = false;
+//   selectedBooking.value = null;
+// }
+
+// function generateAndSendReceipt(booking) {
+//   selectedReceiptBooking.value = booking;
+//   showReceiptModal.value = true;
+// }
+
+// function downloadReceipt() {
+//   // Implement receipt download logic
+//   console.log("Downloading receipt...");
+// }
+
+// function sendReceiptEmail() {
+//   // Implement email sending logic
+//   console.log("Sending receipt email...");
+// }
+
+// function rescheduleSession() {
+//   if (!selectedDate.value || !selectedSlot.value) return;
+
+//   loadingStates.isRescheduling = true;
+//   // Implement reschedule logic here
+//   console.log("Rescheduling session...");
+
+//   // Reset states after completion
+//   showRescheduleModal.value = false;
+//   selectedDate.value = "";
+//   selectedSlot.value = "";
+//   loadingStates.isRescheduling = false;
+// }
+
+// function showConfirmation(title, message, action) {
+//   confirmationTitle.value = title;
+//   confirmationMessage.value = message;
+//   confirmationAction.value = action;
+//   showConfirmationModal.value = true;
+// }
+
+// // Helper functions for date/time
+// function formatTimeDisplay(time) {
+//   if (!time) return "";
+//   const [hours, minutes] = time.split(":");
+//   const period = hours >= 12 ? "PM" : "AM";
+//   const displayHours = hours % 12 || 12;
+//   return `${displayHours}:${minutes} ${period}`;
+// }
+
+// // ... existing code ...
+
+// // Status definitions
+// const statuses = [
+//   { value: "all", label: "All Statuses" },
+//   { value: "1", label: "Pending" },
+//   { value: "2", label: "Partial" },
+//   { value: "3", label: "Paid" }
+// ];
+
+// const sessionStatuses = [
+//   { value: "all", label: "All Statuses" },
+//   { value: "1", label: "Pending" },
+//   { value: "2", label: "Completed" },
+//   { value: "3", label: "Cancelled" }
+// ];
+
+// const frameStatuses = [
+//   { value: "all", label: "All Statuses" },
+//   { value: "1", label: "Unprinted" },
+//   { value: "2", label: "Printed" },
+//   { value: "3", label: "Delivered" }
+// ];
+
+// // Utility functions
+// function formatSource(source: string | null): string {
+//   if (!source) return 'Direct';
+//   return source.charAt(0).toUpperCase() + source.slice(1);
+// }
+
+// function getPaymentType(type: number | undefined): string {
+//   switch (type) {
+//     case 1: return 'Full Payment';
+//     case 2: return 'Deposit';
+//     default: return 'Unknown';
+//   }
+// }
+
+// function getPaymentMethod(method: number | undefined): string {
+//   switch (method) {
+//     case 1: return 'Online Banking';
+//     case 2: return 'Credit/Debit Card';
+//     case 3: return 'E-Wallet';
+//     default: return 'Unknown';
+//   }
+// }
+
+// function calculateFrameTotals(addons: Array<{ qty: number; price: number }> | undefined) {
+//   if (!addons) return { quantity: 0, price: 0 };
+//   return addons.reduce((acc, addon) => ({
+//     quantity: acc.quantity + addon.qty,
+//     price: acc.price + (addon.qty * addon.price)
+//   }), { quantity: 0, price: 0 });
+// }
+
+// function calculateTotalAmount(booking: Booking): number {
+//   if (!booking) return 0;
+//   const baseAmount = booking.theme_price || 0;
+//   const extraPaxAmount = booking.payment_extra_pax || 0;
+//   const addonsTotal = calculateFrameTotals(booking.addons).price;
+//   return baseAmount + extraPaxAmount + addonsTotal;
+// }
+
+// function clearFilters() {
+//   filters.search = '';
+//   filters.debouncedSearch = '';
+//   filters.statusFilter = 'all';
+//   filters.serviceFilter = 'all';
+//   filters.sessionStatusFilter = 'all';
+//   filters.frameStatusFilter = 'all';
+//   filters.dateRange.start = '';
+//   filters.dateRange.end = '';
+// }
+
+// function exportToCSV() {
+//   // Implementation for CSV export
+//   console.log('Exporting to CSV...');
+// }
+
+// function toggleSort(column: string) {
+//   if (tableState.sortBy === column) {
+//     tableState.sortOrder = tableState.sortOrder === 'asc' ? 'desc' : 'asc';
+//   } else {
+//     tableState.sortBy = column;
+//     tableState.sortOrder = 'asc';
+//   }
+// }
+
+// function handlePageChange(page: number) {
+//   if (page >= 1 && page <= totalPages.value) {
+//     tableState.currentPage = page;
+//   }
+// }
+
+// async function markAsPaid(bookingId: number) {
+//   try {
+//     loadingStates.isUpdatingStatus = true;
+//     const response = await $fetch(`/api/booking/update-payment-status`, {
+//       method: 'PUT',
+//       body: { bookingId, status: 3 }
+//     });
+//     if (response.success) {
+//       const booking = bookings.value.find(b => b.id === bookingId);
+//       if (booking) {
+//         booking.status = 3;
+//       }
+//       showModalFn.value('success', 'Success', 'Payment status updated successfully');
+//     }
+//   } catch (error) {
+//     console.error('Error marking as paid:', error);
+//     showModalFn.value('error', 'Error', 'Failed to update payment status');
+//   } finally {
+//     loadingStates.isUpdatingStatus = false;
+//   }
+// }
+
+// async function cancelBooking(bookingId: number) {
+//   try {
+//     loadingStates.isCancelling = true;
+//     const response = await $fetch(`/api/booking/update-session-status`, {
+//       method: 'PUT',
+//       body: { bookingId, status: 3 }
+//     });
+//     if (response.success) {
+//       const booking = bookings.value.find(b => b.id === bookingId);
+//       if (booking) {
+//         booking.session_status = 3;
+//       }
+//       showModalFn.value('success', 'Success', 'Booking cancelled successfully');
+//     }
+//   } catch (error) {
+//     console.error('Error cancelling booking:', error);
+//     showModalFn.value('error', 'Error', 'Failed to cancel booking');
+//   } finally {
+//     loadingStates.isCancelling = false;
+//   }
+// }
+
+// // ... rest of existing code ...
+
+// // Type-safe debounce function
+// function debounce<T extends (...args: any[]) => void>(
+//   fn: T,
+//   wait: number
+// ): (...args: Parameters<T>) => void {
+//   let timeout: ReturnType<typeof setTimeout> | null = null;
+  
+//   return function(this: ThisParameterType<T>, ...args: Parameters<T>): void {
+//     if (timeout) clearTimeout(timeout);
+//     timeout = setTimeout(() => {
+//       fn.apply(this, args);
+//     }, wait);
+//   };
+// }
+
+// // Type-safe event handlers
+// function handleSearchInput(event: Event): void {
+//   const target = event.target as HTMLInputElement;
+//   if (!target) return;
+  
+//   filters.search = target.value;
+//   if (searchDebounceTimeout.value) {
+//     clearTimeout(searchDebounceTimeout.value);
+//   }
+  
+//   searchDebounceTimeout.value = setTimeout(() => {
+//     filters.debouncedSearch = filters.search;
+//   }, 300);
+// }
+
+// function handlePageSizeChange(event: Event): void {
+//   const target = event.target as HTMLSelectElement;
+//   if (!target) return;
+  
+//   const value = parseInt(target.value, 10);
+//   if (!isNaN(value)) {
+//     tableState.itemsPerPage = value;
+//     tableState.currentPage = 1;
+//   }
+// }
+
+// // Type-safe status update function
+// async function updateStatus(
+//   bookingId: number,
+//   newStatus: StatusNumber,
+//   type: 'status' | 'session_status' | 'frame_status'
+// ): Promise<void> {
+//   try {
+//     loadingStates.isUpdatingStatus = true;
+//     const response = await api.put(`/bookings/${bookingId}/status`, {
+//       type,
+//       status: newStatus
+//     });
+    
+//     if (response && typeof response === 'object' && 'id' in response) {
+//       const updatedBooking = response as Booking;
+//       const index = bookings.value.findIndex(b => b.id === bookingId);
+//       if (index !== -1) {
+//         const booking = bookings.value[index];
+//         if (booking) {
+//           booking[type] = newStatus;
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     console.error('Error updating status:', error);
+//   } finally {
+//     loadingStates.isUpdatingStatus = false;
+//   }
+// }
+
+// // ... rest of existing code ...
+// </script>
+
+// <template>
+//   <div class="">
+//     <!-- Header -->
+//     <div class="flex justify-between items-center">
+//       <div>
+//         <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">
+//           Booking Management
+//         </h1>
+//         <p class="mt-1 text-sm text-[var(--color-text-primary)]">
+//           View and manage all photography session bookings
+//         </p>
+//       </div>
+//     </div>
+
+//     <!-- Loading State for Stats -->
+//     <div
+//       v-if="loadingStates.isLoading"
+//       class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-4"
+//     >
+//       <div
+//         v-for="i in 4"
+//         :key="i"
+//         class="bg-[var(--color-bg-secondary)] overflow-hidden shadow-sm rounded-lg animate-pulse"
+//       >
+//         <div class="p-5">
+//           <div class="flex items-center space-x-4">
+//             <div
+//               class="w-8 h-8 bg-[var(--color-bg-primary)] rounded-full"
+//             ></div>
+//             <div class="flex-1">
+//               <div
+//                 class="h-4 bg-[var(--color-bg-primary)] rounded w-1/2 mb-2"
+//               ></div>
+//               <div class="h-6 bg-[var(--color-bg-primary)] rounded w-1/4"></div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+
+//     <!-- Stats Grid -->
+//     <div
+//       v-else
+//       class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 my-5"
+//     >
+//       <div
+//         class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+//       >
+//         <div
+//           class="absolute inset-0 bg-gradient-to-r from-[var(--color-bg-primary)] to-[var(--color-bg-secondary)] opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+//         ></div>
+//         <div class="p-6">
+//           <div class="flex items-center">
+//             <div class="flex-shrink-0">
+//               <div
+//                 class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+//               >
+//                 <svg
+//                   class="h-6 w-6 text-green-600"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+//                   />
+//                 </svg>
+//               </div>
+//             </div>
+//             <div class="ml-5 w-0 flex-1">
+//               <dl>
+//                 <dt class="text-sm font-medium text-gray-500 truncate">
+//                   Total Confirmed
+//                 </dt>
+//                 <dd class="flex items-baseline">
+//                   <div class="text-2xl font-bold text-gray-900">
+//                     {{ stats.confirmed }}
+//                   </div>
+//                 </dd>
+//               </dl>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div
+//         class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+//       >
+//         <div
+//           class="absolute inset-0 bg-gradient-to-r from-yellow-500 to-yellow-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+//         ></div>
+//         <div class="p-6">
+//           <div class="flex items-center">
+//             <div class="flex-shrink-0">
+//               <div
+//                 class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center"
+//               >
+//                 <svg
+//                   class="h-6 w-6 text-yellow-600"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                   />
+//                 </svg>
+//               </div>
+//             </div>
+//             <div class="ml-5 w-0 flex-1">
+//               <dl>
+//                 <dt class="text-sm font-medium text-gray-500 truncate">
+//                   Total Partially Paid
+//                 </dt>
+//                 <dd class="flex items-baseline">
+//                   <div class="text-2xl font-bold text-gray-900">
+//                     {{ stats.partial }}
+//                   </div>
+//                 </dd>
+//               </dl>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div
+//         class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+//       >
+//         <div
+//           class="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+//         ></div>
+//         <div class="p-6">
+//           <div class="flex items-center">
+//             <div class="flex-shrink-0">
+//               <div
+//                 class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+//               >
+//                 <svg
+//                   class="h-6 w-6 text-purple-600"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+//                   />
+//                 </svg>
+//               </div>
+//             </div>
+//             <div class="ml-5 w-0 flex-1">
+//               <dl>
+//                 <dt class="text-sm font-medium text-gray-500 truncate">
+//                   Total Frame Quantity
+//                 </dt>
+//                 <dd class="flex items-baseline">
+//                   <div class="text-2xl font-bold text-gray-900">
+//                     {{ stats.frames }}
+//                   </div>
+//                 </dd>
+//               </dl>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div
+//         class="relative group bg-white overflow-hidden shadow-sm rounded-xl transition-all duration-200 hover:shadow-md border border-gray-100"
+//       >
+//         <div
+//           class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 opacity-0 group-hover:opacity-5 transition-opacity duration-200"
+//         ></div>
+//         <div class="p-6">
+//           <div class="flex items-center">
+//             <div class="flex-shrink-0">
+//               <div
+//                 class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+//               >
+//                 <svg
+//                   class="h-6 w-6 text-blue-600"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+//                   />
+//                 </svg>
+//               </div>
+//             </div>
+//             <div class="ml-5 w-0 flex-1">
+//               <dl>
+//                 <dt class="text-sm font-medium text-gray-500 truncate">
+//                   Total Sales
+//                 </dt>
+//                 <dd class="flex items-baseline">
+//                   <div class="text-2xl font-bold text-gray-900">
+//                     {{ formatCurrency(stats.sales) }}
+//                   </div>
+//                 </dd>
+//               </dl>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+
+//     <!-- Main Content Area -->
+//     <div class="bg-[var(--color-bg-secondary)] shadow-sm rounded-lg">
+//       <!-- Search and Filters -->
+//       <div class="bg-[var(--color-bg-secondary)] rounded-lg shadow-sm">
+//         <!-- Quick Search and Filter Toggle -->
+//         <div class="p-4 border-b border-[var(--color-border-secondary)]">
+//           <div
+//             class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0"
+//           >
+//             <div class="flex-1 max-w-lg">
+//               <div class="relative">
+//                 <div
+//                   class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+//                 >
+//                   <svg
+//                     class="h-5 w-5 text-[var(--color-text-primary)]"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+//                     />
+//                   </svg>
+//                 </div>
+//                 <input
+//                   type="text"
+//                   v-model="filters.search"
+//                   placeholder="Search by name, email, or phone..."
+//                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
+//                 />
+//                 <div
+//                   v-if="loadingStates.isSearching"
+//                   class="absolute inset-y-0 right-0 pr-3 flex items-center"
+//                 >
+//                   <svg
+//                     class="animate-spin h-5 w-5 text-gray-400"
+//                     xmlns="http://www.w3.org/2000/svg"
+//                     fill="none"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <circle
+//                       class="opacity-25"
+//                       cx="12"
+//                       cy="12"
+//                       r="10"
+//                       stroke="currentColor"
+//                       stroke-width="4"
+//                     ></circle>
+//                     <path
+//                       class="opacity-75"
+//                       fill="currentColor"
+//                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                     ></path>
+//                   </svg>
+//                 </div>
+//               </div>
+//             </div>
+//             <div class="flex items-center space-x-4">
+//               <button
+//                 @click="filters.showFilters = !filters.showFilters"
+//                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+//               >
+//                 <svg
+//                   class="h-4 w-4 mr-2"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+//                   />
+//                 </svg>
+//                 {{ filters.showFilters ? "Hide Filters" : "Show Filters" }}
+//                 <span
+//                   v-if="activeFiltersCount > 0"
+//                   class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//                 >
+//                   {{ activeFiltersCount }}
+//                 </span>
+//               </button>
+//               <button
+//                 v-if="activeFiltersCount > 0"
+//                 @click="clearFilters"
+//                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+//               >
+//                 Clear Filters
+//               </button>
+//               <button
+//                 @click="exportToCSV"
+//                 class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-[var(--color-text-primary)] bg-white hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+//               >
+//                 <svg
+//                   class="h-4 w-4 mr-2"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+//                   />
+//                 </svg>
+//                 Export Data
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+
+//         <!-- Advanced Filters -->
+//         <div
+//           v-show="filters.showFilters"
+//           class="p-4 border-b border-[var(--color-border-secondary)] bg-[var(--color-bg-secondary)]"
+//         >
+//           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+//             <!-- Status Filter -->
+//             <div class="space-y-2">
+//               <label
+//                 class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+//                 >Status</label
+//               >
+//               <div class="relative">
+//                 <select
+//                   v-model="filters.statusFilter"
+//                   class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+//                 >
+//                   <option
+//                     v-for="status in statuses"
+//                     :key="status.value"
+//                     :value="status.value"
+//                   >
+//                     {{ status.label }}
+//                   </option>
+//                 </select>
+//                 <div
+//                   class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                 >
+//                   <svg
+//                     class="h-5 w-5 text-gray-400"
+//                     viewBox="0 0 20 20"
+//                     fill="currentColor"
+//                   >
+//                     <path
+//                       fill-rule="evenodd"
+//                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                       clip-rule="evenodd"
+//                     />
+//                   </svg>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <!-- Theme Filter -->
+//             <div class="space-y-2">
+//               <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+//                 >Theme</label
+//               >
+//               <div class="relative">
+//                 <select
+//                   v-model="filters.serviceFilter"
+//                   class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+//                 >
+//                   <option
+//                     v-for="service in services"
+//                     :key="service.value"
+//                     :value="service.value"
+//                   >
+//                     {{ service.label }}
+//                   </option>
+//                 </select>
+//                 <div
+//                   class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                 >
+//                   <svg
+//                     class="h-5 w-5 text-gray-400"
+//                     viewBox="0 0 20 20"
+//                     fill="currentColor"
+//                   >
+//                     <path
+//                       fill-rule="evenodd"
+//                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                       clip-rule="evenodd"
+//                     />
+//                   </svg>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <!-- Session Status Filter -->
+//             <div class="space-y-2">
+//               <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+//                 >Session Status</label
+//               >
+//               <div class="relative">
+//                 <select
+//                   v-model="filters.sessionStatusFilter"
+//                   class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+//                 >
+//                   <option
+//                     v-for="status in sessionStatuses"
+//                     :key="status.value"
+//                     :value="status.value"
+//                   >
+//                     {{ status.label }}
+//                   </option>
+//                 </select>
+//                 <div
+//                   class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                 >
+//                   <svg
+//                     class="h-5 w-5 text-gray-400"
+//                     viewBox="0 0 20 20"
+//                     fill="currentColor"
+//                   >
+//                     <path
+//                       fill-rule="evenodd"
+//                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                       clip-rule="evenodd"
+//                     />
+//                   </svg>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <!-- Frame Status Filter -->
+//             <div class="space-y-2">
+//               <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+//                 >Frame Status</label
+//               >
+//               <div class="relative">
+//                 <select
+//                   v-model="filters.frameStatusFilter"
+//                   class="appearance-none block w-full rounded-lg border-gray-300 pl-3 pr-10 py-2.5 text-sm bg-white focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] transition-colors hover:border-[var(--color-bg-primary)]"
+//                 >
+//                   <option
+//                     v-for="status in frameStatuses"
+//                     :key="status.value"
+//                     :value="status.value"
+//                   >
+//                     {{ status.label }}
+//                   </option>
+//                 </select>
+//                 <div
+//                   class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                 >
+//                   <svg
+//                     class="h-5 w-5 text-gray-400"
+//                     viewBox="0 0 20 20"
+//                     fill="currentColor"
+//                   >
+//                     <path
+//                       fill-rule="evenodd"
+//                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                       clip-rule="evenodd"
+//                     />
+//                   </svg>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <!-- Date Range -->
+//             <div class="space-y-2">
+//               <label class="block text-sm font-medium text-[#3C2A21] mb-1"
+//                 >Session Date Range</label
+//               >
+//               <div class="grid grid-cols-2 gap-3">
+//                 <div class="relative">
+//                   <input
+//                     type="date"
+//                     v-model="filters.dateRange.start"
+//                     :max="filters.dateRange.end || undefined"
+//                     class="block w-full rounded-lg border-gray-300 pl-3 pr-3 py-2 text-sm bg-white focus:ring-[#785340] focus:border-[#785340] transition-colors hover:border-[#785340]"
+//                     placeholder="Start date"
+//                   />
+//                   <div
+//                     v-if="filters.dateRange.start"
+//                     @click="filters.dateRange.start = ''"
+//                     class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer"
+//                   >
+//                     <svg
+//                       class="h-4 w-4 text-gray-400 hover:text-[#785340]"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </div>
+//                 <div class="relative">
+//                   <input
+//                     type="date"
+//                     v-model="filters.dateRange.end"
+//                     :min="filters.dateRange.start || undefined"
+//                     class="block w-full rounded-lg border-gray-300 pl-3 pr-3 py-2 text-sm bg-white focus:ring-[#785340] focus:border-[#785340] transition-colors hover:border-[#785340]"
+//                     placeholder="End date"
+//                   />
+//                   <div
+//                     v-if="filters.dateRange.end"
+//                     @click="filters.dateRange.end = ''"
+//                     class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer"
+//                   >
+//                     <svg
+//                       class="h-4 w-4 text-gray-400 hover:text-[#785340]"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           <!-- Active Filters Summary -->
+//           <div
+//             v-if="activeFiltersCount > 0"
+//             class="mt-4 flex items-center space-x-2 text-sm text-gray-600"
+//           >
+//             <span class="font-medium">Active Filters:</span>
+//             <div class="flex flex-wrap gap-2">
+//               <span
+//                 v-if="filters.statusFilter !== 'all'"
+//                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//               >
+//                 Status:
+//                 {{
+//                   statuses.find((s) => s.value === filters.statusFilter)
+//                     ?.label || filters.statusFilter
+//                 }}
+//                 <button
+//                   @click="filters.statusFilter = 'all'"
+//                   class="ml-1 hover:text-gray-200"
+//                 >
+//                   <svg
+//                     class="h-3 w-3"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+//               </span>
+//               <span
+//                 v-if="filters.serviceFilter !== 'all'"
+//                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//               >
+//                 Theme: {{ filters.serviceFilter }}
+//                 <button
+//                   @click="filters.serviceFilter = 'all'"
+//                   class="ml-1 hover:text-gray-200"
+//                 >
+//                   <svg
+//                     class="h-3 w-3"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+//               </span>
+//               <span
+//                 v-if="filters.sessionStatusFilter !== 'all'"
+//                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//               >
+//                 Session Status:
+//                 {{
+//                   sessionStatuses.find(
+//                     (s) => s.value === filters.sessionStatusFilter
+//                   )?.label || filters.sessionStatusFilter
+//                 }}
+//                 <button
+//                   @click="filters.sessionStatusFilter = 'all'"
+//                   class="ml-1 hover:text-gray-200"
+//                 >
+//                   <svg
+//                     class="h-3 w-3"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+//               </span>
+//               <span
+//                 v-if="filters.frameStatusFilter !== 'all'"
+//                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//               >
+//                 Frame Status:
+//                 {{
+//                   frameStatuses.find(
+//                     (s) => s.value === filters.frameStatusFilter
+//                   )?.label || filters.frameStatusFilter
+//                 }}
+//                 <button
+//                   @click="filters.frameStatusFilter = 'all'"
+//                   class="ml-1 hover:text-gray-200"
+//                 >
+//                   <svg
+//                     class="h-3 w-3"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+//               </span>
+//               <span
+//                 v-if="filters.dateRange.start || filters.dateRange.end"
+//                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+//               >
+//                 Date: {{ filters.dateRange.start || "Any" }} -
+//                 {{ filters.dateRange.end || "Any" }}
+//                 <button
+//                   @click="
+//                     filters.dateRange.start = '';
+//                     filters.dateRange.end = '';
+//                   "
+//                   class="ml-1 hover:text-gray-200"
+//                 >
+//                   <svg
+//                     class="h-3 w-3"
+//                     fill="none"
+//                     stroke="currentColor"
+//                     viewBox="0 0 24 24"
+//                   >
+//                     <path
+//                       stroke-linecap="round"
+//                       stroke-linejoin="round"
+//                       stroke-width="2"
+//                       d="M6 18L18 6M6 6l12 12"
+//                     />
+//                   </svg>
+//                 </button>
+//               </span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <!-- Loading State -->
+//       <div
+//         v-if="loadingStates.isLoading"
+//         class="bg-white rounded-lg shadow-sm overflow-hidden space-y-4"
+//       >
+//         <!-- Skeleton Header -->
+//         <div class="p-4 md:p-6 bg-white border-b border-gray-200">
+//           <div
+//             class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+//           >
+//             <div class="flex items-center space-x-2">
+//               <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+//               <div class="h-9 w-16 bg-gray-200 rounded-lg animate-pulse"></div>
+//             </div>
+//             <div class="h-5 w-64 bg-gray-200 rounded animate-pulse"></div>
+//           </div>
+//         </div>
+
+//         <!-- Skeleton Table -->
+//         <div class="hidden md:block mt-4">
+//           <div class="min-w-full divide-y divide-gray-200">
+//             <!-- Skeleton Header -->
+//             <div class="bg-gray-50">
+//               <div class="grid grid-cols-5 px-6 py-4">
+//                 <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+//               </div>
+//             </div>
+
+//             <!-- Skeleton Rows -->
+//             <div class="bg-white divide-y divide-gray-200">
+//               <div v-for="i in tableState.itemsPerPage" :key="i" class="group">
+//                 <div class="grid grid-cols-5 px-6 py-4">
+//                   <!-- Customer Column -->
+//                   <div class="flex items-center gap-3">
+//                     <div
+//                       class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"
+//                     ></div>
+//                     <div class="space-y-2">
+//                       <div
+//                         class="h-4 w-32 bg-gray-200 rounded animate-pulse"
+//                       ></div>
+//                       <div
+//                         class="h-3 w-48 bg-gray-200 rounded animate-pulse"
+//                       ></div>
+//                     </div>
+//                   </div>
+//                   <!-- Theme Column -->
+//                   <div class="flex items-center">
+//                     <div
+//                       class="h-6 w-24 bg-gray-200 rounded-full animate-pulse"
+//                     ></div>
+//                   </div>
+//                   <!-- Status Column -->
+//                   <div class="flex items-center">
+//                     <div
+//                       class="h-6 w-20 bg-gray-200 rounded-full animate-pulse"
+//                     ></div>
+//                   </div>
+//                   <!-- Session Column -->
+//                   <div class="space-y-2">
+//                     <div
+//                       class="h-4 w-32 bg-gray-200 rounded animate-pulse"
+//                     ></div>
+//                     <div
+//                       class="h-3 w-24 bg-gray-200 rounded animate-pulse"
+//                     ></div>
+//                   </div>
+//                   <!-- Actions Column -->
+//                   <div class="flex items-center gap-3">
+//                     <div
+//                       class="h-8 w-8 bg-gray-200 rounded animate-pulse"
+//                     ></div>
+//                     <div
+//                       class="h-8 w-8 bg-gray-200 rounded animate-pulse"
+//                     ></div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         <!-- Skeleton Mobile View -->
+//         <div class="md:hidden divide-y divide-gray-200 mt-4">
+//           <div
+//             v-for="i in tableState.itemsPerPage"
+//             :key="i"
+//             class="p-4 space-y-4"
+//           >
+//             <!-- Header -->
+//             <div class="flex items-center justify-between">
+//               <div class="flex items-center gap-3">
+//                 <div
+//                   class="w-12 h-12 rounded-full bg-gray-200 animate-pulse"
+//                 ></div>
+//                 <div class="space-y-2">
+//                   <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+//                   <div class="h-3 w-48 bg-gray-200 rounded animate-pulse"></div>
+//                 </div>
+//               </div>
+//               <div
+//                 class="h-6 w-20 bg-gray-200 rounded-full animate-pulse"
+//               ></div>
+//             </div>
+
+//             <!-- Details -->
+//             <div
+//               class="grid grid-cols-2 gap-4 py-3 border-t border-b border-gray-100"
+//             >
+//               <div class="space-y-2">
+//                 <div class="h-3 w-12 bg-gray-200 rounded animate-pulse"></div>
+//                 <div
+//                   class="h-6 w-24 bg-gray-200 rounded-full animate-pulse"
+//                 ></div>
+//               </div>
+//               <div class="space-y-2">
+//                 <div class="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+//               </div>
+//               <div class="space-y-2">
+//                 <div class="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+//                 <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+//               </div>
+//             </div>
+
+//             <!-- Actions -->
+//             <div class="flex items-center justify-end gap-3">
+//               <div class="h-9 w-28 bg-gray-200 rounded-lg animate-pulse"></div>
+//               <div class="h-9 w-28 bg-gray-200 rounded-lg animate-pulse"></div>
+//             </div>
+//           </div>
+//         </div>
+
+//         <!-- Skeleton Pagination -->
+//         <div class="px-4 py-3 md:px-6 border-t border-gray-200 bg-gray-50">
+//           <div class="flex items-center justify-between">
+//             <div class="flex items-center gap-2">
+//               <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+//               <div class="hidden md:flex items-center gap-2">
+//                 <div
+//                   v-for="i in 3"
+//                   :key="i"
+//                   class="h-9 w-9 bg-gray-200 rounded-lg animate-pulse"
+//                 ></div>
+//               </div>
+//               <div class="h-9 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+//             </div>
+//             <div
+//               class="md:hidden h-5 w-32 bg-gray-200 rounded animate-pulse"
+//             ></div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <!-- Empty State -->
+//       <div
+//         v-else-if="!loadingStates.isLoading && filteredBookings.length === 0"
+//         class="px-4 py-12 sm:px-6 text-center bg-white rounded-lg shadow-sm"
+//       >
+//         <svg
+//           class="mx-auto h-12 w-12 text-gray-400"
+//           fill="none"
+//           stroke="currentColor"
+//           viewBox="0 0 24 24"
+//         >
+//           <path
+//             stroke-linecap="round"
+//             stroke-linejoin="round"
+//             stroke-width="1.5"
+//             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+//           />
+//         </svg>
+//         <h3 class="mt-2 text-sm font-medium text-gray-900">
+//           No bookings found
+//         </h3>
+//         <p class="mt-1 text-sm text-gray-500">
+//           {{
+//             filters.search ||
+//             filters.statusFilter !== "all" ||
+//             filters.serviceFilter !== "all" ||
+//             filters.sessionStatusFilter !== "all" ||
+//             filters.frameStatusFilter !== "all" ||
+//             filters.dateRange.start ||
+//             filters.dateRange.end
+//               ? "Try adjusting your filters or search terms"
+//               : "Get started by creating your first booking"
+//           }}
+//         </p>
+//         <div class="mt-6">
+//           <button
+//             type="button"
+//             @click="clearFilters"
+//             v-if="
+//               filters.search ||
+//               filters.statusFilter !== 'all' ||
+//               filters.serviceFilter !== 'all' ||
+//               filters.sessionStatusFilter !== 'all' ||
+//               filters.frameStatusFilter !== 'all' ||
+//               filters.dateRange.start ||
+//               filters.dateRange.end
+//             "
+//             class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+//           >
+//             Clear filters
+//           </button>
+//         </div>
+//       </div>
+
+//       <!-- Bookings Table -->
+//       <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
+//         <!-- Table Header -->
+//         <div class="p-4 md:p-6 bg-white border-b border-gray-200">
+//           <div
+//             class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+//           >
+//             <!-- Left side -->
+//             <div class="flex items-center space-x-2 text-sm text-gray-500">
+//               <span>Show</span>
+//               <select
+//                 v-model="tableState.itemsPerPage"
+//                 class="form-select rounded-lg border-gray-200 text-gray-700 sm:text-sm focus:border-[var(--color-bg-primary)] focus:ring focus:ring-[var(--color-bg-primary)] focus:ring-opacity-50"
+//               >
+//                 <option
+//                   v-for="size in state.pageSizeOptions"
+//                   :key="size"
+//                   :value="size"
+//                 >
+//                   {{ size }}
+//                 </option>
+//               </select>
+//               <span>entries</span>
+//             </div>
+
+//             <!-- Right side -->
+//             <div class="text-sm text-gray-500">
+//               Showing
+//               <span class="font-medium text-gray-700">{{
+//                 (tableState.currentPage - 1) * tableState.itemsPerPage + 1
+//               }}</span>
+//               to
+//               <span class="font-medium text-gray-700">{{
+//                 Math.min(
+//                   tableState.currentPage * tableState.itemsPerPage,
+//                   filteredBookings.length
+//                 )
+//               }}</span>
+//               of
+//               <span class="font-medium text-gray-700">{{
+//                 filteredBookings.length
+//               }}</span>
+//               entries
+//             </div>
+//           </div>
+//         </div>
+
+//         <!-- Responsive Table Container -->
+//         <div class="overflow-x-auto">
+//           <table class="min-w-full divide-y divide-gray-200">
+//             <thead>
+//               <tr class="bg-gray-50">
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div class="flex items-center gap-2">
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Customer</span
+//                     >
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div class="flex items-center gap-2">
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Theme</span
+//                     >
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div
+//                     class="flex items-center gap-2 cursor-pointer group"
+//                     @click="toggleSort('payment_status')"
+//                   >
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Payment</span
+//                     >
+//                     <svg
+//                       :class="{
+//                         'h-4 w-4 transition-transform': true,
+//                         'rotate-180':
+//                           tableState.sortBy === 'payment_status' &&
+//                           tableState.sortOrder === 'desc',
+//                         'text-[var(--color-bg-primary)]':
+//                           tableState.sortBy === 'payment_status',
+//                         'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+//                           tableState.sortBy !== 'payment_status',
+//                       }"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M19 9l-7 7-7-7"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div
+//                     class="flex items-center gap-2 cursor-pointer group"
+//                     @click="toggleSort('session_status')"
+//                   >
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Session</span
+//                     >
+//                     <svg
+//                       :class="{
+//                         'h-4 w-4 transition-transform': true,
+//                         'rotate-180':
+//                           tableState.sortBy === 'session_status' &&
+//                           tableState.sortOrder === 'desc',
+//                         'text-[var(--color-bg-primary)]':
+//                           tableState.sortBy === 'session_status',
+//                         'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+//                           tableState.sortBy !== 'session_status',
+//                       }"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M19 9l-7 7-7-7"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div
+//                     class="flex items-center gap-2 cursor-pointer group"
+//                     @click="toggleSort('frame')"
+//                   >
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Frame</span
+//                     >
+//                     <svg
+//                       :class="{
+//                         'h-4 w-4 transition-transform': true,
+//                         'rotate-180':
+//                           tableState.sortBy === 'session' &&
+//                           tableState.sortOrder === 'desc',
+//                         'text-[var(--color-bg-primary)]':
+//                           tableState.sortBy === 'session',
+//                         'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+//                           tableState.sortBy !== 'session',
+//                       }"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M19 9l-7 7-7-7"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <div
+//                     class="flex items-center gap-2 cursor-pointer group"
+//                     @click="toggleSort('session')"
+//                   >
+//                     <span
+//                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                       >Date & Slot</span
+//                     >
+//                     <svg
+//                       :class="{
+//                         'h-4 w-4 transition-transform': true,
+//                         'rotate-180':
+//                           tableState.sortBy === 'session' &&
+//                           tableState.sortOrder === 'desc',
+//                         'text-[var(--color-bg-primary)]':
+//                           tableState.sortBy === 'session',
+//                         'text-gray-400 group-hover:text-[var(--color-bg-primary)]':
+//                           tableState.sortBy !== 'session',
+//                       }"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M19 9l-7 7-7-7"
+//                       />
+//                     </svg>
+//                   </div>
+//                 </th>
+//                 <th scope="col" class="px-6 py-4 text-left">
+//                   <span
+//                     class="text-xs font-medium text-gray-500 uppercase tracking-wider"
+//                     >Actions</span
+//                   >
+//                 </th>
+//               </tr>
+//             </thead>
+//             <tbody class="divide-y divide-gray-200 bg-white">
+//               <tr
+//                 v-for="booking in paginatedBookings"
+//                 :key="booking.id"
+//                 class="group hover:bg-gray-50 transition-colors duration-150"
+//               >
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div class="flex items-center gap-3">
+//                     <div
+//                       class="w-10 h-10 flex-shrink-0 rounded-full bg-[var(--color-bg-primary)] bg-opacity-10 flex items-center justify-center"
+//                     >
+//                       <span
+//                         class="text-sm font-medium text-[var(--color-secondary)]"
+//                       >
+//                         {{ booking.user_fullname.charAt(0) }}
+//                       </span>
+//                     </div>
+//                     <div>
+//                       <div
+//                         class="text-sm font-medium text-[var(--color-text-primary)] capitalize"
+//                       >
+//                         {{ booking.user_fullname }}
+//                       </div>
+//                       <div class="text-sm text-[var(--color-text-secondary)]">
+//                         {{ booking.user_email }}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <span
+//                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--color-bg-primary)] bg-opacity-10 text-[var(--color-primary)]"
+//                   >
+//                     {{ booking.theme_title }}
+//                   </span>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div class="relative group">
+//                     <select
+//                       :value="booking.status"
+//                       @change="
+//                         handleStatusChange(
+//                           booking.id,
+//                           $event.target.value,
+//                           'payment'
+//                         )
+//                       "
+//                       class="appearance-none w-full cursor-pointer"
+//                       :class="{
+//                         'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+//                         'bg-yellow-100 text-yellow-800': booking.status === 1,
+//                         'bg-blue-100 text-blue-800': booking.status === 2,
+//                         'bg-green-100 text-green-800': booking.status === 3,
+//                       }"
+//                     >
+//                       <option value="1">Pending</option>
+//                       <option value="2">Partial</option>
+//                       <option value="3">Paid</option>
+//                     </select>
+//                     <div
+//                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                     >
+//                       <svg
+//                         class="h-4 w-4"
+//                         :class="{
+//                           'text-yellow-800': booking.status === 1,
+//                           'text-blue-800': booking.status === 2,
+//                           'text-green-800': booking.status === 3,
+//                         }"
+//                         viewBox="0 0 20 20"
+//                         fill="currentColor"
+//                       >
+//                         <path
+//                           fill-rule="evenodd"
+//                           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                           clip-rule="evenodd"
+//                         />
+//                       </svg>
+//                     </div>
+//                   </div>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div class="relative group">
+//                     <select
+//                       :value="booking.session_status"
+//                       @change="
+//                         handleStatusChange(
+//                           booking.id,
+//                           $event.target.value,
+//                           'session'
+//                         )
+//                       "
+//                       class="appearance-none w-full cursor-pointer"
+//                       :class="{
+//                         'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+//                         'bg-yellow-100 text-yellow-800':
+//                           booking.session_status === 1,
+//                         'bg-green-100 text-green-800':
+//                           booking.session_status === 2,
+//                         'bg-red-100 text-red-800': booking.session_status === 3,
+//                       }"
+//                     >
+//                       <option value="1">Pending</option>
+//                       <option value="2">Completed</option>
+//                       <option value="3">Cancelled</option>
+//                     </select>
+//                     <div
+//                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                     >
+//                       <svg
+//                         class="h-4 w-4"
+//                         :class="{
+//                           'text-yellow-800': booking.session_status === 1,
+//                           'text-green-800': booking.session_status === 2,
+//                         }"
+//                         viewBox="0 0 20 20"
+//                         fill="currentColor"
+//                       >
+//                         <path
+//                           fill-rule="evenodd"
+//                           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                           clip-rule="evenodd"
+//                         />
+//                       </svg>
+//                     </div>
+//                   </div>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div v-if="booking.frame_status" class="relative group">
+//                     <select
+//                       :value="booking.frame_status"
+//                       @change="
+//                         handleStatusChange(
+//                           booking.id,
+//                           $event.target.value,
+//                           'frame'
+//                         )
+//                       "
+//                       class="appearance-none w-full cursor-pointer"
+//                       :class="{
+//                         'pl-2.5 pr-8 py-1 rounded-full text-xs font-medium': true,
+//                         'bg-yellow-100 text-yellow-800':
+//                           booking.frame_status === 1,
+//                         'bg-blue-100 text-blue-800': booking.frame_status === 2,
+//                         'bg-green-100 text-green-800':
+//                           booking.frame_status === 3,
+//                       }"
+//                     >
+//                       <option value="1">Unprinted</option>
+//                       <option value="2">Printed</option>
+//                       <option value="3">Delivered</option>
+//                     </select>
+//                     <div
+//                       class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
+//                     >
+//                       <svg
+//                         class="h-4 w-4"
+//                         :class="{
+//                           'text-yellow-800': booking.frame_status === 1,
+//                           'text-blue-800': booking.frame_status === 2,
+//                           'text-green-800': booking.frame_status === 3,
+//                         }"
+//                         viewBox="0 0 20 20"
+//                         fill="currentColor"
+//                       >
+//                         <path
+//                           fill-rule="evenodd"
+//                           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+//                           clip-rule="evenodd"
+//                         />
+//                       </svg>
+//                     </div>
+//                   </div>
+//                   <div v-else>
+//                     <span
+//                       class="flex justify-center text-xs font-medium text-gray-500"
+//                     >
+//                       -
+//                     </span>
+//                   </div>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div class="text-sm text-gray-900">
+//                     {{ formatDate(booking.session_date) }}
+//                   </div>
+//                   <div class="text-sm text-gray-500">
+//                     {{ formatTime(booking.session_time) }}
+//                   </div>
+//                 </td>
+//                 <td class="px-6 py-4 whitespace-nowrap">
+//                   <div class="flex items-center gap-3">
+//                     <button
+//                       @click="openBookingDetails(booking)"
+//                       class="text-gray-400 hover:text-[var(--color-bg-primary)] transition-colors"
+//                       :disabled="loadingStates.isLoadingDetails"
+//                     >
+//                       <svg
+//                         class="w-5 h-5"
+//                         fill="none"
+//                         stroke="currentColor"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <path
+//                           stroke-linecap="round"
+//                           stroke-linejoin="round"
+//                           stroke-width="2"
+//                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+//                         />
+//                         <path
+//                           stroke-linecap="round"
+//                           stroke-linejoin="round"
+//                           stroke-width="2"
+//                           d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+//                         />
+//                       </svg>
+//                     </button>
+//                     <button
+//                       @click="generateAndSendReceipt(booking)"
+//                       class="text-gray-400 hover:text-[var(--color-bg-primary)] transition-colors"
+//                       :disabled="loadingStates.isGeneratingReceipt"
+//                     >
+//                       <svg
+//                         class="w-5 h-5"
+//                         fill="none"
+//                         stroke="currentColor"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <path
+//                           stroke-linecap="round"
+//                           stroke-linejoin="round"
+//                           stroke-width="2"
+//                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+//                         />
+//                       </svg>
+//                     </button>
+//                   </div>
+//                 </td>
+//               </tr>
+//             </tbody>
+//           </table>
+//         </div>
+
+//         <!-- Pagination -->
+//         <div class="px-4 py-3 md:px-6 border-t border-gray-200 bg-gray-50">
+//           <div class="flex items-center justify-between">
+//             <div class="flex items-center gap-2">
+//               <button
+//                 @click="handlePageChange(tableState.currentPage - 1)"
+//                 :disabled="tableState.currentPage === 1"
+//                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+//               >
+//                 <svg
+//                   class="w-5 h-5 mr-1"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M15 19l-7-7 7-7"
+//                   />
+//                 </svg>
+//                 Previous
+//               </button>
+//               <div class="hidden md:flex items-center gap-2">
+//                 <template v-for="page in getPageNumbers()" :key="page">
+//                   <button
+//                     @click="handlePageChange(page)"
+//                     :class="[
+//                       'px-3 py-2 text-sm font-medium rounded-lg',
+//                       tableState.currentPage === page
+//                         ? 'bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]'
+//                         : 'text-gray-700 hover:bg-gray-50',
+//                     ]"
+//                   >
+//                     {{ page }}
+//                   </button>
+//                 </template>
+//               </div>
+//               <button
+//                 @click="handlePageChange(tableState.currentPage + 1)"
+//                 :disabled="tableState.currentPage === totalPages"
+//                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+//               >
+//                 Next
+//                 <svg
+//                   class="w-5 h-5 ml-1"
+//                   fill="none"
+//                   stroke="currentColor"
+//                   viewBox="0 0 24 24"
+//                 >
+//                   <path
+//                     stroke-linecap="round"
+//                     stroke-linejoin="round"
+//                     stroke-width="2"
+//                     d="M9 5l7 7-7 7"
+//                   />
+//                 </svg>
+//               </button>
+//             </div>
+//             <div class="text-sm text-gray-500 md:hidden">
+//               Page {{ tableState.currentPage }} of {{ totalPages }}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+
+//     <!-- Modal Area -->
+//     <div>
+//       <!-- Booking Details Modal -->
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0"
+//         enter-to-class="opacity-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100"
+//         leave-to-class="opacity-0"
+//       >
+//         <div
+//           v-if="showModalFn.value"
+//           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50"
+//         />
+//       </Transition>
+
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//         enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//       >
+//         <div v-if="showModalFn.value" class="fixed inset-0 z-50 overflow-y-auto">
+//           <div
+//             class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+//           >
+//             <div
+//               class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl"
+//             >
+//               <!-- Modal Header -->
+//               <div
+//                 class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+//               >
+//                 <div class="flex items-center justify-between">
+//                   <h3 class="text-xl font-semibold text-[#3C2A21]">
+//                     Booking Details
+//                   </h3>
+//                   <button
+//                     @click="closeModal"
+//                     class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+//                   >
+//                     <svg
+//                       class="h-6 w-6"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div v-if="selectedBooking" class="px-6 py-4">
+//                 <div class="space-y-6">
+//                   <!-- Customer Information -->
+//                   <div class="bg-gray-50 rounded-lg p-4">
+//                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+//                       Customer Information
+//                     </h4>
+//                     <div class="grid grid-cols-2 gap-4">
+//                       <div>
+//                         <p class="text-sm text-gray-500">Full Name</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ selectedBooking.user_fullname }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Phone Number</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ selectedBooking.user_phoneno }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Email Address</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ selectedBooking.user_email }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Source</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ formatSource(selectedBooking.user_source) }}
+//                         </p>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   <!-- Session Details -->
+//                   <div class="bg-gray-50 rounded-lg p-4">
+//                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+//                       Session Details
+//                     </h4>
+//                     <div class="grid grid-cols-3 gap-4">
+//                       <div>
+//                         <p class="text-sm text-gray-500">Theme</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ selectedBooking.theme_title }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Session Date</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ formatDate(selectedBooking.session_date) }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Session Time</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ formatTime(selectedBooking.session_time) }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Number of Pax</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ selectedBooking.number_of_pax || 0 }}
+//                           <span
+//                             v-if="selectedBooking.number_of_extra_pax > 0"
+//                             class="text-amber-600"
+//                           >
+//                             (+ {{ selectedBooking.number_of_extra_pax }} extra
+//                             pax)
+//                           </span>
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Extra Pax Charges</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{
+//                             selectedBooking.number_of_extra_pax > 0
+//                               ? formatCurrency(
+//                                   selectedBooking.payment_extra_pax
+//                                 )
+//                               : "-"
+//                           }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Created Date</p>
+//                         <p class="text-sm font-medium text-[#3C2A21]">
+//                           {{ formatDate(selectedBooking.created_date) }}
+//                         </p>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Session Status</p>
+//                         <span
+//                           class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+//                           :class="{
+//                             'bg-yellow-100 text-yellow-800':
+//                               selectedBooking.session_status === 1,
+//                             'bg-green-100 text-green-800':
+//                               selectedBooking.session_status === 2,
+//                           }"
+//                         >
+//                           {{
+//                             STATUS_MAPPINGS.session[
+//                               selectedBooking.session_status
+//                             ] || "Unknown"
+//                           }}
+//                         </span>
+//                       </div>
+//                       <div>
+//                         <p class="text-sm text-gray-500">Frame Status</p>
+//                         <span
+//                           class="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+//                           :class="{
+//                             'bg-yellow-100 text-yellow-800':
+//                               selectedBooking.frame_status === 1,
+//                             'bg-blue-100 text-blue-800':
+//                               selectedBooking.frame_status === 2,
+//                             'bg-green-100 text-green-800':
+//                               selectedBooking.frame_status === 3,
+//                           }"
+//                         >
+//                           {{
+//                             STATUS_MAPPINGS.frame[selectedBooking.frame_status] ||
+//                             "Unknown"
+//                           }}
+//                         </span>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   <!-- Addons -->
+//                   <div
+//                     v-if="selectedBooking.addons?.length"
+//                     class="bg-gray-50 rounded-lg p-4"
+//                   >
+//                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+//                       Add-ons
+//                     </h4>
+//                     <div class="divide-y divide-gray-200">
+//                       <div
+//                         v-for="(addon, index) in selectedBooking.addons"
+//                         :key="index"
+//                         class="py-3 first:pt-0 last:pb-0"
+//                       >
+//                         <div class="flex justify-between items-center">
+//                           <div>
+//                             <p class="text-sm font-medium text-[#3C2A21]">
+//                               {{ addon.title }}
+//                             </p>
+//                             <p class="text-sm text-gray-500">
+//                               Quantity: {{ addon.qty }}
+//                             </p>
+//                           </div>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{ formatCurrency(addon.price || 0) }}
+//                           </p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+
+//                   <!-- Payment Details -->
+//                   <div class="bg-gray-50 rounded-lg p-4">
+//                     <h4 class="text-sm font-medium text-[#3C2A21] mb-3">
+//                       Payment Details
+//                     </h4>
+//                     <div class="space-y-6">
+//                       <!-- Payment Information -->
+//                       <div class="grid grid-cols-2 gap-4">
+//                         <div>
+//                           <p class="text-sm text-gray-500">Payment Type</p>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{ getPaymentType(selectedBooking.payment_type) }}
+//                           </p>
+//                         </div>
+//                         <div>
+//                           <p class="text-sm text-gray-500">Payment Method</p>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{
+//                               getPaymentMethod(selectedBooking.payment_method)
+//                             }}
+//                           </p>
+//                         </div>
+//                         <div v-if="selectedBooking.payment_type === 2">
+//                           <p class="text-sm text-gray-500">Deposit Paid</p>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{
+//                               formatCurrency(
+//                                 selectedBooking.payment_amount || 0
+//                               )
+//                             }}
+//                           </p>
+//                         </div>
+//                       </div>
+
+//                       <!-- Amount Breakdown -->
+//                       <div
+//                         class="bg-white rounded-lg p-4 border border-gray-200"
+//                       >
+//                         <h5 class="text-sm font-medium text-[#3C2A21] mb-3">
+//                           Amount Breakdown
+//                         </h5>
+//                         <div class="space-y-2">
+//                           <div class="flex justify-between text-sm">
+//                             <span class="text-gray-500">Theme Price</span>
+//                             <span class="font-medium text-[#3C2A21]">
+//                               {{
+//                                 formatCurrency(selectedBooking.theme_price || 0)
+//                               }}
+//                             </span>
+//                           </div>
+//                           <div
+//                             v-if="selectedBooking.addons?.length"
+//                             class="flex justify-between text-sm"
+//                           >
+//                             <span class="text-gray-500">Add-ons Total</span>
+//                             <span class="font-medium text-[#3C2A21]">
+//                               {{
+//                                 formatCurrency(
+//                                   calculateFrameTotals(selectedBooking.addons)
+//                                     .price
+//                                 )
+//                               }}
+//                             </span>
+//                           </div>
+//                           <div
+//                             v-if="selectedBooking.number_of_extra_pax > 0"
+//                             class="flex justify-between text-sm"
+//                           >
+//                             <span class="text-gray-500">Extra Pax Charges</span>
+//                             <span class="font-medium text-[#3C2A21]">
+//                               {{
+//                                 formatCurrency(
+//                                   selectedBooking.payment_extra_pax || 0
+//                                 )
+//                               }}
+//                             </span>
+//                           </div>
+//                           <div
+//                             class="pt-2 mt-2 border-t border-gray-200 flex justify-between text-sm"
+//                           >
+//                             <span class="font-medium text-gray-500"
+//                               >Total Amount</span
+//                             >
+//                             <span class="font-semibold text-[#3C2A21]">
+//                               {{
+//                                 formatCurrency(
+//                                   calculateTotalAmount(selectedBooking)
+//                                 )
+//                               }}
+//                             </span>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <!-- Balance Information for Deposit Payment -->
+//                       <div
+//                         v-if="selectedBooking.payment_type === 2"
+//                         class="bg-amber-50 rounded-lg p-4 border border-amber-200"
+//                       >
+//                         <div class="space-y-3">
+//                           <div class="flex justify-between items-center">
+//                             <span class="text-sm font-medium text-amber-800"
+//                               >Total Amount</span
+//                             >
+//                             <span class="text-sm font-medium text-amber-800">
+//                               {{
+//                                 formatCurrency(
+//                                   calculateTotalAmount(selectedBooking)
+//                                 )
+//                               }}
+//                             </span>
+//                           </div>
+//                           <div class="flex justify-between items-center">
+//                             <span class="text-sm font-medium text-amber-800"
+//                               >Deposit Paid</span
+//                             >
+//                             <span class="text-sm font-medium text-amber-800">
+//                               -
+//                               {{
+//                                 formatCurrency(
+//                                   selectedBooking.payment_amount || 0
+//                                 )
+//                               }}
+//                             </span>
+//                           </div>
+//                           <div
+//                             class="pt-2 border-t border-amber-200 flex justify-between items-center"
+//                           >
+//                             <div>
+//                               <p class="text-sm font-medium text-amber-800">
+//                                 Balance to Collect
+//                               </p>
+//                               <p class="text-xs text-amber-600 mt-0.5">
+//                                 Please collect the remaining balance before the
+//                                 session
+//                               </p>
+//                             </div>
+//                             <p class="text-lg font-semibold text-amber-800">
+//                               {{
+//                                 formatCurrency(
+//                                   calculateTotalAmount(selectedBooking) -
+//                                     (selectedBooking.payment_amount || 0)
+//                                 )
+//                               }}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <!-- Frame Information -->
+//                       <!-- <div class="grid grid-cols-2 gap-4">
+//                         <div>
+//                           <p class="text-sm text-gray-500">Frame Quantity</p>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{
+//                               calculateFrameTotals(selectedBooking.addons)
+//                                 .quantity
+//                             }}
+//                           </p>
+//                         </div>
+//                         <div>
+//                           <p class="text-sm text-gray-500">Frame Price</p>
+//                           <p class="text-sm font-medium text-[#3C2A21]">
+//                             {{
+//                               formatCurrency(
+//                                 calculateFrameTotals(selectedBooking.addons)
+//                                   .price
+//                               )
+//                             }}
+//                           </p>
+//                         </div>
+//                       </div> -->
+//                     </div>
+//                   </div>
+
+//                   <!-- Actions -->
+//                   <div class="flex justify-end space-x-3">
+//                     <button
+//                       @click="closeModal"
+//                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+//                     >
+//                       Close
+//                     </button>
+//                     <button
+//                       v-if="selectedBooking?.session_status === 1"
+//                       @click="showRescheduleModal = true"
+//                       class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors"
+//                     >
+//                       Reschedule Session
+//                     </button>
+//                     <button
+//                       v-if="
+//                         selectedBooking?.status === 1 ||
+//                         selectedBooking?.status === 2
+//                       "
+//                       @click="markAsPaid(selectedBooking?.id)"
+//                       :disabled="loadingStates.isUpdatingStatus"
+//                       class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+//                     >
+//                       <span
+//                         v-if="loadingStates.isUpdatingStatus"
+//                         class="flex items-center"
+//                       >
+//                         <svg
+//                           class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             class="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             stroke-width="4"
+//                           ></circle>
+//                           <path
+//                             class="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           ></path>
+//                         </svg>
+//                         Processing...
+//                       </span>
+//                       <span v-else>Mark as Paid</span>
+//                     </button>
+//                     <button
+//                       v-if="
+//                         selectedBooking?.session_status == 1 ||
+//                         selectedBooking?.session_status == 2
+//                       "
+//                       @click="cancelBooking(selectedBooking?.id)"
+//                       :disabled="loadingStates.isCancelling"
+//                       class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+//                     >
+//                       <span
+//                         v-if="loadingStates.isCancelling"
+//                         class="flex items-center"
+//                       >
+//                         <svg
+//                           class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             class="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             stroke-width="4"
+//                           ></circle>
+//                           <path
+//                             class="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           ></path>
+//                         </svg>
+//                         Cancelling...
+//                       </span>
+//                       <span v-else>Cancel Booking</span>
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </Transition>
+
+//       <!-- Receipt Preview Modal -->
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0"
+//         enter-to-class="opacity-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100"
+//         leave-to-class="opacity-0"
+//       >
+//         <div
+//           v-if="showReceiptModal"
+//           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+//         />
+//       </Transition>
+
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//         enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//       >
+//         <div v-if="showReceiptModal" class="fixed inset-0 z-10 overflow-y-auto">
+//           <div
+//             class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+//           >
+//             <div
+//               class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl"
+//             >
+//               <!-- Modal Header -->
+//               <div
+//                 class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+//               >
+//                 <div class="flex items-center justify-between">
+//                   <h3
+//                     class="text-xl font-semibold text-[var(--color-text-primary)]"
+//                   >
+//                     Receipt Preview
+//                   </h3>
+//                   <button
+//                     @click="showReceiptModal = false"
+//                     class="text-[var(--color-text-primary)]/60 hover:text-[var(--color-text-primary)] transition-colors"
+//                   >
+//                     <svg
+//                       class="h-6 w-6"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <div v-if="selectedReceiptBooking" class="px-6 py-4">
+//                 <div class="space-y-6">
+//                   <!-- Receipt Preview -->
+//                   <div class="bg-white rounded-lg border border-gray-200">
+//                     <div class="text-center py-6 border-b border-gray-200">
+//                       <h2
+//                         class="text-2xl font-semibold text-[var(--color-text-primary)]"
+//                       >
+//                         Booking Receipt
+//                       </h2>
+//                       <p class="text-[var(--color-text-primary)] mt-1">
+//                         Thank you for choosing our services!
+//                       </p>
+//                     </div>
+
+//                     <div class="p-6 space-y-6">
+//                       <!-- Booking Information -->
+//                       <div>
+//                         <h3
+//                           class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+//                         >
+//                           Booking Information
+//                         </h3>
+//                         <div class="grid grid-cols-2 gap-4">
+//                           <div>
+//                             <p class="text-sm text-gray-500">Booking ID</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               #{{
+//                                 selectedReceiptBooking.id
+//                                   .toString()
+//                                   .padStart(6, "0")
+//                               }}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <p class="text-sm text-gray-500">Status</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{
+//                                 selectedReceiptBooking.status === 1
+//                                   ? "Pending"
+//                                   : selectedReceiptBooking.status === 2
+//                                   ? "Partial"
+//                                   : selectedReceiptBooking.status === 3
+//                                   ? "Cancelled"
+//                                   : "Unknown"
+//                               }}
+//                             </p>
+//                           </div>
+//                           <div class="col-span-2">
+//                             <p class="text-sm text-gray-500">Created Date</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{
+//                                 formatDate(selectedReceiptBooking.created_date)
+//                               }}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <!-- Customer Details -->
+//                       <div>
+//                         <h3
+//                           class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+//                         >
+//                           Customer Details
+//                         </h3>
+//                         <div class="grid grid-cols-2 gap-4">
+//                           <div class="col-span-2">
+//                             <p class="text-sm text-gray-500">Full Name</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{ selectedReceiptBooking.user_fullname }}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <p class="text-sm text-gray-500">Email</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{ selectedReceiptBooking.user_email }}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <p class="text-sm text-gray-500">Phone</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{ selectedReceiptBooking.user_phoneno }}
+//                             </p>
+//                           </div>
+//                           <div class="col-span-2">
+//                             <p class="text-sm text-gray-500">Address</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{ selectedReceiptBooking.user_address }}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <!-- Session Details -->
+//                       <div>
+//                         <h3
+//                           class="text-lg font-medium text-[var(--color-text-primary)] mb-3"
+//                         >
+//                           Session Details
+//                         </h3>
+//                         <div class="grid grid-cols-2 gap-4">
+//                           <div class="col-span-2">
+//                             <p class="text-sm text-gray-500">Theme</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{ selectedReceiptBooking.theme }}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <p class="text-sm text-gray-500">Session Date</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{
+//                                 formatDate(selectedReceiptBooking.session_date)
+//                               }}
+//                             </p>
+//                           </div>
+//                           <div>
+//                             <p class="text-sm text-gray-500">Session Time</p>
+//                             <p
+//                               class="text-sm font-medium text-[var(--color-text-primary)]"
+//                             >
+//                               {{
+//                                 formatTime(selectedReceiptBooking.session_time)
+//                               }}
+//                             </p>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+
+//                     <div
+//                       class="text-center py-4 border-t border-gray-200 text-sm text-gray-600"
+//                     >
+//                       <p>
+//                         This is an automatically generated receipt. Please keep
+//                         it for your records.
+//                       </p>
+//                       <p class="mt-1">
+//                         If you have any questions, please contact us.
+//                       </p>
+//                     </div>
+//                   </div>
+
+//                   <!-- Actions -->
+//                   <div class="flex justify-end space-x-3">
+//                     <button
+//                       @click="downloadReceipt"
+//                       :disabled="loadingStates.isGeneratingReceipt"
+//                       class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+//                     >
+//                       <span
+//                         v-if="loadingStates.isGeneratingReceipt"
+//                         class="flex items-center"
+//                       >
+//                         <svg
+//                           class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             class="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             stroke-width="4"
+//                           ></circle>
+//                           <path
+//                             class="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           ></path>
+//                         </svg>
+//                         Downloading...
+//                       </span>
+//                       <span v-else>Download Receipt</span>
+//                     </button>
+//                     <button
+//                       @click="sendReceiptEmail"
+//                       :disabled="loadingStates.isSendingEmail"
+//                       class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+//                     >
+//                       <span
+//                         v-if="loadingStates.isSendingEmail"
+//                         class="flex items-center"
+//                       >
+//                         <svg
+//                           class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             class="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             stroke-width="4"
+//                           ></circle>
+//                           <path
+//                             class="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           ></path>
+//                         </svg>
+//                         Sending...
+//                       </span>
+//                       <span v-else>Send via Email</span>
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </Transition>
+
+//       <!-- Reschedule Modal -->
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0"
+//         enter-to-class="opacity-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100"
+//         leave-to-class="opacity-0"
+//       >
+//         <div
+//           v-if="showRescheduleModal"
+//           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-20"
+//         />
+//       </Transition>
+
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//         enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//       >
+//         <div
+//           v-if="showRescheduleModal"
+//           class="fixed inset-0 z-30 overflow-y-auto"
+//         >
+//           <div
+//             class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+//           >
+//             <div
+//               class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+//             >
+//               <!-- Modal Header -->
+//               <div
+//                 class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+//               >
+//                 <div class="flex items-center justify-between">
+//                   <h3
+//                     class="text-xl font-semibold text-[var(--color-text-primary)]"
+//                   >
+//                     Reschedule Session
+//                   </h3>
+//                   <button
+//                     @click="showRescheduleModal = false"
+//                     class="text-[#3C2A21]/60 hover:text-[#3C2A21] transition-colors"
+//                   >
+//                     <svg
+//                       class="h-6 w-6"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <!-- Modal Content -->
+//               <div class="px-6 py-4">
+//                 <div class="space-y-4">
+//                   <div>
+//                     <label
+//                       class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+//                     >
+//                       New Session Date
+//                     </label>
+//                     <input
+//                       type="date"
+//                       v-model="selectedDate"
+//                       :min="new Date().toISOString().split('T')[0]"
+//                       class="block w-full rounded-lg border-gray-300 focus:ring-[var(--color-bg-primary)] focus:border-[var(--color-bg-primary)] sm:text-sm"
+//                       :class="{ 'cursor-not-allowed': isWeekend(selectedDate) }"
+//                       @change="
+//                         (e) => {
+//                           if (isWeekend(e.target.value)) {
+//                             alert(
+//                               'Weekend dates are not available for booking'
+//                             );
+//                             selectedDate = '';
+//                           }
+//                         }
+//                       "
+//                     />
+//                     <p
+//                       v-if="selectedDate && isWeekend(selectedDate)"
+//                       class="mt-1 text-sm text-red-600"
+//                     >
+//                       Weekend dates are not available for booking
+//                     </p>
+//                   </div>
+
+//                   <div v-if="!isWeekend(selectedDate)">
+//                     <label
+//                       class="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+//                     >
+//                       New Session Time
+//                     </label>
+//                     <div class="relative">
+//                       <div
+//                         v-if="loadingStates.isLoadingSlots"
+//                         class="flex items-center justify-center py-8"
+//                       >
+//                         <svg
+//                           class="animate-spin h-8 w-8 text-gray-400"
+//                           xmlns="http://www.w3.org/2000/svg"
+//                           fill="none"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             class="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             stroke-width="4"
+//                           ></circle>
+//                           <path
+//                             class="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           ></path>
+//                         </svg>
+//                       </div>
+
+//                       <div
+//                         v-else-if="!selectedDate"
+//                         class="text-center py-8 text-gray-500"
+//                       >
+//                         Please select a date first
+//                       </div>
+
+//                       <div
+//                         v-else-if="availableSlots.length === 0"
+//                         class="text-center py-8 text-red-600"
+//                       >
+//                         No available slots for this date
+//                       </div>
+
+//                       <div
+//                         v-else
+//                         class="grid grid-cols-3 gap-3 overflow-y-auto p-2"
+//                       >
+//                         <button
+//                           v-for="slot in availableSlots"
+//                           :key="slot.value"
+//                           @click="selectedSlot = slot.value"
+//                           class="p-3 rounded-lg border text-sm font-medium transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+//                           :class="[
+//                             selectedSlot === slot.value
+//                               ? 'border-[var(--color-bg-primary)] bg-[var(--color-bg-primary)] bg-opacity-10 text-[var(--color-text-primary)]'
+//                               : 'border-gray-200 hover:border-[var(--color-bg-primary)] text-gray-700',
+//                           ]"
+//                         >
+//                           {{ formatTimeDisplay(slot.value) }}
+//                         </button>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <!-- Modal Footer -->
+//               <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+//                 <button
+//                   @click="showRescheduleModal = false"
+//                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)]"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   @click="rescheduleSession"
+//                   :disabled="
+//                     loadingStates.isRescheduling ||
+//                     !selectedDate ||
+//                     !selectedSlot ||
+//                     loadingStates.isLoadingSlots
+//                   "
+//                   class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors disabled:opacity-50"
+//                 >
+//                   <span
+//                     v-if="loadingStates.isRescheduling"
+//                     class="flex items-center"
+//                   >
+//                     <svg
+//                       class="animate-spin -ml-1 mr-2 h-4 w-4 text-[var(--color-text-primary)]"
+//                       xmlns="http://www.w3.org/2000/svg"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                     >
+//                       <circle
+//                         class="opacity-25"
+//                         cx="12"
+//                         cy="12"
+//                         r="10"
+//                         stroke="currentColor"
+//                         stroke-width="4"
+//                       ></circle>
+//                       <path
+//                         class="opacity-75"
+//                         fill="currentColor"
+//                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                       ></path>
+//                     </svg>
+//                     Rescheduling...
+//                   </span>
+//                   <span v-else>Confirm Reschedule</span>
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </Transition>
+
+//       <!-- Add Confirmation Modal -->
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0"
+//         enter-to-class="opacity-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100"
+//         leave-to-class="opacity-0"
+//       >
+//         <div
+//           v-if="showConfirmationModal"
+//           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50"
+//         />
+//       </Transition>
+
+//       <Transition
+//         enter-active-class="ease-out duration-300"
+//         enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//         enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-active-class="ease-in duration-200"
+//         leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+//         leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+//       >
+//         <div
+//           v-if="showConfirmationModal"
+//           class="fixed inset-0 z-50 overflow-y-auto"
+//         >
+//           <div
+//             class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+//           >
+//             <div
+//               class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
+//             >
+//               <!-- Modal Header -->
+//               <div
+//                 class="bg-[var(--color-bg-secondary)] px-6 py-4 border-b border-[var(--color-bg-light)]"
+//               >
+//                 <div class="flex items-center justify-between">
+//                   <h3
+//                     class="text-xl font-semibold text-[var(--color-text-primary)]"
+//                   >
+//                     {{ confirmationTitle }}
+//                   </h3>
+//                   <button
+//                     @click="showConfirmationModal = false"
+//                     class="text-[var(--color-text-primary)]/60 hover:text-[var(--color-text-primary)] transition-colors"
+//                   >
+//                     <svg
+//                       class="h-6 w-6"
+//                       fill="none"
+//                       viewBox="0 0 24 24"
+//                       stroke="currentColor"
+//                     >
+//                       <path
+//                         stroke-linecap="round"
+//                         stroke-linejoin="round"
+//                         stroke-width="2"
+//                         d="M6 18L18 6M6 6l12 12"
+//                       />
+//                     </svg>
+//                   </button>
+//                 </div>
+//               </div>
+
+//               <!-- Modal Content -->
+//               <div class="px-6 py-4">
+//                 <p class="text-sm text-gray-600">
+//                   {{ confirmationMessage }}
+//                 </p>
+//               </div>
+
+//               <!-- Modal Footer -->
+//               <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+//                 <button
+//                   @click="showConfirmationModal = false"
+//                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3C2A21]"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   @click="confirmationAction"
+//                   class="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] rounded-lg hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-primary)] transition-colors"
+//                 >
+//                   Confirm
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </Transition>
+//     </div>
+//   </div>
+// </template>

@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import { H3Event } from "h3";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
+const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
 
 interface JWTPayload {
   userId: number;
@@ -13,26 +14,30 @@ interface JWTPayload {
 
 // Define public routes that don't require authentication
 const PUBLIC_ROUTES = [
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/refresh',
-  '/api/auth/verify',
-  '/api/booking/get-config',
-  '/api/booking/get-themes',
-  '/api/booking/get-addons',
-  '/api/booking/get-slots',
-  '/api/booking/get-available-slots',
-  '/api/booking/proceed'
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/refresh",
+  "/api/auth/verify",
+  "/api/booking/get-config",
+  "/api/booking/get-themes",
+  "/api/booking/get-addons",
+  "/api/booking/get-slots",
+  "/api/booking/get-available-slots",
+  "/api/booking/proceed",
+  "/api/booking/get-receipt-detail",
 ];
 
 export default defineEventHandler(async (event: H3Event) => {
+  // Get base path without query parameters
+  const basePath = event.path.split("?")[0];
+
   // Skip auth for public routes
-  if (PUBLIC_ROUTES.includes(event.path)) {
+  if (PUBLIC_ROUTES.includes(basePath)) {
     return;
   }
 
   // Skip auth for non-API routes
-  if (!event.path.startsWith('/api/')) {
+  if (!basePath.startsWith("/api/")) {
     return;
   }
 
@@ -85,4 +90,4 @@ export default defineEventHandler(async (event: H3Event) => {
       message: error.message || "Authentication failed",
     });
   }
-}); 
+});

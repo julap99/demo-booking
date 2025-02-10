@@ -1,5 +1,12 @@
 <script setup>
-import { ref, onMounted, watch, nextTick, onBeforeUnmount, computed } from "vue";
+import {
+  ref,
+  onMounted,
+  watch,
+  nextTick,
+  onBeforeUnmount,
+  computed,
+} from "vue";
 import { Calendar } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -18,34 +25,69 @@ const selectedBooking = ref(null);
 const calendar = ref(null);
 
 // New refs for filters
-const themeFilter = ref('all');
-const statusFilter = ref('all');
+const themeFilter = ref("all");
+const statusFilter = ref("all");
 
 // Stats computed properties
 const monthlyBookings = computed(() => {
   const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  return bookings.value.filter(booking => {
-    const bookingDate = new Date(booking.session_date);
-    return bookingDate >= firstDayOfMonth && bookingDate <= now;
+  const malaysiaTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const firstDayOfMonth = new Date(
+    malaysiaTime.getFullYear(),
+    malaysiaTime.getMonth(),
+    1
+  );
+  return bookings.value.filter((booking) => {
+    const bookingDate = new Date(booking.start);
+    // Convert booking date to Malaysia timezone
+    const malaysiaBookingDate = new Date(
+      bookingDate.getTime() + 8 * 60 * 60 * 1000
+    );
+    return (
+      malaysiaBookingDate >= firstDayOfMonth &&
+      malaysiaBookingDate <= malaysiaTime
+    );
   }).length;
 });
 
 const upcomingBookings = computed(() => {
   const now = new Date();
-  const nextWeek = new Date(now);
-  nextWeek.setDate(now.getDate() + 7);
-  return bookings.value.filter(booking => {
-    const bookingDate = new Date(booking.session_date);
-    return bookingDate >= now && bookingDate <= nextWeek;
+  const malaysiaTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const nextWeek = new Date(malaysiaTime);
+  nextWeek.setDate(malaysiaTime.getDate() + 7);
+  return bookings.value.filter((booking) => {
+    const bookingDate = new Date(booking.start);
+    // Convert booking date to Malaysia timezone
+    const malaysiaBookingDate = new Date(
+      bookingDate.getTime() + 8 * 60 * 60 * 1000
+    );
+    return (
+      malaysiaBookingDate >= malaysiaTime && malaysiaBookingDate <= nextWeek
+    );
   }).length;
 });
 
 const todayBookings = computed(() => {
   const now = new Date();
-  return bookings.value.filter(booking => {
-    const bookingDate = new Date(booking.session_date);
-    return bookingDate.toDateString() === now.toDateString();
+  const malaysiaTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const today = new Date(
+    malaysiaTime.getFullYear(),
+    malaysiaTime.getMonth(),
+    malaysiaTime.getDate()
+  );
+
+  return bookings.value.filter((booking) => {
+    const bookingDate = new Date(booking.start);
+    // Convert booking date to Malaysia timezone
+    const malaysiaBookingDate = new Date(
+      bookingDate.getTime() + 8 * 60 * 60 * 1000
+    );
+    const bookingDay = new Date(
+      malaysiaBookingDate.getFullYear(),
+      malaysiaBookingDate.getMonth(),
+      malaysiaBookingDate.getDate()
+    );
+    return bookingDay.getTime() === today.getTime();
   }).length;
 });
 
@@ -55,26 +97,36 @@ const popularTheme = computed(() => {
     acc[theme] = (acc[theme] || 0) + 1;
     return acc;
   }, {});
-  
-  return Object.entries(themeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+  return (
+    Object.entries(themeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"
+  );
 });
 
 // Filter bookings based on theme and status
 const filteredBookings = computed(() => {
-  return bookings.value.filter(booking => {
-    const themeMatch = themeFilter.value === 'all' || booking.theme === themeFilter.value;
-    const statusMatch = statusFilter.value === 'all' || booking.status.toString() === statusFilter.value;
+  return bookings.value.filter((booking) => {
+    const themeMatch =
+      themeFilter.value === "all" || booking.theme === themeFilter.value;
+    const statusMatch =
+      statusFilter.value === "all" ||
+      booking.status.toString() === statusFilter.value;
     return themeMatch && statusMatch;
   });
 });
 
 // Modify the calendar event rendering to include status-based colors
 const getEventColor = (status) => {
-  switch (status) {
-    case 1: return '#10B981'; // Paid - Green
-    case 2: return '#F59E0B'; // Pending - Yellow
-    case 3: return '#EF4444'; // Cancelled - Red
-    default: return '#785340'; // Default brown
+  const statusNum = Number(status);
+  switch (statusNum) {
+    case 1:
+      return "#EF4444"; // Cancelled - Red
+    case 2:
+      return "#F59E0B"; // Pending - Yellow
+    case 3:
+      return "#10B981"; // Paid - Green
+    default:
+      return "#785340"; // Default brown
   }
 };
 
@@ -82,11 +134,11 @@ const getEventColor = (status) => {
 const fetchBookings = async () => {
   try {
     const response = await $fetch("/api/booking/get-bookings");
-    console.log(response);
+    console.log("Fetched bookings:", response);
 
     bookings.value = response.map((booking) => ({
       id: booking.id,
-      title: `${booking.user_fullname} - ${booking.theme}`,
+      title: `${booking.user_fullname} - ${booking.theme_title}`,
       start: booking.session_date,
       end: booking.session_date,
       backgroundColor: getEventColor(booking.status),
@@ -94,12 +146,15 @@ const fetchBookings = async () => {
       extendedProps: {
         email: booking.user_email,
         phone: booking.user_phoneno,
-        theme: booking.theme,
+        theme: booking.theme_title,
+        session_date: booking.session_date,
+        session_time: booking.session_time,
         status: booking.status,
         fullname: booking.user_fullname,
         created_date: booking.created_date,
       },
     }));
+    console.log("Mapped bookings:", bookings.value);
 
     // Update calendar events if calendar is already initialized
     if (calendar.value) {
@@ -123,25 +178,36 @@ watch([themeFilter, statusFilter], () => {
 
 // Export calendar function
 const exportCalendar = () => {
-  const events = bookings.value.map(booking => ({
+  const events = bookings.value.map((booking) => ({
     Subject: `${booking.extendedProps.fullname} - ${booking.extendedProps.theme}`,
     Start: new Date(booking.start).toISOString(),
     End: new Date(booking.end).toISOString(),
-    Description: `Status: ${getStatusText(booking.extendedProps.status)}\nEmail: ${booking.extendedProps.email}\nPhone: ${booking.extendedProps.phone}`,
+    Description: `Status: ${getStatusText(
+      booking.extendedProps.status
+    )}\nEmail: ${booking.extendedProps.email}\nPhone: ${
+      booking.extendedProps.phone
+    }`,
   }));
 
   // Create CSV content
-  const csvContent = "Subject,Start Date,End Date,Description\n" + 
-    events.map(event => 
-      `"${event.Subject}","${event.Start}","${event.End}","${event.Description}"`
-    ).join("\n");
+  const csvContent =
+    "Subject,Start Date,End Date,Description\n" +
+    events
+      .map(
+        (event) =>
+          `"${event.Subject}","${event.Start}","${event.End}","${event.Description}"`
+      )
+      .join("\n");
 
   // Create and trigger download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);
-  link.setAttribute("download", `bookings-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute(
+    "download",
+    `bookings-${new Date().toISOString().split("T")[0]}.csv`
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -157,13 +223,25 @@ const initCalendar = () => {
     headerToolbar: {
       left: window.innerWidth < 768 ? "prev,next" : "prev,next today",
       center: "title",
-      right: window.innerWidth < 768 
-        ? "dayGridMonth,listWeek" 
-        : "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+      right:
+        window.innerWidth < 768
+          ? "dayGridMonth,listWeek"
+          : "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
     },
     events: bookings.value,
     eventClick: function (info) {
-      selectedBooking.value = info.event.extendedProps;
+      console.log("Event clicked:", info.event);
+      console.log("Event extended props:", info.event.extendedProps);
+
+      const booking = {
+        ...info.event.extendedProps,
+        title: info.event.title,
+        date: info.event.start,
+      };
+      console.log("Booking to be set:", booking);
+
+      selectedBooking.value = booking;
+      console.log("Selected booking after set:", selectedBooking.value);
       showModal.value = true;
     },
     themeSystem: "standard",
@@ -207,13 +285,13 @@ onMounted(async () => {
   await fetchBookings();
   nextTick(() => {
     initCalendar();
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
   });
 });
 
 // Clean up resize event listener
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize);
+  window.removeEventListener("resize", handleResize);
   if (calendar.value) {
     calendar.value.destroy();
   }
@@ -232,24 +310,30 @@ watch(
 );
 
 const getStatusBadgeClass = (status) => {
-  switch (status) {
+  const statusNum = Number(status);
+  switch (statusNum) {
     case 1:
-      return "bg-green-100 text-green-800";
+      return "bg-red-100 text-red-800"; // Cancelled
     case 2:
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 text-yellow-800"; // Pending
+    case 3:
+      return "bg-green-100 text-green-800"; // Paid
     default:
-      return "bg-red-100 text-red-800";
+      return "bg-gray-100 text-gray-800";
   }
 };
 
 const getStatusText = (status) => {
-  switch (status) {
+  const statusNum = Number(status);
+  switch (statusNum) {
     case 1:
-      return "Paid";
+      return "Cancelled";
     case 2:
       return "Pending";
+    case 3:
+      return "Paid";
     default:
-      return "Cancelled";
+      return "Unknown";
   }
 };
 
@@ -277,13 +361,36 @@ onBeforeUnmount(() => {
     calendar.value.destroy();
   }
 });
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    dateStyle: "medium",
+  });
+}
+
+function formatTime(timeString) {
+  // Handle time string in format "HH:mm:ss"
+  const [hours, minutes] = timeString.split(':');
+  const date = new Date();
+  date.setHours(parseInt(hours, 10));
+  date.setMinutes(parseInt(minutes, 10));
+  
+  return date.toLocaleTimeString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    timeStyle: "short",
+    hour12: true // This will show time in 12-hour format with AM/PM
+  });
+}
 </script>
 
 <template>
   <div class="">
     <!-- Header -->
     <div class="px-4 sm:px-0">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-semibold text-gray-900">Calendar</h1>
@@ -291,7 +398,7 @@ onBeforeUnmount(() => {
               View and manage your booking schedule
             </p>
           </div>
-          
+
           <!-- Mobile Menu Button -->
           <button
             type="button"
@@ -315,15 +422,25 @@ onBeforeUnmount(() => {
             </svg>
           </button>
         </div>
-        
+
         <!-- Quick Actions -->
         <div class="flex gap-3">
           <button
             @click="exportCalendar"
             class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-[#785340] rounded-lg shadow-sm text-sm font-medium text-[#785340] bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340]"
           >
-            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            <svg
+              class="h-4 w-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
             </svg>
             Export Calendar
           </button>
@@ -337,15 +454,29 @@ onBeforeUnmount(() => {
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-[#785340]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  class="h-6 w-6 text-[#785340]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
               <div class="ml-4 flex-1 min-w-0">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Monthly Bookings</dt>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Monthly Bookings
+                  </dt>
                   <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">{{ monthlyBookings }}</div>
+                    <div class="text-2xl font-semibold text-gray-900">
+                      {{ monthlyBookings }}
+                    </div>
                   </dd>
                 </dl>
               </div>
@@ -358,15 +489,29 @@ onBeforeUnmount(() => {
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-[#785340]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  class="h-6 w-6 text-[#785340]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div class="ml-4 flex-1 min-w-0">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Upcoming (7 Days)</dt>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Upcoming (7 Days)
+                  </dt>
                   <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">{{ upcomingBookings }}</div>
+                    <div class="text-2xl font-semibold text-gray-900">
+                      {{ upcomingBookings }}
+                    </div>
                   </dd>
                 </dl>
               </div>
@@ -379,15 +524,29 @@ onBeforeUnmount(() => {
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-[#785340]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <svg
+                  class="h-6 w-6 text-[#785340]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
                 </svg>
               </div>
               <div class="ml-4 flex-1 min-w-0">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Today's Bookings</dt>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Today's Bookings
+                  </dt>
                   <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">{{ todayBookings }}</div>
+                    <div class="text-2xl font-semibold text-gray-900">
+                      {{ todayBookings }}
+                    </div>
                   </dd>
                 </dl>
               </div>
@@ -400,15 +559,29 @@ onBeforeUnmount(() => {
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-[#785340]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                <svg
+                  class="h-6 w-6 text-[#785340]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
                 </svg>
               </div>
               <div class="ml-4 flex-1 min-w-0">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Popular Theme</dt>
+                  <dt class="text-sm font-medium text-gray-500 truncate">
+                    Popular Theme
+                  </dt>
                   <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">{{ popularTheme }}</div>
+                    <div class="text-2xl font-semibold text-gray-900">
+                      {{ popularTheme }}
+                    </div>
                   </dd>
                 </dl>
               </div>
@@ -419,8 +592,8 @@ onBeforeUnmount(() => {
 
       <!-- Filter Buttons -->
       <div class="mt-4 flex flex-col sm:flex-row gap-3">
-        <select 
-          v-model="themeFilter" 
+        <select
+          v-model="themeFilter"
           class="w-full sm:w-auto rounded-lg border-gray-300 text-sm focus:ring-[#785340] focus:border-[#785340]"
         >
           <option value="all">All Themes</option>
@@ -428,8 +601,8 @@ onBeforeUnmount(() => {
           <option value="Theme B">Theme B</option>
         </select>
 
-        <select 
-          v-model="statusFilter" 
+        <select
+          v-model="statusFilter"
           class="w-full sm:w-auto rounded-lg border-gray-300 text-sm focus:ring-[#785340] focus:border-[#785340]"
         >
           <option value="all">All Status</option>
@@ -488,8 +661,12 @@ onBeforeUnmount(() => {
         class="fixed inset-0 z-[70] overflow-y-auto"
         @click.self="closeModal"
       >
-        <div class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4 text-center">
-          <div class="relative w-full transform overflow-hidden bg-white text-left shadow-xl transition-all sm:my-8 sm:max-w-lg sm:rounded-lg">
+        <div
+          class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4 text-center"
+        >
+          <div
+            class="relative w-full transform overflow-hidden bg-white text-left shadow-xl transition-all sm:my-8 sm:max-w-lg sm:rounded-lg"
+          >
             <!-- Close button -->
             <div class="absolute right-0 top-0 hidden sm:block pr-4 pt-4">
               <button
@@ -515,8 +692,12 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Mobile Header with close button -->
-            <div class="sm:hidden flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900">Booking Details</h3>
+            <div
+              class="sm:hidden flex items-center justify-between p-4 border-b border-gray-200"
+            >
+              <h3 class="text-lg font-semibold text-gray-900">
+                Booking Details
+              </h3>
               <button
                 type="button"
                 class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
@@ -542,60 +723,91 @@ onBeforeUnmount(() => {
             <div class="px-4 pb-4 pt-5 sm:p-6">
               <div class="hidden sm:block">
                 <h3 class="text-lg font-semibold leading-6 text-gray-900 mb-4">
-                  Booking Details
+                  {{ selectedBooking?.title || "Booking Details" }}
                 </h3>
               </div>
-              
-              <div class="space-y-4">
+
+              <div v-if="selectedBooking" class="space-y-4">
+                <!-- Debug info -->
+                <!-- <div class="bg-gray-50 p-2 rounded text-xs">
+                  <pre>{{ JSON.stringify(selectedBooking, null, 2) }}</pre>
+                </div> -->
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Customer Name</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Customer Name</label
+                    >
                     <div class="mt-1 text-sm text-gray-900">
-                      {{ selectedBooking?.fullname }}
+                      {{ selectedBooking.fullname }}
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Email</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Email</label
+                    >
                     <div class="mt-1 text-sm text-gray-900 break-all">
-                      {{ selectedBooking?.email }}
+                      {{ selectedBooking.email }}
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Phone</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Phone</label
+                    >
                     <div class="mt-1 text-sm text-gray-900">
-                      {{ selectedBooking?.phone }}
+                      {{ selectedBooking.phone }}
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Theme</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Theme</label
+                    >
                     <div class="mt-1 text-sm text-gray-900">
-                      {{ selectedBooking?.theme }}
+                      {{ selectedBooking.theme }}
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Status</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Status</label
+                    >
                     <div class="mt-1">
                       <span
                         :class="[
                           'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                          getStatusBadgeClass(selectedBooking?.status),
+                          getStatusBadgeClass(selectedBooking.status),
                         ]"
                       >
-                        {{ getStatusText(selectedBooking?.status) }}
+                        {{ getStatusText(selectedBooking.status) }}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-500">Booking Created</label>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Session Date</label
+                    >
                     <div class="mt-1 text-sm text-gray-900">
-                      {{ new Date(selectedBooking?.created_date).toLocaleDateString() }}
+                      {{ formatDate(selectedBooking.session_date) }} -
+                      {{ formatTime(selectedBooking.session_time) }}
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-500"
+                      >Booking Created</label
+                    >
+                    <div class="mt-1 text-sm text-gray-900">
+                      {{ selectedBooking.formattedCreatedDate }}
                     </div>
                   </div>
                 </div>
               </div>
+              <div v-else class="text-center py-4">
+                <p class="text-gray-500">No booking details available</p>
+              </div>
             </div>
 
-            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+            <div
+              class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"
+            >
               <button
                 type="button"
                 class="w-full sm:w-auto inline-flex justify-center rounded-md bg-[#785340] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] sm:ml-3"
