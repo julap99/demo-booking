@@ -17,6 +17,8 @@ definePageMeta({
   layout: "dashboard",
 });
 
+const { $apiFetch } = useNuxtApp();
+
 const isLoading = ref(true);
 const calendarEl = ref(null);
 const bookings = ref([]);
@@ -140,7 +142,7 @@ const getEventColor = (status) => {
 // Fetch bookings from our API
 const fetchBookings = async () => {
   try {
-    const response = await $fetch("/api/booking/get-bookings");
+    const response = await $apiFetch("/api/booking/get-bookings");
     console.log("Fetched bookings:", response);
 
     bookings.value = response.map((booking) => {
@@ -215,8 +217,7 @@ const exportCalendar = () => {
     "Subject,Start Date,End Date,Description\n" +
     events
       .map(
-        (event) =>
-          `"${event.Subject}","${event.Start}","${event.Description}"`
+        (event) => `"${event.Subject}","${event.Start}","${event.Description}"`
       )
       .join("\n");
 
@@ -402,15 +403,15 @@ function formatTime(timeString) {
 </script>
 
 <template>
-  <div class="">
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="px-4 sm:px-0">
+    <div class="">
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">Calendar</h1>
+            <h1 class="text-2xl font-bold text-gray-900">Calendar</h1>
             <p class="mt-1 text-sm text-gray-500">
               View and manage your booking schedule
             </p>
@@ -439,51 +440,31 @@ function formatTime(timeString) {
             </svg>
           </button>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="flex gap-3">
-          <button
-            @click="exportCalendar"
-            class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-200 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-          >
-            <svg
-              class="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
-            Export Calendar
-          </button>
-        </div>
       </div>
 
       <!-- Stats Grid -->
-      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        class="mt-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+      >
         <!-- Total Monthly Bookings -->
         <div
           class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-blue-600"
+                <span class="text-xs sm:text-sm font-medium text-blue-600"
                   >Monthly Bookings</span
                 >
-                <span class="mt-2 text-3xl font-bold text-blue-900">{{
-                  monthlyBookings
-                }}</span>
+                <span
+                  class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-blue-900"
+                  >{{ monthlyBookings }}</span
+                >
               </div>
-              <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
+              <div class="p-2 sm:p-3 bg-blue-500 bg-opacity-10 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-blue-600"
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -505,20 +486,21 @@ function formatTime(timeString) {
         <div
           class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-amber-600"
-                  >Upcoming (7 Days)</span
+                <span class="text-xs sm:text-sm font-medium text-amber-600"
+                  >Upcoming</span
                 >
-                <span class="mt-2 text-3xl font-bold text-amber-900">{{
-                  upcomingBookings
-                }}</span>
+                <span
+                  class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-amber-900"
+                  >{{ upcomingBookings }}</span
+                >
               </div>
-              <div class="p-3 bg-amber-500 bg-opacity-10 rounded-lg">
+              <div class="p-2 sm:p-3 bg-amber-500 bg-opacity-10 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-amber-600"
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -538,20 +520,21 @@ function formatTime(timeString) {
         <div
           class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-emerald-600"
-                  >Today's Bookings</span
+                <span class="text-xs sm:text-sm font-medium text-emerald-600"
+                  >Today</span
                 >
-                <span class="mt-2 text-3xl font-bold text-emerald-900">{{
-                  todayBookings
-                }}</span>
+                <span
+                  class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-emerald-900"
+                  >{{ todayBookings }}</span
+                >
               </div>
-              <div class="p-3 bg-emerald-500 bg-opacity-10 rounded-lg">
+              <div class="p-2 sm:p-3 bg-emerald-500 bg-opacity-10 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-emerald-600"
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -573,20 +556,21 @@ function formatTime(timeString) {
         <div
           class="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-violet-600"
+                <span class="text-xs sm:text-sm font-medium text-violet-600"
                   >Popular Theme</span
                 >
-                <span class="mt-2 text-3xl font-bold text-violet-900">{{
-                  popularTheme
-                }}</span>
+                <span
+                  class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-violet-900 truncate max-w-[120px] sm:max-w-none"
+                  >{{ popularTheme }}</span
+                >
               </div>
-              <div class="p-3 bg-violet-500 bg-opacity-10 rounded-lg">
+              <div class="p-2 sm:p-3 bg-violet-500 bg-opacity-10 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-violet-600"
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -604,46 +588,69 @@ function formatTime(timeString) {
         </div>
       </div>
 
-      <!-- Filter Buttons -->
+      <!-- Filter Section -->
       <div
-        class="mt-4 flex items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
+        class="mt-4 flex flex-col gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
       >
-        <span class="text-sm font-medium text-gray-500">Filter by Theme:</span>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <span class="text-sm font-medium text-gray-500"
+            >Filter by Theme:</span
+          >
 
-        <!-- Theme Filter -->
-        <div class="relative flex-1 sm:flex-none">
-          <select
-            v-model="themeFilter"
-            class="w-full sm:w-40 appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-          >
-            <option value="all">All Themes</option>
-            <option v-for="theme in themeOptions" :key="theme" :value="theme">
-              {{ theme }}
-            </option>
-          </select>
-          <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          <!-- Theme Filter -->
+          <div class="relative flex-1">
+            <select
+              v-model="themeFilter"
+              class="w-full sm:w-48 appearance-none pl-9 pr-8 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
             >
-              <path
-                d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
-              ></path>
-              <line x1="4" y1="22" x2="4" y2="15"></line>
-            </svg>
+              <option value="all">All Themes</option>
+              <option v-for="theme in themeOptions" :key="theme" :value="theme">
+                {{ theme }}
+              </option>
+            </select>
+            <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                ></path>
+                <line x1="4" y1="22" x2="4" y2="15"></line>
+              </svg>
+            </div>
+            <div
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
           </div>
-          <div
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+
+          <!-- Reset Button -->
+          <button
+            class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+            @click="resetFilters"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
+              class="w-4 h-4 mr-1.5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -651,41 +658,46 @@ function formatTime(timeString) {
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <polyline points="6 9 12 15 18 9"></polyline>
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <polyline points="23 20 23 14 17 14"></polyline>
+              <path
+                d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+              ></path>
             </svg>
+            Reset
+          </button>
+
+          <!-- Quick Actions -->
+          <div class="flex gap-3">
+            <button
+              @click="exportCalendar"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-200 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+            >
+              <svg
+                class="h-4 w-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              <span class="hidden sm:inline">Export Calendar</span>
+              <span class="sm:hidden">Export</span>
+            </button>
           </div>
         </div>
-
-        <div class="h-5 w-px bg-gray-200 hidden sm:block"></div>
-
-        <!-- Reset Button -->
-        <button
-          class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-          @click="resetFilters"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 mr-1.5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="1 4 1 10 7 10"></polyline>
-            <polyline points="23 20 23 14 17 14"></polyline>
-            <path
-              d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
-            ></path>
-          </svg>
-          Reset
-        </button>
       </div>
     </div>
 
     <!-- Calendar Container -->
-    <div class="mt-6 bg-white rounded-lg shadow overflow-hidden">
+    <div
+      class="mt-4 sm:mt-6 bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100"
+    >
       <!-- Loading State -->
       <div v-if="isLoading" class="p-4 sm:p-6">
         <div class="animate-pulse flex space-x-4">
@@ -714,7 +726,7 @@ function formatTime(timeString) {
     >
       <div
         v-if="showModal"
-        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-[60]"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity z-[60]"
         @click="closeModal"
       ></div>
     </Transition>
@@ -738,30 +750,6 @@ function formatTime(timeString) {
           <div
             class="relative w-full transform overflow-hidden bg-white text-left shadow-xl transition-all sm:my-8 sm:max-w-lg sm:rounded-lg"
           >
-            <!-- Close button -->
-            <div class="absolute right-0 top-0 hidden sm:block pr-4 pt-4">
-              <button
-                type="button"
-                class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-bg-tertiary)] focus:ring-offset-2"
-                @click="closeModal"
-              >
-                <span class="sr-only">Close</span>
-                <svg
-                  class="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
             <!-- Mobile Header with close button -->
             <div
               class="sm:hidden flex items-center justify-between p-4 border-b border-gray-200"
@@ -793,19 +781,36 @@ function formatTime(timeString) {
 
             <div class="px-4 pb-4 pt-5 sm:p-6">
               <div class="hidden sm:block">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 mb-4">
-                  {{ selectedBooking?.title || "Booking Details" }}
-                </h3>
+                <div class="flex items-start justify-between">
+                  <h3 class="text-lg font-semibold leading-6 text-gray-900">
+                    {{ selectedBooking?.title || "Booking Details" }}
+                  </h3>
+                  <button
+                    type="button"
+                    class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#785340] focus:ring-offset-2"
+                    @click="closeModal"
+                  >
+                    <span class="sr-only">Close</span>
+                    <svg
+                      class="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <div v-if="selectedBooking" class="space-y-4">
-                <!-- Debug info -->
-                <!-- <div class="bg-gray-50 p-2 rounded text-xs">
-                  <pre>{{ JSON.stringify(selectedBooking, null, 2) }}</pre>
-                </div> -->
-
+              <div v-if="selectedBooking" class="mt-4 space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Customer Name</label
                     >
@@ -813,7 +818,7 @@ function formatTime(timeString) {
                       {{ selectedBooking.fullname }}
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Email</label
                     >
@@ -821,7 +826,7 @@ function formatTime(timeString) {
                       {{ selectedBooking.email }}
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Phone</label
                     >
@@ -829,7 +834,7 @@ function formatTime(timeString) {
                       {{ selectedBooking.phone }}
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Theme</label
                     >
@@ -837,7 +842,7 @@ function formatTime(timeString) {
                       {{ selectedBooking.theme }}
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Status</label
                     >
@@ -852,7 +857,7 @@ function formatTime(timeString) {
                       </span>
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Session Date</label
                     >
@@ -861,7 +866,7 @@ function formatTime(timeString) {
                       {{ formatTime(selectedBooking.session_time) }}
                     </div>
                   </div>
-                  <div>
+                  <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-500"
                       >Booking Created</label
                     >
@@ -881,7 +886,7 @@ function formatTime(timeString) {
             >
               <button
                 type="button"
-                class="w-full sm:w-auto inline-flex justify-center rounded-md bg-[var(--color-bg-secondary)] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-tertiary)] sm:ml-3"
+                class="w-full sm:w-auto inline-flex justify-center rounded-md bg-[#785340] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#3C2A21] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] transition-colors duration-200"
                 @click="closeModal"
               >
                 Close
@@ -897,15 +902,15 @@ function formatTime(timeString) {
 <style>
 /* Calendar Theme Customization */
 .fc-theme-standard .fc-toolbar {
-  @apply px-4 py-3 border-b border-[var(--color-border-primary)];
+  @apply px-3 sm:px-4 py-2 sm:py-3 border-b border-[var(--color-border-primary)];
 }
 
 .fc-theme-standard .fc-toolbar-title {
-  @apply text-lg font-medium text-[var(--color-text-primary)];
+  @apply text-base sm:text-lg font-medium text-[var(--color-text-primary)];
 }
 
 .fc-theme-standard .fc-button {
-  @apply inline-flex items-center px-3 py-2 border border-[var(--color-border-primary)] shadow-sm text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-white)] hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-tertiary)];
+  @apply inline-flex items-center px-2 sm:px-3 py-1.5 sm:py-2 border border-[var(--color-border-primary)] shadow-sm text-xs sm:text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-white)] hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-tertiary)] transition-colors duration-200;
 }
 
 .fc-theme-standard .fc-button-primary {
@@ -937,23 +942,14 @@ function formatTime(timeString) {
   @apply font-medium;
 }
 
-/* Add these styles for better modal overlay */
-.fc {
-  @apply relative z-10;
-}
-
-.modal-open {
-  @apply overflow-hidden;
-}
-
 /* Mobile List View Styles */
 @media (max-width: 767px) {
   .fc-list-event {
-    @apply px-4 py-3;
+    @apply px-3 py-2 border-b border-gray-100;
   }
 
   .fc-list-event-title {
-    @apply text-sm font-medium;
+    @apply text-sm font-medium text-gray-900;
   }
 
   .fc-list-event-time {
@@ -961,7 +957,15 @@ function formatTime(timeString) {
   }
 
   .fc-list-day-cushion {
-    @apply bg-[#F5E6E0]/30 px-4 py-2;
+    @apply bg-[#F5E6E0]/30 px-3 py-2 sticky top-0 z-10;
+  }
+
+  .fc-list-day-text {
+    @apply text-sm font-medium text-gray-900;
+  }
+
+  .fc-list-day-side-text {
+    @apply text-xs text-gray-500;
   }
 
   .fc-toolbar-title {
@@ -970,6 +974,30 @@ function formatTime(timeString) {
 
   .fc-button {
     @apply px-2 py-1 text-xs;
+  }
+
+  .fc-header-toolbar {
+    @apply flex-wrap gap-2;
+  }
+
+  .fc-toolbar-chunk {
+    @apply flex-grow;
+  }
+
+  .fc .fc-toolbar.fc-header-toolbar {
+    @apply mb-3;
+  }
+
+  .fc .fc-button {
+    @apply py-1 px-2;
+  }
+
+  .fc .fc-button-group {
+    @apply gap-1;
+  }
+
+  .fc .fc-list-event-dot {
+    @apply w-2 h-2;
   }
 }
 </style>

@@ -185,17 +185,17 @@ const formatDate = (date: string) => {
 };
 
 const formatTime = (time: string) => {
-  if (!time) return '';
+  if (!time) return "";
   // Split the time string into hours and minutes
-  const [hours, minutes] = time.split(':');
+  const [hours, minutes] = time.split(":");
   // Create a date object for today with the specified time
   const date = new Date();
   date.setHours(parseInt(hours, 10));
   date.setMinutes(parseInt(minutes, 10));
-  
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: 'numeric',
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
   });
 };
 
@@ -504,7 +504,7 @@ const getChangeColor = (type: string) => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6 sm:space-y-8">
     <!-- Loading State -->
     <div v-if="pending" class="flex items-center justify-center h-96">
       <div class="w-full max-w-3xl space-y-4 p-4">
@@ -519,13 +519,13 @@ const getChangeColor = (type: string) => {
 
     <!-- Error State -->
     <div v-else-if="error" class="flex items-center justify-center h-96">
-      <div class="text-center">
+      <div class="text-center px-4">
         <p class="text-lg font-medium text-gray-900">Something went wrong</p>
         <p class="mt-1 text-sm text-gray-500">{{ error.message }}</p>
         <button
           type="button"
           @click="() => fetchDashboardData()"
-          class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
+          class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors duration-200"
         >
           Try again
         </button>
@@ -535,34 +535,35 @@ const getChangeColor = (type: string) => {
     <!-- Content -->
     <template v-else>
       <!-- Welcome Section -->
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Welcome back!</h1>
+      <div class="">
+        <h1 class="text-2xl font-bold text-gray-900">Welcome back!</h1>
         <p class="mt-1 text-sm text-gray-500">
           Here's an overview of your photography business.
         </p>
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
         <div
           v-for="item in stats"
           :key="item.name"
           class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-blue-600">{{
+                <span class="text-xs sm:text-sm font-medium text-blue-600">{{
                   item.name
                 }}</span>
-                <span class="mt-2 text-3xl font-bold text-blue-900">{{
-                  item.stat
-                }}</span>
+                <span
+                  class="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-blue-900 truncate max-w-[180px] sm:max-w-none"
+                  >{{ item.stat }}</span
+                >
               </div>
-              <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
+              <div class="p-2 sm:p-3 bg-blue-500 bg-opacity-10 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-blue-600"
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -574,55 +575,59 @@ const getChangeColor = (type: string) => {
                 </svg>
               </div>
             </div>
-            <p class="mt-2 text-sm text-blue-600">{{ item.description }}</p>
+            <p class="mt-2 text-xs sm:text-sm text-blue-600 line-clamp-2">
+              {{ item.description }}
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Two Column Layout -->
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
         <!-- Recent Bookings -->
-        <div class="bg-white shadow rounded-lg">
-          <div class="p-6 border-b border-gray-200">
+        <div class="bg-white shadow-sm rounded-lg border border-gray-100">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-lg font-medium text-gray-900">
+                <h2 class="text-base sm:text-lg font-medium text-gray-900">
                   Recent Bookings
                 </h2>
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-xs sm:text-sm text-gray-500">
                   Latest photography bookings
                 </p>
               </div>
               <NuxtLink
                 to="/dashboard/bookings"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="inline-flex items-center px-3 py-1.5 sm:py-2 border border-gray-200 shadow-sm text-xs sm:text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 View All
               </NuxtLink>
             </div>
           </div>
-          <ul role="list" class="divide-y divide-gray-200">
+          <ul role="list" class="divide-y divide-gray-100">
             <li
               v-for="booking in dashboardData?.recentBookings || []"
               :key="booking.id"
-              class="p-6 hover:bg-gray-50 transition-colors duration-150"
+              class="p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-150"
             >
               <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-gray-900 truncate">
                     {{ booking.name }}
                   </p>
-                  <div class="flex items-center mt-1">
-                    <p class="text-sm text-gray-500">{{ booking.theme }}</p>
-                    <span class="mx-2 text-gray-500">·</span>
-                    <p class="text-sm text-gray-500">
+                  <div class="flex flex-wrap items-center gap-2 mt-1">
+                    <p class="text-xs sm:text-sm text-gray-500 truncate">
+                      {{ booking.theme }}
+                    </p>
+                    <span class="hidden sm:inline text-gray-500">·</span>
+                    <p class="text-xs sm:text-sm text-gray-500">
                       {{ formatDate(booking.latest_booking) }}
                     </p>
                   </div>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="ml-4 flex-shrink-0">
                   <span
-                    class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                     :class="getStatusColor(booking.payment_status)"
                   >
                     {{
@@ -638,7 +643,7 @@ const getChangeColor = (type: string) => {
             </li>
             <li
               v-if="(dashboardData?.recentBookings ?? []).length === 0"
-              class="p-6 text-center"
+              class="p-4 sm:p-6 text-center"
             >
               <p class="text-sm text-gray-500">No recent bookings</p>
             </li>
@@ -646,48 +651,55 @@ const getChangeColor = (type: string) => {
         </div>
 
         <!-- Upcoming Sessions -->
-        <div class="bg-white shadow rounded-lg">
-          <div class="p-6 border-b border-gray-200">
+        <div class="bg-white shadow-sm rounded-lg border border-gray-100">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-lg font-medium text-gray-900">
+                <h2 class="text-base sm:text-lg font-medium text-gray-900">
                   Upcoming Sessions
                 </h2>
-                <p class="mt-1 text-sm text-gray-500">Next 7 days</p>
+                <p class="mt-1 text-xs sm:text-sm text-gray-500">Next 7 days</p>
               </div>
               <NuxtLink
                 to="/dashboard/calendar"
-                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="inline-flex items-center px-3 py-1.5 sm:py-2 border border-gray-200 shadow-sm text-xs sm:text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 View Calendar
               </NuxtLink>
             </div>
           </div>
-          <ul role="list" class="divide-y divide-gray-200">
+          <ul role="list" class="divide-y divide-gray-100">
             <li
               v-for="session in dashboardData?.upcomingSessions || []"
               :key="session.id"
-              class="p-6 hover:bg-gray-50 transition-colors duration-150"
+              class="p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-150"
             >
               <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-gray-900 truncate">
                     {{ session.name }}
                   </p>
-                  <div class="flex items-center mt-1">
-                    <p class="text-sm text-gray-500">{{ session.theme }}</p>
-                    <span class="mx-2 text-gray-500">·</span>
-                    <p class="text-sm text-gray-500">
-                      {{ session.date ? formatDate(session.date) : 'No date' }}
+                  <div class="flex flex-wrap items-center gap-2 mt-1">
+                    <p class="text-xs sm:text-sm text-gray-500 truncate">
+                      {{ session.theme }}
+                    </p>
+                    <span class="hidden sm:inline text-gray-500">·</span>
+                    <p class="text-xs sm:text-sm text-gray-500">
+                      {{
+                        session.booking_date
+                          ? formatDate(session.booking_date)
+                          : "No date"
+                      }}
                     </p>
                   </div>
-                  <p class="text-sm text-gray-500 mt-1">
-                    {{ session.pax }} Pax at {{ session.time ? formatTime(session.time) : 'No time' }}
+                  <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                    {{ session.number_of_pax }} Pax at
+                    {{ session.location || "No location" }}
                   </p>
                 </div>
-                <div>
+                <div class="ml-4 flex-shrink-0">
                   <span
-                    class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap"
                     :class="getSessionStatusColor(session.status)"
                   >
                     {{
@@ -703,7 +715,7 @@ const getChangeColor = (type: string) => {
             </li>
             <li
               v-if="(dashboardData?.upcomingSessions ?? []).length === 0"
-              class="p-6 text-center"
+              class="p-4 sm:p-6 text-center"
             >
               <p class="text-sm text-gray-500">
                 No upcoming sessions in the next 7 days
@@ -714,20 +726,26 @@ const getChangeColor = (type: string) => {
       </div>
 
       <!-- Monthly Overview Chart -->
-      <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex items-center justify-between mb-6">
+      <div
+        class="bg-white shadow-sm rounded-lg border border-gray-100 p-4 sm:p-6"
+      >
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+        >
           <div>
-            <h2 class="text-lg font-medium text-[var(--color-text-primary)]">
+            <h2
+              class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]"
+            >
               Monthly Overview
             </h2>
-            <p class="mt-1 text-sm text-[var(--color-text-muted)]">
+            <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
               Bookings and revenue trends
             </p>
           </div>
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center">
             <select
               v-model="timeRange"
-              class="rounded-lg border-gray-300 text-sm focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+              class="w-full sm:w-auto rounded-lg border-gray-200 text-sm focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-colors duration-200"
             >
               <option value="30">Last 30 days</option>
               <option value="90">Last 90 days</option>
@@ -735,7 +753,7 @@ const getChangeColor = (type: string) => {
             </select>
           </div>
         </div>
-        <div class="h-[400px] w-full">
+        <div class="h-[300px] sm:h-[400px] w-full">
           <canvas id="overview-chart"></canvas>
         </div>
       </div>
@@ -743,4 +761,21 @@ const getChangeColor = (type: string) => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+@media (max-width: 640px) {
+  .fc-header-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .fc-toolbar-chunk {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.25rem;
+  }
+}
+</style>

@@ -235,11 +235,13 @@ const openDetailsModal = (contact) => {
       class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
     >
       <!-- Table Header Actions -->
-      <div class="p-6 space-y-4 border-b border-gray-100">
+      <div class="p-4 sm:p-6 space-y-4 border-b border-gray-100">
         <!-- Top Row: Search and Export -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
+        >
           <!-- Search Input -->
-          <div class="relative w-full md:w-96">
+          <div class="relative flex-1 min-w-0">
             <input
               v-model="search"
               type="text"
@@ -265,12 +267,12 @@ const openDetailsModal = (contact) => {
 
           <!-- Export Button -->
           <button
-            class="inline-flex items-center px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 whitespace-nowrap gap-2"
             @click="exportToCSV"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 mr-2"
+              class="w-5 h-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -282,22 +284,25 @@ const openDetailsModal = (contact) => {
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Export to CSV
+            <span class="hidden sm:inline">Export to CSV</span>
+            <span class="sm:hidden">Export</span>
           </button>
         </div>
 
         <!-- Bottom Row: Filters -->
         <div
-          class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
+          class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
         >
           <span class="text-sm font-medium text-gray-500">Filters:</span>
 
           <!-- Date Range -->
-          <div class="flex items-center gap-2">
-            <div class="relative">
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1"
+          >
+            <div class="relative flex-1">
               <input
                 type="date"
-                class="w-40 pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
               />
               <div
                 class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
@@ -319,11 +324,11 @@ const openDetailsModal = (contact) => {
                 </svg>
               </div>
             </div>
-            <span class="text-sm text-gray-400">to</span>
-            <div class="relative">
+            <span class="text-sm text-gray-400 hidden sm:inline">to</span>
+            <div class="relative flex-1">
               <input
                 type="date"
-                class="w-40 pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
               />
               <div
                 class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
@@ -347,11 +352,11 @@ const openDetailsModal = (contact) => {
             </div>
           </div>
 
-          <div class="h-5 w-px bg-gray-200"></div>
+          <div class="hidden sm:block h-5 w-px bg-gray-200"></div>
 
           <!-- Reset Button -->
           <button
-            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+            class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
             @click="resetFilters"
           >
             <svg
@@ -383,7 +388,11 @@ const openDetailsModal = (contact) => {
           ></div>
         </div>
 
-        <table v-else class="min-w-full divide-y divide-gray-100">
+        <!-- Desktop Table View -->
+        <table
+          v-else
+          class="min-w-full divide-y divide-gray-100 hidden sm:table"
+        >
           <thead class="bg-gray-50">
             <tr>
               <th
@@ -586,15 +595,210 @@ const openDetailsModal = (contact) => {
             </tr>
           </tbody>
         </table>
+
+        <!-- Mobile List View -->
+        <div class="sm:hidden divide-y divide-gray-100">
+          <div
+            v-for="(contact, index) in paginatedContacts"
+            :key="contact.id"
+            class="p-4 space-y-4 bg-white"
+          >
+            <!-- Contact Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 flex-shrink-0 rounded-full bg-blue-500 bg-opacity-10 flex items-center justify-center"
+                >
+                  <span class="text-sm font-medium text-blue-700">
+                    {{ contact.name.charAt(0) }}
+                  </span>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ contact.name }}
+                  </div>
+                  <div class="text-xs text-gray-500">{{ contact.email }}</div>
+                  <div class="text-xs text-gray-500">{{ contact.phone }}</div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="flex items-center gap-2">
+                <button
+                  @click="openDetailsModal(contact)"
+                  class="p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Booking Stats -->
+            <div class="space-y-3 bg-gray-50 rounded-lg p-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500"
+                  >Total Bookings</span
+                >
+                <span
+                  class="px-2 py-0.5 text-xs font-medium rounded-full"
+                  :class="{
+                    'bg-green-100 text-green-800': contact.total_bookings > 0,
+                    'bg-gray-100 text-gray-800': contact.total_bookings === 0,
+                  }"
+                >
+                  {{ contact.total_bookings }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                  <div
+                    class="flex items-center justify-between bg-green-50 rounded px-2 py-1"
+                  >
+                    <span class="text-xs text-green-700">Completed</span>
+                    <span class="text-xs font-medium text-green-800">{{
+                      contact.completed_session
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between bg-yellow-50 rounded px-2 py-1"
+                  >
+                    <span class="text-xs text-yellow-700">Pending</span>
+                    <span class="text-xs font-medium text-yellow-800">{{
+                      contact.pending_session
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between bg-red-50 rounded px-2 py-1"
+                  >
+                    <span class="text-xs text-red-700">Cancelled</span>
+                    <span class="text-xs font-medium text-red-800">{{
+                      contact.cancelled_session
+                    }}</span>
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <div
+                    class="flex flex-wrap items-center justify-between bg-blue-50 rounded px-2 py-1"
+                  >
+                    <span class="text-xs text-blue-700">Latest</span>
+                    <span class="text-xs font-medium text-blue-800">
+                      {{
+                        contact.latest_booking
+                          ? formatDate(contact.latest_booking)
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                  <div
+                    class="flex flex-wrap items-center justify-between bg-purple-50 rounded px-2 py-1"
+                  >
+                    <span class="text-xs text-purple-700">First</span>
+                    <span class="text-xs font-medium text-purple-800">
+                      {{
+                        contact.first_booking
+                          ? formatDate(contact.first_booking)
+                          : "N/A"
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Themes -->
+            <div v-if="contact.themes" class="flex flex-wrap gap-1">
+              <span
+                v-for="theme in contact.themes.split(',').slice(0, 2)"
+                :key="theme"
+                class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded"
+              >
+                {{ theme }}
+              </span>
+              <span
+                v-if="contact.themes.split(',').length > 2"
+                class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded"
+              >
+                +{{ contact.themes.split(",").length - 2 }}
+              </span>
+            </div>
+
+            <!-- Contact Actions -->
+            <div class="flex justify-end gap-2 pt-2">
+              <a
+                :href="'mailto:' + contact.email"
+                class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100"
+              >
+                <svg
+                  class="w-4 h-4 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                Email
+              </a>
+              <a
+                :href="'https://wa.me/' + contact.phone?.replace(/\D/g, '')"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100"
+              >
+                <svg
+                  class="w-4 h-4 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"
+                  />
+                </svg>
+                WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Table Footer with Pagination -->
-      <div class="px-6 py-4 border-t border-gray-100 bg-white">
+      <!-- Table Footer -->
+      <div class="px-4 sm:px-6 py-4 border-t border-gray-100 bg-white">
         <div
-          class="flex flex-col md:flex-row justify-between items-center gap-4"
+          class="flex flex-col sm:flex-row justify-between items-center gap-4"
         >
-          <div class="flex items-center gap-4 text-sm text-gray-700">
-            <span>
+          <!-- Entries Info -->
+          <div
+            class="flex items-center gap-4 text-sm text-gray-700 order-2 sm:order-1"
+          >
+            <span class="whitespace-nowrap">
               Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
               {{
                 Math.min(currentPage * itemsPerPage, filteredContacts.length)
@@ -611,7 +815,8 @@ const openDetailsModal = (contact) => {
             </select>
           </div>
 
-          <div class="flex gap-2">
+          <!-- Pagination -->
+          <div class="flex gap-2 order-1 sm:order-2">
             <button
               class="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               :disabled="currentPage === 1"
@@ -619,7 +824,7 @@ const openDetailsModal = (contact) => {
             >
               Previous
             </button>
-            <div class="flex gap-1">
+            <div class="hidden sm:flex gap-1">
               <button
                 v-for="page in getPageNumbers()"
                 :key="page"
@@ -660,11 +865,9 @@ const openDetailsModal = (contact) => {
           class="fixed inset-0 min-h-screen flex items-center justify-center p-4 z-50"
         >
           <!-- Modal -->
-          <div class="w-full max-w-2xl bg-white rounded-xl shadow-xl">
+          <div class="w-full max-w-2xl bg-white rounded-xl shadow-xl relative">
             <!-- Modal Header -->
-            <div
-              class="flex items-center justify-between p-6 border-b border-gray-100"
-            >
+            <div class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
               <div class="flex items-center gap-3">
                 <div class="p-2 bg-blue-50 rounded-lg">
                   <svg
@@ -683,12 +886,13 @@ const openDetailsModal = (contact) => {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">
-                  Contact Details
-                </h3>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Contact Details</h3>
+                  <p class="text-sm text-gray-500">View detailed information about this contact</p>
+                </div>
               </div>
               <button
-                class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50"
+                class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 @click="showDetailsModal = false"
               >
                 <svg
@@ -707,114 +911,133 @@ const openDetailsModal = (contact) => {
             </div>
 
             <!-- Modal Content -->
-            <div
-              class="p-6 space-y-6 max-h-[calc(100vh-16rem)] overflow-y-auto"
-            >
+            <div class="p-4 sm:p-6 space-y-6 max-h-[calc(100vh-16rem)] overflow-y-auto">
               <!-- Contact Information -->
-              <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                <h4 class="text-sm font-medium text-gray-500">
-                  Contact Information
-                </h4>
-                <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-medium text-gray-900">Contact Information</h4>
+                  <span class="px-2.5 py-0.5 text-xs font-medium rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-800': selectedContact?.total_bookings > 0,
+                      'bg-gray-100 text-gray-800': selectedContact?.total_bookings === 0
+                    }"
+                  >
+                    {{ selectedContact?.total_bookings }} Total Bookings
+                  </span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Full Name</div>
-                    <div class="font-medium text-gray-900">
-                      {{ selectedContact?.name }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ selectedContact?.name }}</div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Email</div>
-                    <div class="font-medium text-gray-900">
-                      {{ selectedContact?.email }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ selectedContact?.email }}</div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Phone</div>
-                    <div class="font-medium text-gray-900">
-                      {{ selectedContact?.phone }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ selectedContact?.phone }}</div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">First Booking</div>
-                    <div class="font-medium text-gray-900">
-                      {{ formatDate(selectedContact?.first_booking) }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ formatDate(selectedContact?.first_booking) }}</div>
                   </div>
                 </div>
               </div>
 
               <!-- Booking Statistics -->
-              <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                <h4 class="text-sm font-medium text-gray-500">
-                  Booking Statistics
-                </h4>
-                <div class="grid grid-cols-3 gap-4">
+              <div class="space-y-4">
+                <h4 class="text-sm font-medium text-gray-900">Booking Statistics</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div class="bg-[#F5E6E0]/30 rounded-lg p-4">
-                    <p class="text-xs text-gray-500">Total Bookings</p>
-                    <p class="text-2xl font-semibold text-[#3C2A21]">
-                      {{ selectedContact?.total_bookings }}
-                    </p>
+                    <p class="text-xs text-gray-500 mb-1">Total Bookings</p>
+                    <p class="text-2xl font-semibold text-[#3C2A21]">{{ selectedContact?.total_bookings }}</p>
                   </div>
                   <div class="bg-green-50 rounded-lg p-4">
-                    <p class="text-xs text-gray-500">Completed Session</p>
-                    <p class="text-2xl font-semibold text-green-600">
-                      {{ selectedContact?.completed_session }}
-                    </p>
+                    <p class="text-xs text-gray-500 mb-1">Completed</p>
+                    <p class="text-2xl font-semibold text-green-600">{{ selectedContact?.completed_session }}</p>
                   </div>
                   <div class="bg-yellow-50 rounded-lg p-4">
-                    <p class="text-xs text-gray-500">Pending Session</p>
-                    <p class="text-2xl font-semibold text-yellow-600">
-                      {{ selectedContact?.pending_session }}
-                    </p>
+                    <p class="text-xs text-gray-500 mb-1">Pending</p>
+                    <p class="text-2xl font-semibold text-yellow-600">{{ selectedContact?.pending_session }}</p>
                   </div>
                   <div class="bg-red-50 rounded-lg p-4">
-                    <p class="text-xs text-gray-500">Cancelled Session</p>
-                    <p class="text-2xl font-semibold text-red-600">
-                      {{ selectedContact?.cancelled_session }}
-                    </p>
+                    <p class="text-xs text-gray-500 mb-1">Cancelled</p>
+                    <p class="text-2xl font-semibold text-red-600">{{ selectedContact?.cancelled_session }}</p>
                   </div>
                 </div>
               </div>
 
               <!-- Themes Booked -->
-              <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                <h4 class="text-sm font-medium text-gray-500">Themes Booked</h4>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="theme in selectedContact?.themes?.split(',')"
-                    :key="theme"
-                    class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                  >
-                    {{ theme }}
-                  </span>
+              <div class="space-y-4">
+                <h4 class="text-sm font-medium text-gray-900">Themes Booked</h4>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="theme in selectedContact?.themes?.split(',')"
+                      :key="theme"
+                      class="px-3 py-1 rounded-full text-xs font-medium bg-white text-gray-800 border border-gray-200"
+                    >
+                      {{ theme }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Information -->
+              <div class="space-y-4">
+                <h4 class="text-sm font-medium text-gray-900">Additional Information</h4>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                  <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Latest booking: {{ formatDate(selectedContact?.latest_booking) }}</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Average session duration: 1 hour</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span>Preferred contact method: {{ selectedContact?.phone ? 'WhatsApp' : 'Email' }}</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
 
             <!-- Modal Footer -->
-            <div
-              class="px-6 py-4 bg-gray-50 flex justify-end space-x-3 border-t border-gray-100"
-            >
+            <div class="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-white rounded-b-xl flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 flex-shrink-0">
               <button
-                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+                class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 text-sm"
                 @click="showDetailsModal = false"
               >
                 Close
               </button>
               <a
                 :href="'mailto:' + selectedContact?.email"
-                class="px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 text-sm inline-flex items-center justify-center gap-2"
               >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
                 Send Email
               </a>
               <a
-                :href="
-                  'https://wa.me/' + selectedContact?.phone?.replace(/\D/g, '')
-                "
+                :href="'https://wa.me/' + selectedContact?.phone?.replace(/\D/g, '')"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                class="w-full sm:w-auto px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 text-sm inline-flex items-center justify-center gap-2"
               >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                </svg>
                 WhatsApp
               </a>
             </div>

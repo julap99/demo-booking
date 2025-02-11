@@ -6,25 +6,26 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
       <!-- Confirmed Bookings Card -->
       <div
         class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
       >
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
           <div class="flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-blue-600"
+              <span class="text-xs sm:text-sm font-medium text-blue-600"
                 >Total Confirmed</span
               >
-              <span class="mt-2 text-3xl font-bold text-blue-900">{{
-                stats.confirmed
-              }}</span>
+              <span
+                class="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-blue-900"
+                >{{ stats.confirmed }}</span
+              >
             </div>
-            <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
+            <div class="p-2 sm:p-3 bg-blue-500 bg-opacity-10 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-blue-600"
+                class="w-4 h-4 sm:w-6 sm:h-6 text-blue-600"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -46,20 +47,21 @@
       <div
         class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
       >
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
           <div class="flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-amber-600"
+              <span class="text-xs sm:text-sm font-medium text-amber-600"
                 >Partially Paid</span
               >
-              <span class="mt-2 text-3xl font-bold text-amber-900">{{
-                stats.partiallyPaid
-              }}</span>
+              <span
+                class="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-amber-900"
+                >{{ stats.partiallyPaid }}</span
+              >
             </div>
-            <div class="p-3 bg-amber-500 bg-opacity-10 rounded-lg">
+            <div class="p-2 sm:p-3 bg-amber-500 bg-opacity-10 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-amber-600"
+                class="w-4 h-4 sm:w-6 sm:h-6 text-amber-600"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -81,20 +83,21 @@
       <div
         class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
       >
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
           <div class="flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-emerald-600"
+              <span class="text-xs sm:text-sm font-medium text-emerald-600"
                 >Total Frames</span
               >
-              <span class="mt-2 text-3xl font-bold text-emerald-900">{{
-                stats.totalFrames
-              }}</span>
+              <span
+                class="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-emerald-900"
+                >{{ stats.totalFrames }}</span
+              >
             </div>
-            <div class="p-3 bg-emerald-500 bg-opacity-10 rounded-lg">
+            <div class="p-2 sm:p-3 bg-emerald-500 bg-opacity-10 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-emerald-600"
+                class="w-4 h-4 sm:w-6 sm:h-6 text-emerald-600"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -115,20 +118,21 @@
       <div
         class="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
       >
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
           <div class="flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-violet-600"
+              <span class="text-xs sm:text-sm font-medium text-violet-600"
                 >Total Sales</span
               >
-              <span class="mt-2 text-3xl font-bold text-violet-900"
+              <span
+                class="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-violet-900 whitespace-nowrap"
                 >RM {{ formatNumber(stats.totalSales) }}</span
               >
             </div>
-            <div class="p-3 bg-violet-500 bg-opacity-10 rounded-lg">
+            <div class="p-2 sm:p-3 bg-violet-500 bg-opacity-10 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-violet-600"
+                class="w-4 h-4 sm:w-6 sm:h-6 text-violet-600"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -147,18 +151,20 @@
 
     <!-- Table Section -->
     <div
-      class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+      class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 mt-6"
     >
       <!-- Table Header Actions -->
-      <div class="p-6 space-y-4 border-b border-gray-100">
+      <div class="p-4 sm:p-6 space-y-4 border-b border-gray-100">
         <!-- Top Row: Search and Export -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
+        >
           <!-- Search Input -->
-          <div class="relative w-full md:w-96">
+          <div class="relative flex-1 min-w-0">
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search bookings..."
               class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
               @input="handleSearch"
             />
@@ -181,12 +187,12 @@
 
           <!-- Export Button -->
           <button
-            class="inline-flex items-center px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 whitespace-nowrap gap-2"
             @click="exportToCSV"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 mr-2"
+              class="w-5 h-5 sm:mr-2"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -198,195 +204,20 @@
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Export to CSV
+            <span class="">Export</span>
           </button>
         </div>
 
-        <!-- Bottom Row: Filters -->
-        <div
-          class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
-        >
-          <span class="text-sm font-medium text-gray-500">Filters:</span>
-
-          <!-- Date Range -->
-          <div class="flex items-center gap-2">
-            <div class="relative">
-              <input
-                v-model="filters.startDate"
-                type="date"
-                class="w-40 pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                :max="filters.endDate || undefined"
-                @change="handleFiltersChange"
-              />
-              <div
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </div>
-            </div>
-            <span class="text-sm text-gray-400">to</span>
-            <div class="relative">
-              <input
-                v-model="filters.endDate"
-                type="date"
-                class="w-40 pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                :min="filters.startDate || undefined"
-                @change="handleFiltersChange"
-              />
-              <div
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="h-5 w-px bg-gray-200"></div>
-
-          <!-- Status Filters -->
-          <div class="flex items-center gap-2">
-            <div class="relative">
-              <select
-                v-model="filters.paymentStatus"
-                class="w-40 appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                @change="handleFiltersChange"
-              >
-                <option :value="null">All Payments</option>
-                <option
-                  v-for="status in paymentStatusOptions"
-                  :key="status.value"
-                  :value="status.value"
-                >
-                  {{ status.label }}
-                </option>
-              </select>
-              <div
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="16"></line>
-                  <line x1="8" y1="12" x2="16" y2="12"></line>
-                </svg>
-              </div>
-              <div
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-            </div>
-
-            <div class="relative">
-              <select
-                v-model="filters.sessionStatus"
-                class="w-40 appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                @change="handleFiltersChange"
-              >
-                <option :value="null">All Sessions</option>
-                <option
-                  v-for="status in sessionStatusOptions"
-                  :key="status.value"
-                  :value="status.value"
-                >
-                  {{ status.label }}
-                </option>
-              </select>
-              <div
-                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </div>
-              <div
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="h-5 w-px bg-gray-200"></div>
-
-          <!-- Reset Button -->
+        <!-- Bottom Row: Filters Toggle -->
+        <div class="flex items-center justify-between">
           <button
-            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-            @click="resetFilters"
+            class="text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200 flex items-center gap-2"
+            @click="isFiltersVisible = !isFiltersVisible"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 mr-1.5"
+              class="w-5 h-5"
+              :class="{ 'rotate-180': isFiltersVisible }"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -394,14 +225,210 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <polyline points="1 4 1 10 7 10"></polyline>
-              <polyline points="23 20 23 14 17 14"></polyline>
-              <path
-                d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
-              ></path>
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
-            Reset
+            Filters
           </button>
+        </div>
+
+        <!-- Filters Section -->
+        <div
+          v-show="isFiltersVisible"
+          class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
+        >
+          <span class="text-sm font-medium text-gray-500 whitespace-nowrap"
+            >Filters:</span
+          >
+
+          <div
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
+          >
+            <!-- Date Range -->
+            <div
+              class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto"
+            >
+              <div class="relative flex-1 sm:flex-none">
+                <input
+                  v-model="filters.startDate"
+                  type="date"
+                  class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                  :max="filters.endDate || undefined"
+                  @change="handleFiltersChange"
+                />
+                <div
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+              </div>
+              <span class="text-sm text-gray-400 hidden sm:inline">to</span>
+              <div class="relative flex-1 sm:flex-none">
+                <input
+                  v-model="filters.endDate"
+                  type="date"
+                  class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                  :min="filters.startDate || undefined"
+                  @change="handleFiltersChange"
+                />
+                <div
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="h-px w-full sm:h-5 sm:w-px bg-gray-200"></div>
+
+            <!-- Status Filters -->
+            <div
+              class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto"
+            >
+              <div class="relative flex-1 sm:flex-none">
+                <select
+                  v-model="filters.paymentStatus"
+                  class="w-full appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                  @change="handleFiltersChange"
+                >
+                  <option :value="null">All Payments</option>
+                  <option
+                    v-for="status in paymentStatusOptions"
+                    :key="status.value"
+                    :value="status.value"
+                  >
+                    {{ status.label }}
+                  </option>
+                </select>
+                <div
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="relative flex-1 sm:flex-none">
+                <select
+                  v-model="filters.sessionStatus"
+                  class="w-full appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+                  @change="handleFiltersChange"
+                >
+                  <option :value="null">All Sessions</option>
+                  <option
+                    v-for="status in sessionStatusOptions"
+                    :key="status.value"
+                    :value="status.value"
+                  >
+                    {{ status.label }}
+                  </option>
+                </select>
+                <div
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reset Button -->
+            <button
+              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200 whitespace-nowrap"
+              @click="resetFilters"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4 mr-1.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <polyline points="23 20 23 14 17 14"></polyline>
+                <path
+                  d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+                ></path>
+              </svg>
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
@@ -413,42 +440,69 @@
           ></div>
         </div>
 
-        <table v-else class="min-w-full divide-y divide-gray-100">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                v-for="(column, index) in [
-                  'No',
-                  'Customer',
-                  'Session Slot',
-                  'Theme',
-                  'Payment Status',
-                  'Session Status',
-                  'Frame Status',
-                  'Action',
-                ]"
-                :key="index"
-                class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 transition-colors duration-200"
-                @click="
-                  handleSortChange({
-                    prop:
-                      index === 0
-                        ? 'id'
-                        : index === 1
-                        ? 'user_fullname'
-                        : index === 2
-                        ? 'session_date'
-                        : index === 3
-                        ? 'theme'
-                        : index === 4
-                        ? 'status'
-                        : index === 5
-                        ? 'session_status'
-                        : index === 6
-                        ? 'frame_status'
-                        : '',
-                    order:
-                      sortBy.prop ===
+        <div v-else class="min-w-full divide-y divide-gray-100">
+          <!-- Desktop Table View -->
+          <table class="min-w-full divide-y divide-gray-100 hidden sm:table">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  v-for="(column, index) in [
+                    'No',
+                    'Customer',
+                    'Session Slot',
+                    'Theme',
+                    'Payment Status',
+                    'Session Status',
+                    'Frame Status',
+                    'Action',
+                  ]"
+                  :key="index"
+                  class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 transition-colors duration-200"
+                  @click="
+                    handleSortChange({
+                      prop:
+                        index === 0
+                          ? 'id'
+                          : index === 1
+                          ? 'user_fullname'
+                          : index === 2
+                          ? 'session_date'
+                          : index === 3
+                          ? 'theme'
+                          : index === 4
+                          ? 'status'
+                          : index === 5
+                          ? 'session_status'
+                          : index === 6
+                          ? 'frame_status'
+                          : '',
+                      order:
+                        sortBy.prop ===
+                          (index === 0
+                            ? 'id'
+                            : index === 1
+                            ? 'user_fullname'
+                            : index === 2
+                            ? 'session_date'
+                            : index === 3
+                            ? 'theme'
+                            : index === 4
+                            ? 'status'
+                            : index === 5
+                            ? 'session_status'
+                            : index === 6
+                            ? 'frame_status'
+                            : '') && sortBy.order === 'ascending'
+                          ? 'descending'
+                          : 'ascending',
+                    })
+                  "
+                >
+                  <div class="flex items-center gap-2">
+                    {{ column }}
+                    <span
+                      v-if="
+                        sortBy.prop ===
                         (index === 0
                           ? 'id'
                           : index === 1
@@ -463,245 +517,343 @@
                           ? 'session_status'
                           : index === 6
                           ? 'frame_status'
-                          : '') && sortBy.order === 'ascending'
-                        ? 'descending'
-                        : 'ascending',
-                  })
-                "
+                          : '')
+                      "
+                      class="text-blue-500"
+                    >
+                      {{ sortBy.order === "ascending" ? "↑" : "↓" }}
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr
+                v-for="(booking, index) in paginatedBookings"
+                :key="booking.id"
+                class="hover:bg-gray-50 transition-colors duration-200"
               >
-                <div class="flex items-center gap-2">
-                  {{ column }}
-                  <span
-                    v-if="
-                      sortBy.prop ===
-                      (index === 0
-                        ? 'id'
-                        : index === 1
-                        ? 'user_fullname'
-                        : index === 2
-                        ? 'session_date'
-                        : index === 3
-                        ? 'theme'
-                        : index === 4
-                        ? 'status'
-                        : index === 5
-                        ? 'session_status'
-                        : index === 6
-                        ? 'frame_status'
-                        : '')
-                    "
-                    class="text-blue-500"
-                  >
-                    {{ sortBy.order === "ascending" ? "↑" : "↓" }}
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
-            <tr
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {{ index + 1 }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">{{
+                      booking.user_fullname
+                    }}</span>
+                    <span class="text-sm text-gray-500">{{
+                      booking.user_email
+                    }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">{{
+                      formatDate(booking.session_date)
+                    }}</span>
+                    <span class="text-sm text-gray-500">{{
+                      formatTime(booking.session_time)
+                    }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="text-sm text-gray-900">{{
+                    booking.theme_title || "Not specified"
+                  }}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="relative group">
+                    <span
+                      :class="{
+                        'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
+                        'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20 hover:bg-yellow-100':
+                          booking.status === 1,
+                        'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 hover:bg-blue-100':
+                          booking.status === 2,
+                        'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                          booking.status === 3,
+                        'bg-red-50 text-red-700 ring-1 ring-red-600/20 hover:bg-red-100':
+                          booking.status === 4,
+                      }"
+                      @click="(e: MouseEvent) => {
+                        const target = e.currentTarget as HTMLElement;
+                        target.nextElementSibling?.classList.toggle('hidden');
+                        e.stopPropagation();
+                      }"
+                    >
+                      {{ getPaymentStatusLabel(booking.status) }}
+                    </span>
+                    <div
+                      class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                    >
+                      <div class="py-1" role="menu">
+                        <button
+                          v-for="option in paymentStatusOptions"
+                          :key="option.value"
+                          class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                          @click="
+                            updatePaymentStatus(
+                              $event,
+                              booking.id,
+                              option.value
+                            )
+                          "
+                        >
+                          {{ option.label }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="relative group">
+                    <span
+                      :class="{
+                        'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
+                        'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20 hover:bg-yellow-100':
+                          booking.session_status === 1,
+                        'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                          booking.session_status === 2,
+                        'bg-red-50 text-red-700 ring-1 ring-red-600/20 hover:bg-red-100':
+                          booking.session_status === 3,
+                      }"
+                      @click="(e: MouseEvent) => {
+                        const target = e.currentTarget as HTMLElement;
+                        target.nextElementSibling?.classList.toggle('hidden');
+                        e.stopPropagation();
+                      }"
+                    >
+                      {{ getSessionStatusLabel(booking.session_status) }}
+                    </span>
+                    <div
+                      class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                    >
+                      <div class="py-1" role="menu">
+                        <button
+                          v-for="option in sessionStatusOptions"
+                          :key="option.value"
+                          class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                          @click="
+                            updateSessionStatus(
+                              $event,
+                              booking.id,
+                              option.value
+                            )
+                          "
+                        >
+                          {{ option.label }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="relative group">
+                    <span
+                      :class="{
+                        'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
+                        'bg-gray-50 text-gray-700 ring-1 ring-gray-600/20 hover:bg-gray-100':
+                          booking.frame_status === 1,
+                        'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 hover:bg-blue-100':
+                          booking.frame_status === 2,
+                        'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                          booking.frame_status === 3,
+                      }"
+                      @click="(e: MouseEvent) => {
+                        const target = e.currentTarget as HTMLElement;
+                        target.nextElementSibling?.classList.toggle('hidden');
+                        e.stopPropagation();
+                      }"
+                    >
+                      {{ getFrameStatusLabel(booking.frame_status) }}
+                    </span>
+                    <div
+                      class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                    >
+                      <div class="py-1" role="menu">
+                        <button
+                          v-for="option in frameStatusOptions"
+                          :key="option.value"
+                          class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                          @click="
+                            updateFrameStatus($event, booking.id, option.value)
+                          "
+                        >
+                          {{ option.label }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex gap-2">
+                    <button
+                      class="p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                      @click="handleMoreAction(booking)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                      </svg>
+                    </button>
+                    <button
+                      class="p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
+                      @click="handleReceiptAction(booking)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                        <line x1="18" y1="9" x2="18" y2="15"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Mobile List View -->
+          <div class="sm:hidden">
+            <div
               v-for="(booking, index) in paginatedBookings"
               :key="booking.id"
-              class="hover:bg-gray-50 transition-colors duration-200"
+              class="p-4 border-b border-gray-100"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                {{ index + 1 }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900">{{
-                    booking.user_fullname
-                  }}</span>
-                  <span class="text-sm text-gray-500">{{
-                    booking.user_email
-                  }}</span>
+              <div class="space-y-3">
+                <!-- Customer Info -->
+                <div class="flex justify-between items-start">
+                  <div class="space-y-1">
+                    <div class="font-medium text-gray-900">
+                      {{ booking.user_fullname }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ booking.user_email }}
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      class="p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50"
+                      @click="handleMoreAction(booking)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                      </svg>
+                    </button>
+                    <button
+                      class="p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50"
+                      @click="handleReceiptAction(booking)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                        <line x1="18" y1="9" x2="18" y2="15"></line>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900">{{
-                    formatDate(booking.session_date)
-                  }}</span>
-                  <span class="text-sm text-gray-500">{{
-                    formatTime(booking.session_time)
-                  }}</span>
+
+                <!-- Session Info -->
+                <div class="flex justify-between items-center text-sm">
+                  <div class="space-y-1">
+                    <div class="text-gray-500">Session Date</div>
+                    <div class="font-medium">
+                      {{ formatDate(booking.session_date) }}
+                    </div>
+                  </div>
+                  <div class="space-y-1 text-right">
+                    <div class="text-gray-500">Session Time</div>
+                    <div class="font-medium">
+                      {{ formatTime(booking.session_time) }}
+                    </div>
+                  </div>
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-sm text-gray-900">{{
-                  booking.theme_title || "Not specified"
-                }}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="relative group">
+
+                <!-- Status Badges -->
+                <div class="flex flex-wrap gap-2">
                   <span
                     :class="{
-                      'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
-                      'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20 hover:bg-yellow-100':
+                      'px-2 py-1 text-xs font-medium rounded-full': true,
+                      'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20':
                         booking.status === 1,
-                      'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 hover:bg-blue-100':
+                      'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20':
                         booking.status === 2,
-                      'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                      'bg-green-50 text-green-700 ring-1 ring-green-600/20':
                         booking.status === 3,
-                      'bg-red-50 text-red-700 ring-1 ring-red-600/20 hover:bg-red-100':
+                      'bg-red-50 text-red-700 ring-1 ring-red-600/20':
                         booking.status === 4,
-                    }"
-                    @click="(e: MouseEvent) => {
-                      const target = e.currentTarget as HTMLElement;
-                      target.nextElementSibling?.classList.toggle('hidden');
-                      e.stopPropagation();
                     }"
                   >
                     {{ getPaymentStatusLabel(booking.status) }}
                   </span>
-                  <div
-                    class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
-                  >
-                    <div class="py-1" role="menu">
-                      <button
-                        v-for="option in paymentStatusOptions"
-                        :key="option.value"
-                        class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
-                        @click="
-                          updatePaymentStatus($event, booking.id, option.value)
-                        "
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="relative group">
                   <span
                     :class="{
-                      'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
-                      'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20 hover:bg-yellow-100':
+                      'px-2 py-1 text-xs font-medium rounded-full': true,
+                      'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20':
                         booking.session_status === 1,
-                      'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                      'bg-green-50 text-green-700 ring-1 ring-green-600/20':
                         booking.session_status === 2,
-                      'bg-red-50 text-red-700 ring-1 ring-red-600/20 hover:bg-red-100':
+                      'bg-red-50 text-red-700 ring-1 ring-red-600/20':
                         booking.session_status === 3,
-                    }"
-                    @click="(e: MouseEvent) => {
-                      const target = e.currentTarget as HTMLElement;
-                      target.nextElementSibling?.classList.toggle('hidden');
-                      e.stopPropagation();
                     }"
                   >
                     {{ getSessionStatusLabel(booking.session_status) }}
                   </span>
-                  <div
-                    class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
-                  >
-                    <div class="py-1" role="menu">
-                      <button
-                        v-for="option in sessionStatusOptions"
-                        :key="option.value"
-                        class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
-                        @click="
-                          updateSessionStatus($event, booking.id, option.value)
-                        "
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </div>
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="relative group">
-                  <span
-                    :class="{
-                      'px-3 py-1 text-xs font-medium rounded-full cursor-pointer transition-all duration-200': true,
-                      'bg-gray-50 text-gray-700 ring-1 ring-gray-600/20 hover:bg-gray-100':
-                        booking.frame_status === 1,
-                      'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 hover:bg-blue-100':
-                        booking.frame_status === 2,
-                      'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
-                        booking.frame_status === 3,
-                    }"
-                    @click="(e: MouseEvent) => {
-                      const target = e.currentTarget as HTMLElement;
-                      target.nextElementSibling?.classList.toggle('hidden');
-                      e.stopPropagation();
-                    }"
-                  >
-                    {{ getFrameStatusLabel(booking.frame_status) }}
-                  </span>
-                  <div
-                    class="hidden absolute z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5"
-                  >
-                    <div class="py-1" role="menu">
-                      <button
-                        v-for="option in frameStatusOptions"
-                        :key="option.value"
-                        class="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
-                        @click="
-                          updateFrameStatus($event, booking.id, option.value)
-                        "
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex gap-2">
-                  <button
-                    class="p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-                    @click="handleMoreAction(booking)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="1"></circle>
-                      <circle cx="19" cy="12" r="1"></circle>
-                      <circle cx="5" cy="12" r="1"></circle>
-                    </svg>
-                  </button>
-                  <button
-                    class="p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200"
-                    @click="handleReceiptAction(booking)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-                      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-                      <line x1="18" y1="9" x2="18" y2="15"></line>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Table Footer -->
-      <div class="px-6 py-4 border-t border-gray-100 bg-white">
+      <div class="px-4 sm:px-6 py-4 border-t border-gray-100 bg-white">
         <div
-          class="flex flex-col md:flex-row justify-between items-center gap-4"
+          class="flex flex-col sm:flex-row justify-between items-center gap-4"
         >
-          <div class="flex items-center gap-4 text-sm text-gray-700">
-            <span>
+          <!-- Entries Info -->
+          <div
+            class="flex items-center gap-4 text-sm text-gray-700 order-2 sm:order-1"
+          >
+            <span class="whitespace-nowrap">
               Showing {{ (currentPage - 1) * pageSize + 1 }} to
               {{ Math.min(currentPage * pageSize, filteredBookings.length) }} of
               {{ filteredBookings.length }} entries
@@ -718,7 +870,8 @@
             </select>
           </div>
 
-          <div class="flex gap-2">
+          <!-- Pagination -->
+          <div class="flex gap-2 order-1 sm:order-2">
             <button
               class="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               :disabled="currentPage === 1"
@@ -726,7 +879,7 @@
             >
               Previous
             </button>
-            <div class="flex gap-1">
+            <div class="hidden sm:flex gap-1">
               <button
                 v-for="page in Math.ceil(filteredBookings.length / pageSize)"
                 :key="page"
@@ -756,53 +909,30 @@
     </div>
 
     <!-- More Actions Modal -->
-    <Teleport to="body">
-      <div v-if="moreActionsVisible" class="fixed inset-0 overflow-y-auto">
-        <!-- Backdrop -->
-        <div
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          @click="moreActionsVisible = false"
-        ></div>
+    <div v-if="moreActionsVisible" class="fixed inset-0 overflow-y-auto">
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        @click="moreActionsVisible = false"
+      ></div>
 
-        <!-- Modal Container -->
+      <!-- Modal Container -->
+      <div
+        class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 z-50"
+      >
+        <!-- Modal -->
         <div
-          class="fixed inset-0 min-h-screen flex items-center justify-center p-4 z-50"
+          class="w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[90vh] flex flex-col"
         >
-          <!-- Modal -->
-          <div class="w-full max-w-2xl bg-white rounded-xl shadow-xl">
-            <!-- Modal Header -->
-            <div
-              class="flex items-center justify-between p-6 border-b border-gray-100"
-            >
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-5 h-5 text-blue-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-                    ></path>
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                  </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900">
-                  Booking Details
-                </h3>
-              </div>
-              <button
-                class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50"
-                @click="moreActionsVisible = false"
-              >
+          <!-- Modal Header -->
+          <div
+            class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 flex-shrink-0"
+          >
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-blue-50 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
+                  class="w-5 h-5 text-blue-500"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -810,43 +940,65 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  ></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
                 </svg>
-              </button>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Booking Details
+              </h3>
             </div>
-
-            <!-- Modal Content -->
-            <div
-              v-if="selectedBooking"
-              class="p-6 space-y-6 max-h-[calc(100vh-16rem)] overflow-y-auto"
+            <button
+              class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50"
+              @click="moreActionsVisible = false"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div v-if="selectedBooking" class="flex-1 overflow-y-auto">
+            <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
               <!-- Customer Information -->
               <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
                 <h4 class="text-sm font-medium text-gray-500">
                   Customer Information
                 </h4>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Name</div>
-                    <div class="font-medium text-gray-900">
+                    <div class="font-medium text-gray-900 break-words">
                       {{ selectedBooking.user_fullname }}
                     </div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Contact</div>
-                    <div class="font-medium text-gray-900">
+                    <div class="font-medium text-gray-900 break-words">
                       {{ selectedBooking.user_phoneno }}
                     </div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Email</div>
-                    <div class="font-medium text-gray-900">
+                    <div class="font-medium text-gray-900 break-all">
                       {{ selectedBooking.user_email }}
                     </div>
                   </div>
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Theme</div>
-                    <div class="font-medium text-gray-900">
+                    <div class="font-medium text-gray-900 break-words">
                       {{ selectedBooking.theme_title || "Not specified" }}
                     </div>
                   </div>
@@ -858,7 +1010,7 @@
                 <h4 class="text-sm font-medium text-gray-500">
                   Session Details
                 </h4>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Date</div>
                     <div class="font-medium text-gray-900">
@@ -875,12 +1027,6 @@
                     <div class="text-sm text-gray-500">Frame Quantity</div>
                     <div class="font-medium text-gray-900">
                       {{ selectedBooking.frame_quantity }} frames
-                    </div>
-                  </div>
-                  <div class="space-y-1">
-                    <div class="text-sm text-gray-500">Theme</div>
-                    <div class="font-medium text-gray-900">
-                      {{ selectedBooking.theme_title || "Not specified" }}
                     </div>
                   </div>
                   <div class="space-y-1">
@@ -906,7 +1052,7 @@
                     <div
                       v-for="(addon, index) in selectedBooking.addons"
                       :key="index"
-                      class="flex justify-between items-center py-2 border-b border-gray-200"
+                      class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-gray-200 gap-2"
                     >
                       <div>
                         <span class="text-sm font-medium text-gray-900">{{
@@ -947,14 +1093,14 @@
                     v-if="selectedBooking.number_of_extra_pax"
                   >
                     <span class="text-sm text-gray-600"
-                      >Extra Pax Total ( + {{
-                        selectedBooking.number_of_extra_pax
-                      }} Pax)</span
+                      >Extra Pax Total ( +
+                      {{ selectedBooking.number_of_extra_pax }} Pax)</span
                     >
                     <span class="text-sm font-medium text-gray-900">
                       RM {{ formatNumber(selectedBooking.payment_extra_pax) }}
                     </span>
                   </div>
+
                   <!-- Addons Total -->
                   <div class="flex justify-between items-center py-2">
                     <span class="text-sm text-gray-600">Addons Total</span>
@@ -1044,7 +1190,7 @@
                     </span>
                   </div>
 
-                  <!-- Balance (Only show for deposit payments) -->
+                  <!-- Balance -->
                   <template v-if="selectedBooking.payment_type === 2">
                     <div class="flex justify-between items-center py-2">
                       <span class="text-sm text-gray-600"
@@ -1062,7 +1208,7 @@
                     </div>
                   </template>
 
-                  <!-- Notify Customer Button (Only show for pending balance) -->
+                  <!-- Notify Customer Button -->
                   <div
                     v-if="
                       selectedBooking.status !== 3 &&
@@ -1071,7 +1217,7 @@
                     class="mt-4"
                   >
                     <button
-                      class="w-full px-4 py-2 text-white bg-amber-500 rounded-lg hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
+                      class="w-full px-4 py-3 text-white bg-amber-500 rounded-lg hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2"
                       @click="handleNotifyCustomer"
                     >
                       <svg
@@ -1103,7 +1249,7 @@
                 <h4 class="text-sm font-medium text-gray-500">
                   Status Summary
                 </h4>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <!-- Session Status -->
                   <div class="space-y-1">
                     <div class="text-sm text-gray-500">Session Status</div>
@@ -1131,9 +1277,9 @@
                         'px-3 py-1 text-xs font-medium rounded-full': true,
                         'bg-gray-50 text-gray-700 ring-1 ring-gray-600/20':
                           selectedBooking.frame_status === 1,
-                        'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 hover:bg-blue-100':
+                        'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20':
                           selectedBooking.frame_status === 2,
-                        'bg-green-50 text-green-700 ring-1 ring-green-600/20 hover:bg-green-100':
+                        'bg-green-50 text-green-700 ring-1 ring-green-600/20':
                           selectedBooking.frame_status === 3,
                       }"
                     >
@@ -1142,69 +1288,37 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Reschedule Form - Only shown when isRescheduling is true -->
-              <div
-                v-if="isRescheduling"
-                class="bg-gray-50/50 rounded-lg p-4 space-y-4"
-              >
-                <h4 class="text-sm font-medium text-gray-500">
-                  Reschedule Session
-                </h4>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-2">
-                    <label class="text-sm text-gray-700">New Date</label>
-                    <input
-                      v-model="rescheduleDate"
-                      type="date"
-                      class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                      :min="new Date().toISOString().split('T')[0]"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm text-gray-700">New Time</label>
-                    <input
-                      v-model="rescheduleTime"
-                      type="time"
-                      class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
-                      min="10:00"
-                      max="20:00"
-                      step="1800"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
+          </div>
 
-            <!-- Modal Footer with Action Buttons -->
-            <div
-              class="px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl space-x-4 flex justify-end"
+          <!-- Modal Footer -->
+          <div
+            class="px-4 sm:px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl flex flex-col sm:flex-row justify-end gap-3 flex-shrink-0"
+          >
+            <button
+              class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+              @click="moreActionsVisible = false"
             >
-              <button
-                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-                @click="moreActionsVisible = false"
-              >
-                Close
-              </button>
-              <button
-                v-if="selectedBooking?.session_status === 1"
-                class="px-4 py-2 text-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-                @click="handleRescheduleClick"
-              >
-                Reschedule Session
-              </button>
-              <button
-                v-if="selectedBooking?.session_status === 1"
-                class="px-4 py-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200"
-                @click="handleCancelBooking"
-              >
-                Cancel Booking
-              </button>
-            </div>
+              Close
+            </button>
+            <button
+              v-if="selectedBooking?.session_status === 1"
+              class="w-full sm:w-auto px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+              @click="handleRescheduleClick"
+            >
+              Reschedule Session
+            </button>
+            <button
+              v-if="selectedBooking?.session_status === 1"
+              class="w-full sm:w-auto px-4 py-2 bg-red-500 rounded-lg text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200"
+              @click="handleCancelBooking"
+            >
+              Cancel Booking
+            </button>
           </div>
         </div>
       </div>
-    </Teleport>
+    </div>
 
     <!-- Reschedule Modal -->
     <Teleport to="body">
@@ -1350,14 +1464,8 @@
 
             <!-- Modal Footer -->
             <div
-              class="px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl flex justify-end gap-4"
+              class="px-4 sm:px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl flex flex-col sm:flex-row justify-end gap-3 flex-shrink-0"
             >
-              <button
-                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-                @click="rescheduleModalVisible = false"
-              >
-                Close
-              </button>
               <button
                 class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
                 @click="rescheduleModalVisible = false"
@@ -1388,21 +1496,21 @@
 
         <!-- Modal Container -->
         <div
-          class="fixed inset-0 min-h-screen flex items-center justify-center p-4 z-50"
+          class="fixed inset-0 min-h-screen flex items-center justify-center p-2 sm:p-4 z-50"
         >
           <!-- Modal -->
           <div
-            class="w-full max-w-2xl bg-white rounded-xl shadow-xl flex flex-col max-h-[90vh]"
+            class="w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[95vh] flex flex-col"
           >
             <!-- Modal Header -->
             <div
-              class="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0"
+              class="flex items-center justify-between p-3 sm:p-6 border-b border-gray-100 flex-shrink-0"
             >
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
+              <div class="flex items-center gap-2 sm:gap-3">
+                <div class="p-1.5 sm:p-2 bg-blue-50 rounded-lg">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-5 h-5 text-blue-500"
+                    class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -1415,17 +1523,17 @@
                     <line x1="18" y1="9" x2="18" y2="15"></line>
                   </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900">
                   Receipt Details
                 </h3>
               </div>
               <button
-                class="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50"
+                class="p-1.5 sm:p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50"
                 @click="receiptModalVisible = false"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
+                  class="h-4 w-4 sm:h-5 sm:w-5"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -1439,55 +1547,75 @@
             </div>
 
             <!-- Modal Content -->
-            <div class="flex-1 overflow-y-auto p-6">
-              <div v-if="selectedBooking" class="space-y-6 receipt-content">
+            <div class="flex-1 overflow-y-auto">
+              <div
+                v-if="selectedBooking"
+                class="p-3 sm:p-6 space-y-3 sm:space-y-6 receipt-content"
+              >
                 <!-- Receipt Header -->
-                <div class="text-center space-y-2">
-                  <h2 class="text-xl font-bold text-gray-900">
+                <div class="text-center space-y-1 sm:space-y-2">
+                  <h2 class="text-lg sm:text-xl font-bold text-gray-900">
                     Stitch & Shutter
                   </h2>
-                  <p class="text-sm text-gray-500">Official Receipt</p>
-                  <p class="text-sm text-gray-500">
+                  <p class="text-xs sm:text-sm text-gray-500">
+                    Official Receipt
+                  </p>
+                  <p class="text-xs sm:text-sm text-gray-500">
                     Receipt #{{
                       selectedBooking.id.toString().padStart(6, "0")
                     }}
                   </p>
-                  <p class="text-sm text-gray-500">
-                    Issue Date:
-                    {{ formatDate(selectedBooking.created_date) }}
+                  <p class="text-xs sm:text-sm text-gray-500">
+                    Issue Date: {{ formatDate(selectedBooking.created_date) }}
                   </p>
                 </div>
 
                 <!-- Customer Details -->
-                <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                  <h4 class="text-sm font-medium text-gray-500">
+                <div
+                  class="bg-gray-50/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4"
+                >
+                  <h4 class="text-xs sm:text-sm font-medium text-gray-500">
                     Customer Information
                   </h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Full Name</div>
-                      <div class="font-medium text-gray-900">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div class="space-y-0.5 sm:space-y-1">
+                      <div class="text-xs sm:text-sm text-gray-500">
+                        Full Name
+                      </div>
+                      <div
+                        class="text-sm sm:text-base font-medium text-gray-900"
+                      >
                         {{ selectedBooking.user_fullname }}
                       </div>
                     </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Phone Number</div>
-                      <div class="font-medium text-gray-900">
+                    <div class="space-y-0.5 sm:space-y-1">
+                      <div class="text-xs sm:text-sm text-gray-500">
+                        Phone Number
+                      </div>
+                      <div
+                        class="text-sm sm:text-base font-medium text-gray-900"
+                      >
                         {{ selectedBooking.user_phoneno }}
                       </div>
                     </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Email Address</div>
-                      <div class="font-medium text-gray-900">
+                    <div class="space-y-0.5 sm:space-y-1">
+                      <div class="text-xs sm:text-sm text-gray-500">
+                        Email Address
+                      </div>
+                      <div
+                        class="text-sm sm:text-base font-medium text-gray-900 break-all"
+                      >
                         {{ selectedBooking.user_email }}
                       </div>
                     </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Booking Status</div>
+                    <div class="space-y-0.5 sm:space-y-1">
+                      <div class="text-xs sm:text-sm text-gray-500">
+                        Booking Status
+                      </div>
                       <div>
                         <span
                           :class="{
-                            'px-2 py-1 text-xs font-medium rounded-full': true,
+                            'px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium rounded-full': true,
                             'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20':
                               selectedBooking.session_status === 1,
                             'bg-green-50 text-green-700 ring-1 ring-green-600/20':
@@ -1507,91 +1635,29 @@
                   </div>
                 </div>
 
-                <!-- Session Details -->
-                <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                  <h4 class="text-sm font-medium text-gray-500">
-                    Session Information
-                  </h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Session Date</div>
-                      <div class="font-medium text-gray-900">
-                        {{ formatDate(selectedBooking.session_date) }}
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Session Time</div>
-                      <div class="font-medium text-gray-900">
-                        {{ formatTime(selectedBooking.session_time) }}
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Theme Package</div>
-                      <div class="font-medium text-gray-900">
-                        {{ selectedBooking.theme_title || "Standard Session" }}
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Duration</div>
-                      <div class="font-medium text-gray-900">
-                        {{ selectedBooking.theme_duration || "30" }} minutes
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Frame Details -->
-                <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                  <h4 class="text-sm font-medium text-gray-500">
-                    Frame Information
-                  </h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Frame Quantity</div>
-                      <div class="font-medium text-gray-900">
-                        {{ selectedBooking.frame_quantity }} frames
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="text-sm text-gray-500">Frame Status</div>
-                      <div>
-                        <span
-                          :class="{
-                            'px-2 py-1 text-xs font-medium rounded-full': true,
-                            'bg-gray-50 text-gray-700 ring-1 ring-gray-600/20':
-                              selectedBooking.frame_status === 1,
-                            'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20':
-                              selectedBooking.frame_status === 2,
-                            'bg-green-50 text-green-700 ring-1 ring-green-600/20':
-                              selectedBooking.frame_status === 3,
-                          }"
-                        >
-                          {{
-                            getFrameStatusLabel(selectedBooking.frame_status)
-                          }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Payment Details -->
-                <div class="bg-gray-50/50 rounded-lg p-4 space-y-4">
-                  <h4 class="text-sm font-medium text-gray-500">
+                <div class="bg-gray-50/50 rounded-lg p-3 sm:p-4 space-y-3">
+                  <h4 class="text-xs sm:text-sm font-medium text-gray-500">
                     Payment Information
                   </h4>
-                  <div class="space-y-3">
+                  <div class="space-y-2 sm:space-y-3">
                     <!-- Base Price -->
-                    <div class="flex justify-between items-center py-2">
+                    <div
+                      class="flex justify-between items-center py-1.5 sm:py-2"
+                    >
                       <div>
-                        <span class="text-sm text-gray-600">Theme Package</span>
+                        <span class="text-xs sm:text-sm text-gray-600"
+                          >Theme Package</span
+                        >
                         <p class="text-xs text-gray-500">
                           {{
                             selectedBooking.theme_title || "Standard Session"
                           }}
                         </p>
                       </div>
-                      <span class="text-sm font-medium text-gray-900">
+                      <span
+                        class="text-xs sm:text-sm font-medium text-gray-900"
+                      >
                         RM {{ formatNumber(selectedBooking.theme_price) }}
                       </span>
                     </div>
@@ -1606,58 +1672,46 @@
                       <div
                         v-for="(addon, index) in selectedBooking.addons"
                         :key="index"
-                        class="flex justify-between items-center py-2"
+                        class="flex justify-between items-center py-1.5 sm:py-2"
                       >
                         <div>
-                          <span class="text-sm text-gray-600">{{
+                          <span class="text-xs sm:text-sm text-gray-600">{{
                             addon.title
                           }}</span>
                           <p class="text-xs text-gray-500">
                             {{ addon.qty }} x RM {{ formatNumber(addon.price) }}
                           </p>
                         </div>
-                        <span class="text-sm font-medium text-gray-900">
+                        <span
+                          class="text-xs sm:text-sm font-medium text-gray-900"
+                        >
                           RM {{ formatNumber(addon.price * addon.qty) }}
                         </span>
                       </div>
                     </template>
 
-                    <!-- Subtotal -->
+                    <!-- Total -->
                     <div
                       class="flex justify-between items-center py-2 border-t border-gray-200"
                     >
-                      <span class="text-sm text-gray-600">Subtotal</span>
-                      <span class="text-sm font-medium text-gray-900">
-                        RM {{ formatNumber(selectedBooking.payment_total) }}
-                      </span>
-                    </div>
-
-                    <!-- Payment Type -->
-                    <div class="flex justify-between items-center py-2">
-                      <span class="text-sm text-gray-600">Payment Type</span>
-                      <span
-                        :class="{
-                          'px-2 py-1 text-xs font-medium rounded-full': true,
-                          'bg-green-50 text-green-700 ring-1 ring-green-600/20':
-                            selectedBooking.payment_type === 1,
-                          'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20':
-                            selectedBooking.payment_type === 2,
-                        }"
+                      <span class="text-xs sm:text-sm font-medium text-gray-900"
+                        >Total Amount</span
                       >
-                        {{
-                          selectedBooking.payment_type === 1
-                            ? "Full Payment"
-                            : "Deposit"
-                        }}
+                      <span
+                        class="text-sm sm:text-base font-bold text-gray-900"
+                      >
+                        RM {{ formatNumber(selectedBooking.payment_total) }}
                       </span>
                     </div>
 
                     <!-- Payment Status -->
                     <div class="flex justify-between items-center py-2">
-                      <span class="text-sm text-gray-600">Payment Status</span>
+                      <span class="text-xs sm:text-sm text-gray-600"
+                        >Payment Status</span
+                      >
                       <span
                         :class="{
-                          'px-2 py-1 text-xs font-medium rounded-full': true,
+                          'px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium rounded-full': true,
                           'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20':
                             selectedBooking.status === 1,
                           'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20':
@@ -1672,29 +1726,9 @@
                       </span>
                     </div>
 
-                    <!-- Payment Amount -->
-                    <div class="flex justify-between items-center py-2">
-                      <span class="text-sm text-gray-600">Payment Amount</span>
-                      <span class="text-sm font-medium text-gray-900">
-                        RM {{ formatNumber(selectedBooking.payment_amount) }}
-                      </span>
-                    </div>
-
-                    <!-- Total -->
-                    <div
-                      class="flex justify-between items-center py-2 border-t border-gray-200"
-                    >
-                      <span class="text-sm font-medium text-gray-900"
-                        >Total Amount</span
-                      >
-                      <span class="text-base font-bold text-gray-900">
-                        RM {{ formatNumber(selectedBooking.payment_total) }}
-                      </span>
-                    </div>
-
                     <!-- Payment History -->
-                    <div class="mt-4 space-y-3">
-                      <h5 class="text-sm font-medium text-gray-700">
+                    <div class="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
+                      <h5 class="text-xs sm:text-sm font-medium text-gray-700">
                         Payment History
                       </h5>
                       <div
@@ -1702,14 +1736,14 @@
                           payment, index
                         ) in selectedBooking.payment_history"
                         :key="index"
-                        class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                        class="flex justify-between items-center py-1.5 sm:py-2 border-b border-gray-100 last:border-0"
                       >
-                        <div class="space-y-1">
-                          <div class="text-sm text-gray-900">
+                        <div class="space-y-0.5">
+                          <div class="text-xs sm:text-sm text-gray-900">
                             {{ formatDate(payment.date) }}
                             {{ formatTime(payment.time) }}
                           </div>
-                          <div class="text-sm text-gray-500">
+                          <div class="text-xs sm:text-sm text-gray-500">
                             {{
                               payment.type === 1
                                 ? "Full Payment"
@@ -1719,7 +1753,9 @@
                             }}
                           </div>
                         </div>
-                        <span class="text-sm font-medium text-green-600">
+                        <span
+                          class="text-xs sm:text-sm font-medium text-green-600"
+                        >
                           RM {{ formatNumber(payment.amount) }}
                         </span>
                       </div>
@@ -1730,10 +1766,13 @@
                       v-if="selectedBooking.payment_type === 2"
                       class="flex justify-between items-center py-2 bg-amber-50/50 rounded-lg px-3"
                     >
-                      <span class="text-sm font-medium text-amber-900"
+                      <span
+                        class="text-xs sm:text-sm font-medium text-amber-900"
                         >Remaining Balance</span
                       >
-                      <span class="text-sm font-medium text-amber-900">
+                      <span
+                        class="text-xs sm:text-sm font-medium text-amber-900"
+                      >
                         RM
                         {{
                           formatNumber(
@@ -1747,9 +1786,11 @@
                 </div>
 
                 <!-- Terms and Conditions -->
-                <div class="text-xs text-gray-500 space-y-2">
+                <div
+                  class="text-[10px] sm:text-xs text-gray-500 space-y-1 sm:space-y-2"
+                >
                   <p>Terms and Conditions:</p>
-                  <ul class="list-disc list-inside space-y-1">
+                  <ul class="list-disc list-inside space-y-0.5 sm:space-y-1">
                     <li>
                       This receipt is computer generated and no signature is
                       required.
@@ -1770,16 +1811,16 @@
 
             <!-- Modal Footer -->
             <div
-              class="px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl flex justify-end gap-4 flex-shrink-0"
+              class="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-white rounded-b-xl flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 flex-shrink-0"
             >
               <button
-                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+                class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 text-sm"
                 @click="receiptModalVisible = false"
               >
                 Close
               </button>
               <button
-                class="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                class="w-full sm:w-auto px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 text-sm"
                 @click="downloadReceipt"
               >
                 Download Receipt
@@ -1789,6 +1830,99 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Cancel Confirmation Modal -->
+    <Teleport to="body">
+      <div
+        v-if="cancelConfirmationVisible"
+        class="fixed inset-0 overflow-y-auto"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          @click="cancelConfirmationVisible = false"
+        ></div>
+
+        <!-- Modal Container -->
+        <div class="fixed inset-0 flex items-center justify-center p-4 z-50">
+          <!-- Modal -->
+          <div class="w-full max-w-md bg-white rounded-xl shadow-xl">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-100">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-red-50 rounded-lg">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 text-red-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                    />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">
+                  Cancel Booking
+                </h3>
+              </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6">
+              <p class="text-gray-600">
+                Are you sure you want to cancel this booking session?
+              </p>
+              <div class="mt-4 text-sm text-gray-500">
+                <p>Booking details:</p>
+                <ul class="mt-2 space-y-1">
+                  <li>Customer: {{ selectedBooking?.user_fullname }}</li>
+                  <li>
+                    Date: {{ formatDate(selectedBooking?.session_date || "") }}
+                  </li>
+                  <li>
+                    Time: {{ formatTime(selectedBooking?.session_time || "") }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div
+              class="px-6 py-4 border-t border-gray-100 bg-white rounded-b-xl flex justify-end gap-3"
+            >
+              <button
+                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+                @click="cancelConfirmationVisible = false"
+              >
+                No, Keep it
+              </button>
+              <button
+                class="px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200"
+                @click="confirmCancelBooking"
+              >
+                Yes, Cancel Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Status Modal -->
+    <StatusModal
+      :is-open="modalState.isOpen"
+      :status="modalState.status"
+      :title="modalState.title"
+      :message="modalState.message"
+      @close="closeModal"
+    />
   </div>
 </template>
 
@@ -1797,6 +1931,8 @@ import { ref, computed, onMounted } from "vue";
 import dayjs from "dayjs";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+import StatusModal from "~/components/common/StatusModal.vue";
 
 // Page Meta
 definePageMeta({
@@ -1874,6 +2010,8 @@ const loadingSlots = ref(false);
 const availableTimeSlots = ref<TimeSlot[]>([]);
 const selectedTimeSlot = ref<TimeSlot | null>(null);
 const receiptModalVisible = ref(false);
+const isFiltersVisible = ref(true);
+const cancelConfirmationVisible = ref(false);
 
 const filters = ref({
   paymentStatus: null as number | null,
@@ -1885,6 +2023,16 @@ const filters = ref({
 const sortBy = ref({
   prop: "id",
   order: "descending",
+});
+
+type ModalStatus = "success" | "error";
+
+// Add modal state
+const modalState = ref({
+  isOpen: false,
+  status: "success" as ModalStatus,
+  title: "",
+  message: "",
 });
 
 // Options
@@ -1980,6 +2128,19 @@ const paginatedBookings = computed(() => {
   const end = start + pageSize.value;
   return filteredBookings.value.slice(start, end);
 });
+
+function showModal(status: ModalStatus, title: string, message: string) {
+  modalState.value = {
+    isOpen: true,
+    status,
+    title,
+    message,
+  };
+}
+
+function closeModal() {
+  modalState.value.isOpen = false;
+}
 
 // Methods
 function formatNumber(value: number) {
@@ -2116,7 +2277,7 @@ async function updateSessionStatus(
   status: number
 ) {
   try {
-    await $fetch("/api/booking/update-session-status", {
+    await $apiFetch("/api/booking/update-session-status", {
       method: "POST",
       body: {
         bookingId,
@@ -2231,7 +2392,7 @@ async function updateFrameStatus(
   status: number
 ) {
   try {
-    await $fetch("/api/booking/update-frame-status", {
+    await $apiFetch("/api/booking/update-frame-status", {
       method: "POST",
       body: {
         bookingId,
@@ -2264,11 +2425,23 @@ function resetFilters() {
 }
 
 async function handleCancelBooking() {
+  cancelConfirmationVisible.value = true;
+}
+
+async function confirmCancelBooking() {
   if (!selectedBooking.value) return;
 
   try {
     // Update session status to cancelled (3)
-    await $fetch("/api/booking/update-session-status", {
+    // await $fetch("/api/booking/update-session-status", {
+    //   method: "POST",
+    //   body: {
+    //     bookingId: selectedBooking.value.id,
+    //     status: 3, // Cancelled status
+    //   },
+    // });
+
+    await $apiFetch("/api/booking/update-session-status", {
       method: "POST",
       body: {
         bookingId: selectedBooking.value.id,
@@ -2276,7 +2449,10 @@ async function handleCancelBooking() {
       },
     });
 
-    showAlert("Booking cancelled successfully", "success");
+    // showAlert("Booking cancelled successfully", "success");
+
+    showModal("success", "Success", "Booking cancelled successfully");
+    cancelConfirmationVisible.value = false;
     moreActionsVisible.value = false;
     await fetchBookings();
   } catch (error) {
@@ -2323,16 +2499,13 @@ async function handleDateChange() {
   selectedTimeSlot.value = null;
 
   try {
-    const response = await $fetch<SlotsResponse>(
-      "/api/booking/get-available-slots",
-      {
-        method: "GET",
-        params: {
-          theme_id: selectedBooking.value.theme,
-          date: rescheduleDate.value,
-        },
-      }
-    );
+    const response = (await $apiFetch("/api/booking/get-available-slots", {
+      method: "GET",
+      params: {
+        theme_id: selectedBooking.value.theme,
+        date: rescheduleDate.value,
+      },
+    })) as SlotsResponse;
 
     availableTimeSlots.value = response.data;
   } catch (error) {
@@ -2352,7 +2525,7 @@ async function confirmReschedule() {
     return;
 
   try {
-    await $fetch("/api/booking/reschedule", {
+    await $apiFetch("/api/booking/reschedule", {
       method: "POST",
       body: {
         bookingId: selectedBooking.value.id,
@@ -2361,7 +2534,8 @@ async function confirmReschedule() {
       },
     });
 
-    showAlert("Session rescheduled successfully", "success");
+    showModal("success", "Success", "Session rescheduled successfully");
+
     rescheduleModalVisible.value = false;
     moreActionsVisible.value = false;
     await fetchBookings();
@@ -2424,7 +2598,7 @@ async function downloadReceipt() {
     // Download the PDF
     pdf.save(filename);
 
-    showAlert("Receipt downloaded successfully");
+    showModal("success", "Success", "Receipt downloaded successfully");
   } catch (error) {
     console.error("Error generating receipt:", error);
     showAlert("Failed to download receipt");

@@ -1,5 +1,5 @@
 <template>
-  <div class="py-6 px-4 sm:px-6 lg:px-8">
+  <div class="py-4 sm:py-6">
     <!-- Status Modal -->
     <StatusModal
       :is-open="modalState.isOpen"
@@ -10,11 +10,11 @@
     />
 
     <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-[var(--color-text-primary)]">
+    <div class="mb-6 sm:mb-8">
+      <h1 class="text-xl sm:text-2xl font-semibold text-[var(--color-text-primary)]">
         Settings
       </h1>
-      <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+      <p class="mt-1 sm:mt-2 text-sm text-[var(--color-text-secondary)]">
         Manage your booking system settings and account preferences
       </p>
     </div>
@@ -23,23 +23,23 @@
     <div class="bg-[var(--color-bg-secondary)] rounded-lg overflow-hidden">
       <div class="settings-tabs">
         <!-- Tab Headers -->
-        <nav class="tab-nav bg-white border-b border-gray-200">
-          <div class="flex items-center px-4 gap-8">
+        <nav class="tab-nav bg-white border-b border-gray-200 overflow-x-auto">
+          <div class="flex items-center px-2 sm:px-4 gap-4 sm:gap-8 min-w-max">
             <button
               v-for="tab in tabs"
               :key="tab.name"
-              @click="activeTab = tab.name"
+              @click="() => activeTab = tab.name"
               :class="[
-                'tab-btn relative py-4 text-sm font-medium transition-all duration-200 -mb-px',
+                'tab-btn relative py-3 sm:py-4 text-sm font-medium transition-all duration-200 -mb-px whitespace-nowrap',
                 activeTab === tab.name
                   ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]'
                   : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent',
               ]"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 sm:gap-2">
                 <component
                   :is="tab.icon"
-                  class="w-5 h-5"
+                  class="w-4 h-4 sm:w-5 sm:h-5"
                   :class="
                     activeTab === tab.name
                       ? 'text-[var(--color-primary)]'
@@ -55,27 +55,25 @@
         <!-- Tab Content Background -->
         <div class="bg-gray-50 min-h-[400px]">
           <!-- Tab Panels -->
-          <div class="tab-content p-4">
+          <div class="tab-content p-3 sm:p-4">
             <!-- Booking Time & Slot Panel -->
             <div
-              v-if="activeTab === 'booking'"
+              v-if="activeTab === TabName.BOOKING"
               key="booking"
-              class="space-y-6 relative"
+              class="space-y-4 sm:space-y-6 relative"
             >
               <!-- Business Hours Section -->
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
-                <div class="p-4 border-b border-gray-100">
-                  <h3
-                    class="text-lg font-medium text-[var(--color-text-primary)]"
-                  >
+                <div class="p-3 sm:p-4 border-b border-gray-100">
+                  <h3 class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]">
                     Business Hours
                   </h3>
-                  <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
                     Set your business operating hours for booking slots
                   </p>
                 </div>
-                <div class="p-4">
-                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="p-3 sm:p-4">
+                  <div class="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
                       <label
                         class="block text-sm font-medium text-[var(--color-text-primary)]"
@@ -216,31 +214,21 @@
                 </div>
               </div>
 
-              <!-- Break Time Section -->
+              <!-- Break Time Section with mobile optimizations -->
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
-                <div class="p-4 border-b border-gray-100">
-                  <div class="flex justify-between items-center">
+                <div class="p-3 sm:p-4 border-b border-gray-100">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <h3
-                        class="text-lg font-medium text-[var(--color-text-primary)]"
-                      >
+                      <h3 class="text-base sm:text-lg font-medium text-[var(--color-text-primary)]">
                         Break Times
                       </h3>
-                      <p
-                        class="mt-1 text-sm text-[var(--color-text-secondary)]"
-                      >
+                      <p class="mt-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
                         Set multiple break time periods throughout the day
                       </p>
                     </div>
                     <button
-                      @click="
-                        settings.breakTimes.push({
-                          id: null,
-                          startTime: '',
-                          endTime: '',
-                        })
-                      "
-                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors duration-200"
+                      @click="settings.breakTimes.push({ id: null, startTime: '', endTime: '' })"
+                      class="w-full sm:w-auto inline-flex justify-center items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-colors duration-200"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -258,13 +246,13 @@
                     </button>
                   </div>
                 </div>
-                <div class="p-4">
+                <div class="p-3 sm:p-4">
                   <div class="space-y-4">
                     <TransitionGroup name="break-list">
                       <div
                         v-for="(breakTime, index) in settings.breakTimes"
                         :key="index"
-                        class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg relative group"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg relative group"
                       >
                         <div class="space-y-2">
                           <label
@@ -379,13 +367,11 @@
               </div>
 
               <!-- Save Button -->
-              <div
-                class="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex justify-end"
-              >
+              <div class="sticky bottom-0 bg-white border-t border-gray-200 p-3 sm:p-4 flex justify-end">
                 <button
                   @click="saveSlotConfig"
                   :disabled="loadingStates.booking"
-                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                  class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   <svg
                     v-if="loadingStates.booking"
@@ -413,7 +399,7 @@
               </div>
             </div>
 
-            <div v-if="activeTab === 'number-of-pax'">
+            <div v-if="activeTab === TabName.NUMBER_OF_PAX">
               <div class="bg-white rounded-lg border border-gray-100 shadow-sm">
                 <div class="p-4 border-b border-gray-100">
                   <h3
@@ -567,7 +553,7 @@
 
             <!-- Payment Gateway Panel -->
             <div
-              v-if="activeTab === 'payment'"
+              v-if="activeTab === TabName.PAYMENT"
               key="payment"
               class="space-y-6 relative"
             >
@@ -616,7 +602,7 @@
 
             <!-- Password Panel -->
             <div
-              v-if="activeTab === 'password'"
+              v-if="activeTab === TabName.PASSWORD"
               key="password"
               class="space-y-6 relative"
             >
@@ -960,9 +946,18 @@ interface Errors {
 
 type ModalStatus = "success" | "error";
 
+const TabName = {
+  BOOKING: 'booking',
+  NUMBER_OF_PAX: 'number-of-pax',
+  PAYMENT: 'payment',
+  PASSWORD: 'password'
+} as const;
+
+type TabNameType = typeof TabName[keyof typeof TabName];
+
 const tabs = [
   {
-    name: "booking",
+    name: TabName.BOOKING,
     label: "Booking Time & Slot",
     icon: defineComponent({
       render() {
@@ -996,7 +991,7 @@ const tabs = [
     }),
   },
   {
-    name: "number-of-pax",
+    name: TabName.NUMBER_OF_PAX,
     label: "Number of Pax",
     icon: defineComponent({
       render() {
@@ -1030,7 +1025,7 @@ const tabs = [
     }),
   },
   {
-    name: "payment",
+    name: TabName.PAYMENT,
     label: "Payment Gateway",
     icon: defineComponent({
       render() {
@@ -1062,7 +1057,7 @@ const tabs = [
     }),
   },
   {
-    name: "password",
+    name: TabName.PASSWORD,
     label: "Password",
     icon: defineComponent({
       render() {
@@ -1093,9 +1088,9 @@ const tabs = [
       },
     }),
   },
-];
+] as const;
 
-const activeTab = ref("booking");
+const activeTab = ref<TabNameType>(TabName.BOOKING);
 const showApiKey = ref(false);
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
@@ -1248,37 +1243,26 @@ const validatePasswordChange = () => {
 async function fetchConfig() {
   try {
     isLoading.value = true;
-    const response = (await $apiFetch(
-      "/api/setting/get-configs"
-    )) as ApiResponse;
+    const response = (await $apiFetch("/api/setting/get-configs")) as ApiResponse;
 
     console.log("Response: ", response);
 
     if (response.statusCode === 200 && response.data) {
       if (response.data.slotConfig) {
-        settings.value.openingTime = response.data.slotConfig.start_time;
-        settings.value.closingTime = response.data.slotConfig.end_time;
-
-        // Handle multiple break times from API
-        if (Array.isArray(response.data.breaks)) {
-          settings.value.breakTimes = response.data.breaks.map((breakTime) => ({
-            id: breakTime.id,
-            startTime: breakTime.start_time,
-            endTime: breakTime.end_time,
-          }));
-        } else {
-          // Fallback for backward compatibility
-          // settings.value.breakTimes = [
-          //   {
-          //     id: 1,
-          //     startTime: response.data.breaks[0].start_time,
-          //     endTime: response.data.breaks[0].end_time,
-          //   },
-          // ];
-        }
-
-        settings.value.slotDuration = response.data.slotConfig.duration;
-        settings.value.restDuration = response.data.slotConfig.rest;
+        settings.value = {
+          ...settings.value,
+          openingTime: response.data.slotConfig.start_time,
+          closingTime: response.data.slotConfig.end_time,
+          slotDuration: response.data.slotConfig.duration,
+          restDuration: response.data.slotConfig.rest,
+          breakTimes: Array.isArray(response.data.breaks)
+            ? response.data.breaks.map((breakTime) => ({
+                id: breakTime.id,
+                startTime: breakTime.start_time,
+                endTime: breakTime.end_time,
+              }))
+            : [],
+        };
       }
 
       if (response.data.chargePerPax !== undefined) {
@@ -1666,11 +1650,9 @@ input[type="time"] {
 
 // Error message styling
 .error-message {
-  @apply mt-1.5 text-sm text-red-600 transition-all absolute -bottom-6 left-0;
-  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+  font-size: 0.75rem;
+  bottom: -1.25rem;
+  left: 0;
 }
 
 // Shake animation
@@ -1745,5 +1727,87 @@ input[type="time"] {
 }
 .break-list-move {
   transition: transform 0.3s ease;
+}
+
+// Add responsive styles
+@media (max-width: 640px) {
+  .tab-btn {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  .time-input-wrapper {
+    input[type="time"] {
+      min-width: 120px;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    }
+
+    .time-icon {
+      left: 0.5rem;
+      
+      svg {
+        width: 1rem;
+        height: 1rem;
+      }
+    }
+  }
+
+  .error-message {
+    font-size: 0.75rem;
+    bottom: -1.25rem;
+    left: 0;
+  }
+}
+
+// Enhance mobile touch targets
+@media (max-width: 640px) {
+  input[type="time"],
+  input[type="number"],
+  input[type="password"],
+  select,
+  button {
+    min-height: 2.75rem;
+  }
+
+  .break-list-item {
+    @apply relative;
+    
+    .delete-button {
+      @apply absolute -top-2 -right-2 p-2;
+      
+      svg {
+        @apply w-5 h-5;
+      }
+    }
+  }
+}
+
+// Enhance scrolling behavior
+.settings-tabs {
+  .tab-nav {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// Add smooth transitions for mobile
+.mobile-fade-enter-active,
+.mobile-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.mobile-fade-enter-from,
+.mobile-fade-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
 }
 </style>
