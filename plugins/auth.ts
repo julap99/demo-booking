@@ -10,30 +10,27 @@ declare module '#app' {
 export default defineNuxtPlugin(async (nuxtApp) => {
   const auth = useAuthStore()
 
-  // Add state to track initialization
-  let isInitializing = false
-  let initializationPromise: Promise<boolean> | null = null
-
   // Function to initialize auth
   const initializeAuth = async () => {
-    if (isInitializing) {
-      return initializationPromise
-    }
-
-    isInitializing = true
-    initializationPromise = auth.checkAuth()
-
     try {
-      await initializationPromise
-    } finally {
-      isInitializing = false
+      // Initialize the store first
+      auth.initialize()
+      
+      // Only try to fetch user if we have a token
+      if (auth.token) {
+        return await auth.fetchUser()
+      }
+      return false
+    } catch (error) {
+      console.error('Auth initialization failed:', error)
+      return false
     }
-
-    return initializationPromise
   }
 
-  // Initialize on app creation
-  await initializeAuth()
+  // Initialize on client-side only
+  if (process.client) {
+    await initializeAuth()
+  }
 
   // Provide the initialization function to the app
   return {

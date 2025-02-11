@@ -1,11 +1,12 @@
 import { useAuthStore } from "~/stores/auth";
 import { defineNuxtPlugin } from "#app";
-import type { NitroFetchRequest, NitroFetchOptions } from "nitropack";
+import type { FetchOptions } from "ofetch";
 
 // Define public routes that don't need auth handling
 const PUBLIC_ROUTES = [
   "/api/auth/login",
   "/api/auth/register",
+  "/api/auth/logout",
   "/api/auth/refresh",
   "/api/auth/verify",
   "/api/booking/get-config",
@@ -14,81 +15,54 @@ const PUBLIC_ROUTES = [
   "/api/booking/get-slots",
   "/api/booking/get-available-slots",
   "/api/booking/proceed",
-  "/api/booking/get-receipt-detail",
+  "/api/booking/receipt-detail",
 ];
 
-export default defineNuxtPlugin((nuxtApp) => {
-  const auth = useAuthStore();
+export default defineNuxtPlugin(() => {
+  return {
+    provide: {
+      apiFetch: async (url: string, options: any = {}) => {
+        // Get fresh instance of auth store
+        const auth = useAuthStore();
 
-  // Add auth header to all API requests
-  nuxtApp.hook("app:created", () => {
-    const originalFetch = globalThis.$fetch;
+        // Ensure headers object exists
+        options.headers = options.headers || {};
 
-    globalThis.$fetch = async function $fetch<T = unknown>(
-      request: NitroFetchRequest,
-      options: NitroFetchOptions<NitroFetchRequest> = {}
-    ): Promise<T> {
-      console.log("Requested API: ", request);
+        // Add authorization header if we have a token and it's not a public route
+        if (auth.token && !PUBLIC_ROUTES.includes(url)) {
+          options.headers.Authorization = `Bearer ${auth.token}`;
+          console.log("Adding auth header for URL:", url);
+          console.log("Using token:", auth.token);
+        }
 
-      // Only add headers for API requests that are not public
-      if (typeof request === "string" && request.startsWith("/api/")) {
-        // Extract base URL without query parameters
-        const baseUrl = request.split("?")[0];
+        try {
+          console.log("Making request to:", url, "with options:", {
+            ...options,
+            headers: options.headers
+          });
 
-        if (!PUBLIC_ROUTES.includes(baseUrl)) {
-          console.log("Adding headers for API request: ", request);
-
-          // Always include credentials for API requests
-          options.credentials = "include";
-
-          // Add Authorization header if token exists
-          const token = auth.getToken;
-          if (token) {
-            options.headers = {
+          const response = await $fetch(url, {
+            ...options,
+            credentials: "include", // Include credentials in request
+            headers: {
               ...options.headers,
-              Authorization: `Bearer ${token}`,
-            };
+              "Content-Type": "application/json",
+            },
+          });
+
+          return response;
+        } catch (error: any) {
+          console.error("API request error for URL:", url, error);
+          
+          // Handle 401 errors
+          if (error?.response?.status === 401 && !PUBLIC_ROUTES.includes(url)) {
+            console.log("Unauthorized access, logging out");
+            await auth.logout();
+            navigateTo("/login");
           }
+          throw error;
         }
-      }
-
-      console.log("Lepas checking headers");
-
-      try {
-        return await originalFetch(request, options);
-      } catch (error: any) {
-        console.log("Error: ", error);
-
-        // Handle 401 errors globally
-        if (
-          error.response?.status === 401 &&
-          !PUBLIC_ROUTES.includes(request.toString().split("?")[0])
-        ) {
-          // Only try to refresh if we're not already trying to refresh
-          if (request !== "/api/auth/refresh") {
-            // Try to refresh the token
-            const refreshSuccess = await auth.refreshAuthToken();
-            if (refreshSuccess) {
-              // Retry the original request with the new token
-              const newToken = auth.getToken;
-              if (newToken) {
-                options.headers = {
-                  ...options.headers,
-                  Authorization: `Bearer ${newToken}`,
-                };
-                return await originalFetch(request, options);
-              }
-            }
-
-            // If refresh failed and we're not on a public route, clear auth and redirect
-            if (!PUBLIC_ROUTES.includes(request.toString().split("?")[0])) {
-              auth.clearAuthData();
-              navigateTo("/login");
-            }
-          }
-        }
-        throw error;
-      }
-    } as typeof globalThis.$fetch;
-  });
+      },
+    },
+  };
 });

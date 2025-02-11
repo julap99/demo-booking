@@ -1,44 +1,73 @@
 import knex from "../../utils/knex";
+import { addDays, subDays, startOfMonth, endOfMonth, format } from "date-fns";
 
 export default defineEventHandler(async (event) => {
   try {
+    // Get user info from auth middleware
+    const { userId, username } = event.context.auth;
+    console.log("Fetching dashboard data for user:", username);
+
+    // Get all bookings with theme information
     const data = await knex("booking")
       .select("booking.*", "theme.title as theme")
       .leftJoin("theme", "booking.theme", "theme.id");
 
-    console.log(data);
-
-    let stats = {};
-
     // Get Total Bookings
     const totalBookings = data.length;
 
-    // Get top addons
-    let addonQuantities: { [key: number]: number } = {};
+    // Calculate revenue statistics
+    const revenue = data.reduce(
+      (acc, booking) => {
+        if (booking.status === 3) {
+          // Full payment
+          acc.fullPayment += booking.payment_amount || 0;
+        } else if (booking.status === 2) {
+          // Deposit
+          acc.deposit += booking.payment_amount || 0;
+        }
+        return acc;
+      },
+      { fullPayment: 0, deposit: 0 }
+    );
+
+    // Get addon statistics
+    const addonStats = new Map<number, { name: string; count: number }>();
     for (const booking of data) {
-      if (booking.addon) {
-        const addons = booking.addon;
-        if (Array.isArray(addons)) {
-          addons.forEach((addon) => {
-            if (addon.id && addon.qty) {
-              addonQuantities[addon.id] =
-                (addonQuantities[addon.id] || 0) + addon.qty;
+      if (booking.addon && Array.isArray(booking.addon)) {
+        for (const addon of booking.addon) {
+          if (addon.id && addon.qty) {
+            if (!addonStats.has(addon.id)) {
+              // Fetch addon name from database if not already in map
+              const addonInfo = await knex("addon")
+                .where("id", addon.id)
+                .first();
+              addonStats.set(addon.id, {
+                name: addonInfo?.title || "Unknown Addon",
+                count: addon.qty,
+              });
+            } else {
+              const current = addonStats.get(addon.id)!;
+              addonStats.set(addon.id, {
+                ...current,
+                count: current.count + addon.qty,
+              });
             }
-          });
+          }
         }
       }
     }
 
-    // Find the addon with the highest quantity
-    type TopAddon = { id: number; qty: number; title?: string };
-    let topAddon = Object.entries(addonQuantities).reduce((max, [id, qty]) => {
-      return !max || qty > max.qty ? { id: parseInt(id), qty } : max;
-    }, null as TopAddon | null);
-
-    // Get addon details from database
-    if (topAddon) {
-      const addonDetails = await knex("addon").where("id", topAddon.id).first() as { id: number; title: string };
-      topAddon = addonDetails ? { ...topAddon, title: addonDetails.title } : null;
+    // Find top addon
+    let topAddon = null;
+    if (addonStats.size > 0) {
+      const [highestCountAddon] = Array.from(addonStats.entries()).sort(
+        ([, a], [, b]) => b.count - a.count
+      );
+      topAddon = {
+        id: highestCountAddon[0],
+        title: highestCountAddon[1].name,
+        qty: highestCountAddon[1].count,
+      };
     }
 
     // Get total pending sessions
@@ -46,196 +75,113 @@ export default defineEventHandler(async (event) => {
       (booking) => booking.session_status === 1
     ).length;
 
+    // Calculate chart data
+    const today = new Date();
+    const thirtyDaysAgo = subDays(today, 30);
+    const ninetyDaysAgo = subDays(today, 90);
+
+    // Helper function to generate daily stats
+    const getDailyStats = (startDate: Date, endDate: Date) => {
+      const stats: Array<{
+        date: string;
+        bookings: number;
+        unique_customers: number;
+      }> = [];
+      let currentDate = startDate;
+
+      while (currentDate <= endDate) {
+        const dateStr = format(currentDate, "yyyy-MM-dd");
+        const dayBookings = data.filter(
+          (booking) =>
+            format(new Date(booking.created_date), "yyyy-MM-dd") === dateStr
+        );
+
+        stats.push({
+          date: dateStr,
+          bookings: dayBookings.length,
+          unique_customers: new Set(dayBookings.map((b) => b.customer_id)).size,
+        });
+
+        currentDate = addDays(currentDate, 1);
+      }
+      return stats;
+    };
+
+    // Generate chart data
+    const chartData = {
+      thirtyDays: getDailyStats(thirtyDaysAgo, today),
+      ninetyDays: getDailyStats(ninetyDaysAgo, today),
+      yearly: Array.from({ length: 12 }, (_, i) => {
+        const month = startOfMonth(new Date(today.getFullYear(), i));
+        const monthEnd = endOfMonth(month);
+        const monthBookings = data.filter((booking) => {
+          const bookingDate = new Date(booking.created_date);
+          return bookingDate >= month && bookingDate <= monthEnd;
+        });
+
+        return {
+          month: format(month, "MMMM"),
+          bookings: monthBookings.length,
+          unique_customers: new Set(monthBookings.map((b) => b.customer_id))
+            .size,
+        };
+      }),
+    };
+
     // Get recent bookings (sorted by latest created_date)
     const recentBookings = [...data]
-      .sort(
-        (a, b) =>
-          new Date(b.created_date).getTime() -
-          new Date(a.created_date).getTime()
-      )
+      .sort((a, b) => {
+        const dateA = new Date(a.created_date).getTime();
+        const dateB = new Date(b.created_date).getTime();
+        return dateB - dateA;
+      })
       .slice(0, 5)
       .map((booking) => ({
         id: booking.id,
-        name: booking.user_name || booking.user_email,
+        name: booking.user_fullname,
         theme: booking.theme,
         latest_booking: booking.created_date,
         payment_status: booking.status,
       }));
 
-    // Get upcoming sessions (sorted by nearest session_date)
-    const currentDate = new Date();
-    const upcomingSessions = [...data]
-      .filter((booking) => new Date(booking.session_date) >= currentDate)
-      .sort(
-        (a, b) =>
-          new Date(a.session_date).getTime() -
-          new Date(b.session_date).getTime()
+    // Get upcoming sessions (today + 6 more days = 7 days total)
+    const sixDaysFromNow = addDays(today, 6);
+    console.log(today);
+    console.log(sixDaysFromNow);
+    const upcomingSessions = await knex("booking")
+      .select(
+        "booking.id",
+        "booking.user_fullname as name",
+        "theme.title as theme",
+        "booking.number_of_pax as pax",
+        "booking.session_date as date",
+        "booking.session_time as time",
+        "booking.session_status as status"
       )
-      .slice(0, 5)
-      .map((session) => ({
-        id: session.id,
-        name: session.user_name || session.user_email,
-        theme: session.theme,
-        booking_date: session.session_date,
-        number_of_pax: session.number_of_pax,
-        status: session.session_status,
-      }));
-
-    // Get theme distribution
-    const themeDistribution = data.reduce((acc, booking) => {
-      acc[booking.theme] = (acc[booking.theme] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Get revenue (Full payment vs Deposit)
-    let fullPayment = 0;
-    let deposit = 0;
-
-    for (const booking of data) {
-      if (booking.status === 2) {
-        // Deposit
-        deposit += booking.payment_amount;
-      }
-
-      if (booking.status === 3) {
-        // Full Payment
-        fullPayment += booking.payment_amount;
-      }
-    }
-
-    const revenue = {
-      fullPayment,
-      deposit,
-    };
-
-    // Calculate chart data
-    const thirtyDaysAgo = new Date(currentDate);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const ninetyDaysAgo = new Date(currentDate);
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-    const yearAgo = new Date(currentDate);
-    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-
-    // Helper function to group bookings by date
-    const groupBookingsByDate = (
-      startDate: Date,
-      interval: "day" | "month"
-    ) => {
-      const filteredData = data.filter(
-        (booking) => new Date(booking.created_date) >= startDate
-      );
-
-      const groupedData = filteredData.reduce((acc, booking) => {
-        const date = new Date(booking.created_date);
-        const key =
-          interval === "day"
-            ? date.toISOString().split("T")[0]
-            : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-                2,
-                "0"
-              )}`;
-
-        if (!acc[key]) {
-          acc[key] = {
-            bookings: 0,
-            unique_customers: new Set(),
-          };
-        }
-
-        acc[key].bookings++;
-        acc[key].unique_customers.add(booking.user_email);
-
-        return acc;
-      }, {} as Record<string, { bookings: number; unique_customers: Set<string> }>);
-
-      return groupedData;
-    };
-
-    // Generate date ranges
-    const generateDateRange = (startDate: Date, days: number) => {
-      const dates = [];
-      const start = new Date(startDate);
-      for (let i = 0; i < days; i++) {
-        const date = new Date(start);
-        date.setDate(date.getDate() + i);
-        dates.push(date.toISOString().split("T")[0]);
-      }
-      return dates;
-    };
-
-    // Generate month range
-    const generateMonthRange = () => {
-      const months = [];
-      const start = new Date(yearAgo);
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(start);
-        date.setMonth(date.getMonth() + i);
-        months.push(
-          `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-            2,
-            "0"
-          )}`
-        );
-      }
-      return months;
-    };
-
-    // Calculate 30 days data
-    const thirtyDaysData = groupBookingsByDate(thirtyDaysAgo, "day");
-    const thirtyDaysDates = generateDateRange(thirtyDaysAgo, 30);
-    const thirtyDays = thirtyDaysDates.map((date) => ({
-      date,
-      bookings: thirtyDaysData[date]?.bookings || 0,
-      unique_customers: thirtyDaysData[date]?.unique_customers.size || 0,
-    }));
-
-    // Calculate 90 days data
-    const ninetyDaysData = groupBookingsByDate(ninetyDaysAgo, "day");
-    const ninetyDaysDates = generateDateRange(ninetyDaysAgo, 90);
-    const ninetyDays = ninetyDaysDates.map((date) => ({
-      date,
-      bookings: ninetyDaysData[date]?.bookings || 0,
-      unique_customers: ninetyDaysData[date]?.unique_customers.size || 0,
-    }));
-
-    // Calculate yearly data
-    const yearlyData = groupBookingsByDate(yearAgo, "month");
-    const monthRange = generateMonthRange();
-    const yearly = monthRange.map((month) => ({
-      month: new Date(month + "-01").toLocaleString("default", {
-        month: "long",
-      }),
-      bookings: yearlyData[month]?.bookings || 0,
-      unique_customers: yearlyData[month]?.unique_customers.size || 0,
-    }));
+      .leftJoin("theme", "booking.theme", "theme.id")
+      .where("booking.session_status", 1)
+      .orderBy("booking.session_date", "asc")
+      .limit(5);
 
     return {
-      statusCode: 200,
       status: "success",
-      message: "Dashboard data fetched successfully",
       data: {
         stats: {
           totalBookings,
-          topAddon: topAddon?.title || "No Addon",
           totalPending,
+          addOns: Array.from(addonStats.values()),
           revenue,
         },
-        chartData: {
-          thirtyDays,
-          ninetyDays,
-          yearly,
-        },
+        chartData,
         recentBookings,
         upcomingSessions,
       },
     };
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error("Dashboard data error:", error);
     throw createError({
-      statusCode: 500,
-      message: "Internal server error",
+      statusCode: error.statusCode || 500,
+      message: error.message || "Failed to fetch dashboard data",
     });
   }
 });

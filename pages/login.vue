@@ -29,7 +29,6 @@ const handleSubmit = async () => {
     if (success) {
       navigateTo("/dashboard");
     } else {
-      // Get error from auth store
       error.value = auth.getError;
     }
   } catch (e) {
@@ -42,7 +41,7 @@ const handleSubmit = async () => {
 
 // Redirect if already logged in
 onMounted(async () => {
-  if (await auth.checkAuth()) {
+  if (await auth.fetchUser()) {
     navigateTo("/dashboard");
   }
 });

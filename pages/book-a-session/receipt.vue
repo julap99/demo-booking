@@ -297,8 +297,13 @@
                     class="text-sm space-y-0.5"
                   >
                     <div class="flex justify-between items-center">
-                      <span class="text-[var(--color-text-primary)]/90 font-medium">{{ addon.name }}</span>
-                      <span class="text-[var(--color-text-primary)]/70">{{ formatPrice(addon.price || 0) }}</span>
+                      <span
+                        class="text-[var(--color-text-primary)]/90 font-medium"
+                        >{{ addon.name }}</span
+                      >
+                      <span class="text-[var(--color-text-primary)]/70">{{
+                        formatPrice(addon.price || 0)
+                      }}</span>
                     </div>
                     <p class="text-[var(--color-text-primary)]/60 text-xs">
                       {{ addon.desc }}
@@ -458,7 +463,6 @@ import { useRoute, useRouter } from "vue-router";
 
 definePageMeta({
   layout: "empty",
-  middleware: "auth",
 });
 
 const route = useRoute();
@@ -565,20 +569,20 @@ const formatDatetime = (dateString) => {
 
 const formatTime = (timeString) => {
   if (!timeString) return "N/A";
-  
+
   // Split the time string into hours and minutes
-  const [hours, minutes] = timeString.split(':');
-  
+  const [hours, minutes] = timeString.split(":");
+
   // Convert hours to number for 12-hour format calculation
   let hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  
+  const ampm = hour >= 12 ? "PM" : "AM";
+
   // Convert to 12-hour format
   hour = hour % 12;
   hour = hour ? hour : 12; // If hour is 0, make it 12
-  
+
   // Return formatted time
-  return `${hour.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+  return `${hour.toString().padStart(2, "0")}:${minutes} ${ampm}`;
 };
 
 const downloadReceipt = async () => {

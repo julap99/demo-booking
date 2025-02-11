@@ -6,43 +6,78 @@ export const useAuthStore = defineStore("auth", {
     token: null,
     loading: false,
     error: null,
-    isInitialized: false,
-    isRefreshing: false,
+    initialized: false,
   }),
 
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
-    getUser: (state) => state.user || { name: "U" },
+    getUser: (state) => state.user,
     getError: (state) => state.error,
-    getToken: (state) => state.token,
   },
 
   actions: {
+    initialize() {
+      if (process.server) return;
+
+      const token = useCookie("token", {
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
+
+      if (token.value) {
+        console.log("Initializing with token from cookie:", token.value);
+        this.token = token.value;
+      }
+      this.initialized = true;
+    },
+
     async login(username, password) {
       this.loading = true;
       this.error = null;
 
       try {
-        const response = await $fetch("/api/auth/login", {
+        console.log("Attempting login with:", { username });
+
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch("/api/auth/login", {
           method: "POST",
           body: { username, password },
+          headers: {
+            "Content-Type": "application/json",
+          }
         });
 
+        console.log("Login response:", response);
+
         if (response.status === "success" && response.data) {
-          this.setAuthData(response.data);
+          console.log("Setting token:", response.data.token);
+          
+          const token = useCookie("token", {
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          });
+
+          token.value = response.data.token;
+          this.token = response.data.token;
+          this.user = response.data.user;
+          this.initialized = true;
+
+          // Verify token was set correctly
+          const storedToken = useCookie("token");
+          console.log("Stored token in cookie:", storedToken.value);
+          console.log("Stored token in state:", this.token);
+          
           return true;
-        } else {
-          throw new Error(response.message || "Login failed");
         }
+
+        throw new Error(response.message || "Login failed");
       } catch (error) {
-        // Handle H3Error format
-        if (error.data && error.data.message) {
-          this.error = error.data.message;
-        } else if (error.message) {
-          this.error = error.message;
-        } else {
-          this.error = "Failed to login";
-        }
+        console.error("Login error details:", error.response || error);
+        this.error = error.response?.data?.message || error.message || "Failed to login";
         return false;
       } finally {
         this.loading = false;
@@ -50,132 +85,78 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout() {
-      this.loading = true;
-
-      try {
-        // Clear refresh token cookie by making a request to the server
-        await $fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include",
-        });
-
-        // Clear auth data from store and storage
-        this.clearAuthData();
-        return true;
-      } catch (error) {
-        this.error = error.message;
-        return false;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async refreshAuthToken() {
-      // Prevent multiple simultaneous refresh attempts
-      if (this.isRefreshing) {
-        return false;
-      }
-
-      this.isRefreshing = true;
-
-      try {
-        const response = await $fetch("/api/auth/refresh", {
-          method: "POST",
-          credentials: "include",
-        });
-
-        if (response.status === "success" && response.data) {
-          this.setAuthData(response.data);
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error("Token refresh error:", error);
-        this.clearAuthData();
-        return false;
-      } finally {
-        this.isRefreshing = false;
-      }
-    },
-
-    async checkAuth() {
-      if (this.isInitialized) {
-        return this.isAuthenticated;
-      }
-
-      const storage = useStorage();
-
-      try {
-        const token = storage.getItem("token");
-        const userData = storage.getItem("user");
-
-        if (token && userData) {
-          this.token = token;
-          this.user = JSON.parse(userData);
-
-          // Verify token validity by making a test request
-          const response = await $fetch("/api/auth/verify", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
-          }).catch(() => null);
-
-          if (!response) {
-            // Token is invalid, try to refresh
-            const refreshSuccess = await this.refreshAuthToken();
-            if (!refreshSuccess) {
-              this.clearAuthData();
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        this.clearAuthData();
-      } finally {
-        this.isInitialized = true;
-      }
-
-      return this.isAuthenticated;
-    },
-
-    setAuthData(data) {
-      const storage = useStorage();
-
-      this.token = data.token;
-      this.user = data.user;
-      this.isInitialized = true;
-
-      // Persist to storage
-      try {
-        storage.setItem("token", data.token);
-        storage.setItem("user", JSON.stringify(data.user));
-      } catch (error) {
-        console.error("Error persisting auth data:", error);
-      }
-    },
-
-    clearAuthData() {
-      const storage = useStorage();
-
+      // First clear local state and cookies
+      const token = useCookie("token");
+      token.value = null;
       this.token = null;
       this.user = null;
-      this.error = null;
-      this.isInitialized = false;
-      this.isRefreshing = false;
+      this.initialized = false;
 
-      // Clear storage
       try {
-        storage.removeItem("token");
-        storage.removeItem("user");
-        storage.removeItem("redirectTo");
-      } catch (error) {
-        console.error("Error clearing auth data:", error);
+        // Then try to logout from server
+        const { $apiFetch } = useNuxtApp();
+        await $apiFetch("/api/auth/logout", {
+          method: "POST",
+        }).catch((error) => {
+          // Ignore server logout errors since we've already cleared local state
+          console.warn("Server logout failed:", error);
+        });
+      } finally {
+        // Ensure we navigate to login page
+        if (process.client) {
+          navigateTo("/login");
+        }
       }
     },
 
-    clearError() {
-      this.error = null;
+    async fetchUser() {
+      try {
+        // Make sure we're initialized and have a token
+        if (!this.initialized) {
+          this.initialize();
+        }
+
+        // Double check token after initialization
+        if (!this.token) {
+          const token = useCookie("token");
+          if (!token.value) {
+            console.log("No token found in cookie");
+            await this.logout();
+            return false;
+          }
+          console.log("Retrieved token from cookie:", token.value);
+          this.token = token.value;
+        }
+
+        console.log("Fetching user with token:", this.token);
+
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        console.log("User fetch response:", response);
+
+        if (response.status === "success" && response.data) {
+          this.user = response.data;
+          return true;
+        }
+
+        console.log("Invalid response format:", response);
+        await this.logout();
+        return false;
+      } catch (error) {
+        console.error("Fetch user error:", error);
+        console.error("Error response:", error.response);
+        // Only logout if it's an auth error (401)
+        if (error.response?.status === 401) {
+          await this.logout();
+        }
+        return false;
+      }
     },
   },
 });

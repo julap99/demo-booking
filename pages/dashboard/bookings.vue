@@ -883,6 +883,12 @@
                       {{ selectedBooking.theme_title || "Not specified" }}
                     </div>
                   </div>
+                  <div class="space-y-1">
+                    <div class="text-sm text-gray-500">No. of Pax</div>
+                    <div class="font-medium text-gray-900">
+                      {{ selectedBooking.number_of_pax || 0 }} Pax
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -935,6 +941,20 @@
                     </span>
                   </div>
 
+                  <!-- Extra Pax Total -->
+                  <div
+                    class="flex justify-between items-center py-2"
+                    v-if="selectedBooking.number_of_extra_pax"
+                  >
+                    <span class="text-sm text-gray-600"
+                      >Extra Pax Total ( + {{
+                        selectedBooking.number_of_extra_pax
+                      }} Pax)</span
+                    >
+                    <span class="text-sm font-medium text-gray-900">
+                      RM {{ formatNumber(selectedBooking.payment_extra_pax) }}
+                    </span>
+                  </div>
                   <!-- Addons Total -->
                   <div class="flex justify-between items-center py-2">
                     <span class="text-sm text-gray-600">Addons Total</span>
@@ -1423,7 +1443,9 @@
               <div v-if="selectedBooking" class="space-y-6 receipt-content">
                 <!-- Receipt Header -->
                 <div class="text-center space-y-2">
-                  <h2 class="text-xl font-bold text-gray-900">Stitch & Shutter</h2>
+                  <h2 class="text-xl font-bold text-gray-900">
+                    Stitch & Shutter
+                  </h2>
                   <p class="text-sm text-gray-500">Official Receipt</p>
                   <p class="text-sm text-gray-500">
                     Receipt #{{
@@ -1834,6 +1856,8 @@ interface SlotsResponse {
   status: string;
 }
 
+const { $apiFetch } = useNuxtApp();
+
 // State
 const loading = ref(false);
 const bookings = ref<Booking[]>([]);
@@ -2164,11 +2188,17 @@ function exportToCSV() {
 async function fetchBookings() {
   loading.value = true;
   try {
-    const { data } = await useFetch<BookingResponse[]>(
+    // const { data } = await useFetch<BookingResponse[]>(
+    //   "/api/booking/get-bookings"
+    // );
+
+    const response = (await $apiFetch(
       "/api/booking/get-bookings"
-    );
-    if (data.value) {
-      bookings.value = data.value.map((booking) => ({
+    )) as BookingResponse[];
+
+    console.log("Response Bookings", response);
+    if (response) {
+      bookings.value = response.map((booking) => ({
         ...booking,
         frame_quantity: booking.frame_quantity || 0,
       }));

@@ -33,15 +33,27 @@ function generateTokens(user: any) {
     { expiresIn: REFRESH_TOKEN_EXPIRY }
   );
 
+  console.log("Generated access token:", accessToken);
+  console.log("JWT Secret used:", JWT_SECRET);
+  
+  // Verify the token immediately to ensure it's valid
+  try {
+    const decoded = jwt.verify(accessToken, JWT_SECRET);
+    console.log("Token verification successful:", decoded);
+  } catch (error) {
+    console.error("Token verification failed:", error);
+  }
+
   return { accessToken, refreshToken };
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    const { username, password } = await readBody(event);
+    const body = await readBody(event);
+    console.log("Login attempt for username:", body.username);
 
     // Input validation
-    if (!username || !password) {
+    if (!body.username || !body.password) {
       throw createError({
         statusCode: 400,
         message: "Username and password are required",
@@ -50,22 +62,37 @@ export default defineEventHandler(async (event) => {
 
     const hashedPassword = crypto
       .createHash("sha256")
-      .update(password)
+      .update(body.password)
       .digest("hex");
 
-    console.log("Hashed Password: ", hashedPassword);
-
+    console.log("Looking for user in database...");
+    
+    // First check if user exists
     const user = await db("user")
-      .where("username", username)
-      .where("password", hashedPassword)
+      .where("username", body.username)
       .first();
 
     if (!user) {
+      console.log("User not found");
       throw createError({
         statusCode: 401,
         message: "Invalid username or password",
       });
     }
+
+    console.log("User found, checking password...");
+
+    // Then check password separately for better debugging
+    const passwordMatch = user.password === hashedPassword;
+    if (!passwordMatch) {
+      console.log("Password mismatch");
+      throw createError({
+        statusCode: 401,
+        message: "Invalid username or password",
+      });
+    }
+
+    console.log("Password matched, generating tokens...");
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user);
@@ -75,7 +102,8 @@ export default defineEventHandler(async (event) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      // Add other non-sensitive user fields as needed
+      name: user.name,
+      role: user.role,
     };
 
     // Set HTTP-only cookie for refresh token
@@ -88,7 +116,6 @@ export default defineEventHandler(async (event) => {
     });
 
     return {
-      statusCode: 200,
       status: "success",
       message: "Login successful",
       data: {
@@ -98,9 +125,11 @@ export default defineEventHandler(async (event) => {
     };
   } catch (error: any) {
     console.error("Login error:", error);
+    
+    // Ensure we're returning proper error responses
     throw createError({
       statusCode: error.statusCode || 500,
-      message: error.message || "Failed to login",
+      message: error.message || "An error occurred during login",
     });
   }
 });

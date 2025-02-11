@@ -1,46 +1,41 @@
 import { useAuthStore } from "~/stores/auth";
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  const nuxtApp = useNuxtApp();
-  const auth = useAuthStore();
-  const storage = useStorage();
+export default defineNuxtRouteMiddleware(async (to) => {
+  // Skip middleware on server-side
+  if (process.server) return;
 
-  // Ensure auth is initialized
-  if (nuxtApp.$initAuth) {
-    await nuxtApp.$initAuth();
+  const auth = useAuthStore();
+
+  // Initialize auth store if needed
+  if (!auth.initialized) {
+    auth.initialize();
   }
-  const isAuthenticated = auth.isAuthenticated;
 
   // Public routes that don't require authentication
   const publicRoutes = ["/", "/book-a-session", "/login", "/register"];
 
-  // Routes that require authentication
-  const protectedRoutes = ["/dashboard", "/profile", "/settings"];
+  // If it's a public route, allow access
+  if (publicRoutes.includes(to.path)) {
+    return;
+  }
 
-  // Check if the current route requires authentication
-  const requiresAuth =
-    to.path.startsWith("/dashboard") ||
-    protectedRoutes.some((route) => to.path.startsWith(route));
-
-  // If route requires auth and user is not authenticated
-  if (requiresAuth && !isAuthenticated) {
-    // Store the intended destination to redirect after login
-    storage.setItem("redirectTo", to.fullPath);
+  // For protected routes, always try to fetch user data if we have a token
+  if (auth.token) {
+    const success = await auth.fetchUser();
+    if (!success) {
+      const redirectTo = useCookie("redirect_to", { maxAge: 300 }); // 5 minutes
+      redirectTo.value = to.fullPath;
+      return navigateTo("/login");
+    }
+  } else {
+    // No token found, redirect to login
+    const redirectTo = useCookie("redirect_to", { maxAge: 300 }); // 5 minutes
+    redirectTo.value = to.fullPath;
     return navigateTo("/login");
   }
 
-  // If user is authenticated and trying to access auth pages
-  if (isAuthenticated && publicRoutes.includes(to.path)) {
-    return navigateTo("/dashboard");
-  }
-
-  // If user is authenticated and there's a stored redirect
-  if (isAuthenticated && to.path === "/login") {
-    const redirectTo = storage.getItem("redirectTo");
-    storage.removeItem("redirectTo");
-    if (redirectTo) {
-      return navigateTo(redirectTo);
-    }
+  // If we reach here, user is authenticated
+  if (to.path === "/login" || to.path === "/register") {
     return navigateTo("/dashboard");
   }
 });

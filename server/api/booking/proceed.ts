@@ -212,7 +212,7 @@ export default defineEventHandler(async (event) => {
         addons.push({
           id: addOn.id,
           qty: addon_.quantity,
-          price: addOn.price * addon_.quantity,
+          price: addOn.price,
         });
       }
     }

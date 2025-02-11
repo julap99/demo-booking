@@ -248,7 +248,7 @@ const showMobileMenu = ref(false);
 
 // Initialize auth on component mount
 onMounted(async () => {
-  await auth.checkAuth();
+  await auth.fetchUser();
 });
 
 const user = computed(() => auth.getUser);

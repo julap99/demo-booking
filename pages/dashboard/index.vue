@@ -19,6 +19,11 @@ interface DashboardData {
       deposit: number;
     };
   };
+  topAddon?: {
+    id: number;
+    title: string;
+    qty: number;
+  };
   chartData?: {
     thirtyDays: Array<{
       date: string;
@@ -54,23 +59,56 @@ interface DashboardData {
   }>;
 }
 
+interface ApiResponse {
+  status: string;
+  data: DashboardData;
+}
+
 // Fetch dashboard data
-const {
-  data: dashboardData,
-  pending,
-  error,
-  refresh,
-} = await useFetch<DashboardData>("/api/dashboard/get-data", {
-  transform: (response: any) => ({
-    ...response.data,
-  }),
+const { $apiFetch } = useNuxtApp();
+const dashboardData = ref<DashboardData | null>(null);
+const pending = ref(false);
+const error = ref<Error | null>(null);
+
+async function fetchDashboardData() {
+  pending.value = true;
+  error.value = null;
+  try {
+    const response = (await $apiFetch(
+      "/api/dashboard/get-data"
+    )) as ApiResponse;
+    console.log("Response Dashboard", response);
+
+    // Transform the data to match our interface
+    dashboardData.value = {
+      stats: {
+        totalBookings: response.data.stats.totalBookings,
+        totalPending: response.data.stats.totalPending,
+        addOns: response.data.stats.addOns,
+        revenue: response.data.stats.revenue,
+      },
+      chartData: response.data.chartData,
+      recentBookings: response.data.recentBookings,
+      upcomingSessions: response.data.upcomingSessions,
+    };
+  } catch (err: any) {
+    console.error("Error fetching dashboard data:", err);
+    error.value = err;
+  } finally {
+    pending.value = false;
+  }
+}
+
+// Initial fetch
+onMounted(() => {
+  fetchDashboardData();
 });
 
 // Stats data transformation
 const stats = computed(() => [
   {
     name: "Total Bookings",
-    stat: dashboardData.value?.stats.totalBookings.toString() || "0",
+    stat: dashboardData.value?.stats.totalBookings?.toString() || "0",
     icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
     description: "Total sessions booked",
     change: "10%", // Simulated growth
@@ -78,19 +116,22 @@ const stats = computed(() => [
   },
   {
     name: "Top Add-ons",
-    stat: dashboardData.value?.stats.topAddon || "No Addon",
+    stat: dashboardData.value?.stats.addOns[0]?.name || "No Addon",
     icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z",
     description: "Most popular add-on packages",
-    change: "0%",
+    change: dashboardData.value?.stats.addOns[0]?.count?.toString() || "0",
     changeType: "neutral",
   },
   {
     name: "Pending Sessions",
-    stat: dashboardData.value?.stats.totalPending.toString() || "0",
+    stat: dashboardData.value?.stats.totalPending?.toString() || "0",
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
     description: "Sessions awaiting confirmation",
-    change: dashboardData.value?.stats.totalPending.toString() || "0",
-    changeType: (dashboardData.value?.stats?.totalPending || 0) > 0 ? "increase" : "neutral",
+    change: dashboardData.value?.stats.totalPending?.toString() || "0",
+    changeType:
+      (dashboardData.value?.stats?.totalPending || 0) > 0
+        ? "increase"
+        : "neutral",
   },
   {
     name: "Total Revenue",
@@ -98,9 +139,9 @@ const stats = computed(() => [
       const revenue = dashboardData.value?.stats.revenue;
       if (!revenue) return "$0";
       const total = revenue.fullPayment + revenue.deposit;
-      return new Intl.NumberFormat('en-MY', {
-        style: 'currency',
-        currency: 'MYR',
+      return new Intl.NumberFormat("en-MY", {
+        style: "currency",
+        currency: "MYR",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(total);
@@ -109,17 +150,20 @@ const stats = computed(() => [
     description: (() => {
       const revenue = dashboardData.value?.stats.revenue;
       if (!revenue) return "No revenue data";
-      return `Full: ${new Intl.NumberFormat('en-MY', {
-        style: 'currency',
-        currency: 'MYR',
+      return `Full: ${new Intl.NumberFormat("en-MY", {
+        style: "currency",
+        currency: "MYR",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      }).format(revenue.fullPayment)} | Deposit: ${new Intl.NumberFormat('en-MY', {
-        style: 'currency',
-        currency: 'MYR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(revenue.deposit)}`;
+      }).format(revenue.fullPayment)} | Deposit: ${new Intl.NumberFormat(
+        "en-MY",
+        {
+          style: "currency",
+          currency: "MYR",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }
+      ).format(revenue.deposit)}`;
     })(),
     change: (() => {
       const revenue = dashboardData.value?.stats.revenue;
@@ -137,6 +181,21 @@ const formatDate = (date: string) => {
     year: "numeric",
     month: "long",
     day: "numeric",
+  });
+};
+
+const formatTime = (time: string) => {
+  if (!time) return '';
+  // Split the time string into hours and minutes
+  const [hours, minutes] = time.split(':');
+  // Create a date object for today with the specified time
+  const date = new Date();
+  date.setHours(parseInt(hours, 10));
+  date.setMinutes(parseInt(minutes, 10));
+  
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
   });
 };
 
@@ -465,7 +524,7 @@ const getChangeColor = (type: string) => {
         <p class="mt-1 text-sm text-gray-500">{{ error.message }}</p>
         <button
           type="button"
-          @click="() => refresh()"
+          @click="() => fetchDashboardData()"
           class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
         >
           Try again
@@ -493,8 +552,12 @@ const getChangeColor = (type: string) => {
           <div class="p-6">
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-blue-600">{{ item.name }}</span>
-                <span class="mt-2 text-3xl font-bold text-blue-900">{{ item.stat }}</span>
+                <span class="text-sm font-medium text-blue-600">{{
+                  item.name
+                }}</span>
+                <span class="mt-2 text-3xl font-bold text-blue-900">{{
+                  item.stat
+                }}</span>
               </div>
               <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
                 <svg
@@ -615,11 +678,11 @@ const getChangeColor = (type: string) => {
                     <p class="text-sm text-gray-500">{{ session.theme }}</p>
                     <span class="mx-2 text-gray-500">·</span>
                     <p class="text-sm text-gray-500">
-                      {{ formatDate(session.booking_date) }}
+                      {{ session.date ? formatDate(session.date) : 'No date' }}
                     </p>
                   </div>
                   <p class="text-sm text-gray-500 mt-1">
-                    {{ session.number_of_pax }} Pax
+                    {{ session.pax }} Pax at {{ session.time ? formatTime(session.time) : 'No time' }}
                   </p>
                 </div>
                 <div>
