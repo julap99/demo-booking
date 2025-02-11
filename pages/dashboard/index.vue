@@ -9,9 +9,15 @@ definePageMeta({
 interface DashboardData {
   stats: {
     totalBookings: number;
-    uniqueCustomers: number;
     totalPending: number;
-    themeDistribution: Record<string, number>;
+    addOns: {
+      name: string;
+      count: number;
+    }[];
+    revenue: {
+      fullPayment: number;
+      deposit: number;
+    };
   };
   chartData?: {
     thirtyDays: Array<{
@@ -33,9 +39,9 @@ interface DashboardData {
   recentBookings?: Array<{
     id: number;
     name: string;
-    themes: string;
+    theme: string;
     latest_booking: string;
-    pending_payment: number;
+    payment_status: number;
   }>;
   upcomingSessions?: Array<{
     id: number;
@@ -44,29 +50,9 @@ interface DashboardData {
     booking_date: string;
     location: string;
     status: number;
+    number_of_pax: number;
   }>;
 }
-
-// Simulated data for chart and other sections
-const simulatedData = {
-  chartData: {
-    thirtyDays: Array.from({ length: 30 }, (_, i) => ({
-      date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-      bookings: Math.floor(Math.random() * 10),
-      unique_customers: Math.floor(Math.random() * 8),
-    })),
-    ninetyDays: Array.from({ length: 90 }, (_, i) => ({
-      date: new Date(Date.now() - (89 - i) * 24 * 60 * 60 * 1000).toISOString(),
-      bookings: Math.floor(Math.random() * 20),
-      unique_customers: Math.floor(Math.random() * 15),
-    })),
-    yearly: Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(2024, i, 1).toLocaleString("default", { month: "long" }),
-      bookings: Math.floor(Math.random() * 50),
-      unique_customers: Math.floor(Math.random() * 40),
-    })),
-  },
-};
 
 // Fetch dashboard data
 const {
@@ -77,7 +63,6 @@ const {
 } = await useFetch<DashboardData>("/api/dashboard/get-data", {
   transform: (response: any) => ({
     ...response.data,
-    ...simulatedData,
   }),
 });
 
@@ -92,12 +77,12 @@ const stats = computed(() => [
     changeType: "increase",
   },
   {
-    name: "Active Customers",
-    stat: dashboardData.value?.stats.uniqueCustomers.toString() || "0",
-    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
-    description: "Unique customers",
-    change: "8%", // Simulated growth
-    changeType: "increase",
+    name: "Top Add-ons",
+    stat: dashboardData.value?.stats.topAddon || "No Addon",
+    icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z",
+    description: "Most popular add-on packages",
+    change: "0%",
+    changeType: "neutral",
   },
   {
     name: "Pending Sessions",
@@ -105,68 +90,42 @@ const stats = computed(() => [
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
     description: "Sessions awaiting confirmation",
     change: dashboardData.value?.stats.totalPending.toString() || "0",
-    changeType:
-      (dashboardData.value?.stats?.totalPending || 0) > 0
-        ? "increase"
-        : "neutral",
+    changeType: (dashboardData.value?.stats?.totalPending || 0) > 0 ? "increase" : "neutral",
   },
   {
-    name: "Theme Distribution",
+    name: "Total Revenue",
     stat: (() => {
-      const dist = dashboardData.value?.stats.themeDistribution || {};
-      const themes = Object.keys(dist);
-      if (themes.length === 0) return "No themes";
-      if (themes.length === 1) return `${dist[themes[0]]} ${themes[0]}`;
-
-      // Sort themes by count in descending order
-      const sortedThemes = themes.sort((a, b) => dist[b] - dist[a]);
-      const topThemes = sortedThemes.slice(0, 2);
-      const remaining = sortedThemes
-        .slice(2)
-        .reduce((sum, theme) => sum + dist[theme], 0);
-
-      if (remaining > 0) {
-        return `${dist[topThemes[0]]}/${dist[topThemes[1]]}/${remaining}`;
-      }
-      return `${dist[topThemes[0]]}/${dist[topThemes[1]]}`;
+      const revenue = dashboardData.value?.stats.revenue;
+      if (!revenue) return "$0";
+      const total = revenue.fullPayment + revenue.deposit;
+      return new Intl.NumberFormat('en-MY', {
+        style: 'currency',
+        currency: 'MYR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(total);
     })(),
-    icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z",
+    icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     description: (() => {
-      const dist = dashboardData.value?.stats.themeDistribution || {};
-      const themes = Object.keys(dist);
-      if (themes.length === 0) return "No themes available";
-      if (themes.length === 1) return themes[0];
-
-      const sortedThemes = themes.sort((a, b) => dist[b] - dist[a]);
-      const topThemes = sortedThemes.slice(0, 2);
-      const remaining = sortedThemes.length > 2 ? "Others" : "";
-
-      return remaining
-        ? `${topThemes[0]} / ${topThemes[1]} / ${remaining}`
-        : `${topThemes[0]} / ${topThemes[1]}`;
+      const revenue = dashboardData.value?.stats.revenue;
+      if (!revenue) return "No revenue data";
+      return `Full: ${new Intl.NumberFormat('en-MY', {
+        style: 'currency',
+        currency: 'MYR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(revenue.fullPayment)} | Deposit: ${new Intl.NumberFormat('en-MY', {
+        style: 'currency',
+        currency: 'MYR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(revenue.deposit)}`;
     })(),
     change: (() => {
-      const dist = dashboardData.value?.stats.themeDistribution || {};
-      const themes = Object.keys(dist);
-      if (themes.length === 0) return "0%";
-      if (themes.length === 1) return "100%";
-
-      const sortedThemes = themes.sort((a, b) => dist[b] - dist[a]);
-      const total = themes.reduce((sum, theme) => sum + dist[theme], 0);
-      const topThemes = sortedThemes.slice(0, 2);
-
-      if (themes.length > 2) {
-        const remaining = sortedThemes
-          .slice(2)
-          .reduce((sum, theme) => sum + dist[theme], 0);
-        return `${Math.round((dist[topThemes[0]] / total) * 100)}/${Math.round(
-          (dist[topThemes[1]] / total) * 100
-        )}/${Math.round((remaining / total) * 100)}`;
-      }
-
-      return `${Math.round((dist[topThemes[0]] / total) * 100)}/${Math.round(
-        (dist[topThemes[1]] / total) * 100
-      )}`;
+      const revenue = dashboardData.value?.stats.revenue;
+      if (!revenue) return "0%";
+      const total = revenue.fullPayment + revenue.deposit;
+      return `${Math.round((revenue.fullPayment / total) * 100)}% full`;
     })(),
     changeType: "neutral",
   },
@@ -211,118 +170,20 @@ const selectedTimeSeriesData = computed(() => {
 // Add this ref to store the chart instance
 const chart = ref<Chart | null>(null);
 
-// Create chart function
-const createChart = () => {
-  const ctx = document.getElementById("overview-chart") as HTMLCanvasElement;
-  if (!ctx) return;
-
-  // Destroy existing chart if it exists
-  if (chart.value) {
-    chart.value.destroy();
-  }
-
-  // Also check for any existing chart with Chart.js's registry
-  const existingChart = Chart.getChart(ctx);
-  if (existingChart) {
-    existingChart.destroy();
-  }
-
-  // Create gradient for bookings
-  const bookingsGradient = ctx
-    .getContext("2d")
-    ?.createLinearGradient(0, 0, 0, 400);
-  if (bookingsGradient) {
-    bookingsGradient.addColorStop(0, "var(--color-primary)");
-    bookingsGradient.addColorStop(1, "rgba(var(--color-primary), 0)");
-  }
-
-  // Create gradient for customers
-  const customersGradient = ctx
-    .getContext("2d")
-    ?.createLinearGradient(0, 0, 0, 400);
-  if (customersGradient) {
-    customersGradient.addColorStop(0, "var(--color-bg-secondary)");
-    customersGradient.addColorStop(1, "rgba(var(--color-bg-secondary), 0)");
-  }
-
-  // Create new chart
-  chart.value = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: selectedTimeSeriesData.value.labels,
-      datasets: [
-        {
-          label: "Bookings",
-          data: selectedTimeSeriesData.value.bookings,
-          borderColor: "var(--color-primary)",
-          backgroundColor: bookingsGradient,
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointBackgroundColor: "white",
-          pointHoverBackgroundColor: "white",
-          pointBorderColor: "var(--color-primary)",
-          pointHoverBorderColor: "var(--color-primary)",
-          pointBorderWidth: 2,
-          pointHoverBorderWidth: 2,
-          yAxisID: "y",
-          order: 1,
-        },
-        {
-          label: "Customers",
-          data: selectedTimeSeriesData.value.customers,
-          borderColor: "var(--color-bg-secondary)",
-          backgroundColor: customersGradient,
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointBackgroundColor: "white",
-          pointHoverBackgroundColor: "white",
-          pointBorderColor: "var(--color-bg-secondary)",
-          pointHoverBorderColor: "var(--color-bg-secondary)",
-          pointBorderWidth: 2,
-          pointHoverBorderWidth: 2,
-          yAxisID: "y1",
-          order: 0,
-        },
-      ],
-    },
-    options: chartOptions,
-  });
-};
-
-// Clean up chart on component unmount
-onUnmounted(() => {
-  if (chart.value) {
-    chart.value.destroy();
-  }
-});
-
-// Watch for time range changes and update chart
-watch([timeRange, dashboardData], () => {
-  if (dashboardData.value) {
-    createChart();
-  }
-});
-
 // Chart options with proper TypeScript types
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   interaction: {
-    mode: "nearest" as const,
-    axis: "x" as const,
+    mode: "nearest",
+    axis: "x",
     intersect: false,
   },
   stacked: false,
   plugins: {
     legend: {
-      position: "top" as const,
-      align: "end" as const,
+      position: "top",
+      align: "end",
       labels: {
         usePointStyle: true,
         padding: 20,
@@ -331,7 +192,7 @@ const chartOptions = {
         font: {
           size: 12,
           family: "'Inter', sans-serif",
-          weight: 500,
+          weight: "normal",
         },
       },
     },
@@ -346,12 +207,20 @@ const chartOptions = {
       usePointStyle: true,
       titleFont: {
         size: 14,
-        weight: "600",
+        weight: "bold",
+        family: "'Inter', sans-serif",
       },
       bodyFont: {
         size: 13,
+        weight: "normal",
+        family: "'Inter', sans-serif",
       },
       callbacks: {
+        title: function (context: any) {
+          if (!context[0]) return "";
+          const value = context[0].label;
+          return value;
+        },
         label: function (context: any) {
           let label = context.dataset.label || "";
           if (label) {
@@ -377,32 +246,33 @@ const chartOptions = {
         font: {
           size: 12,
           family: "'Inter', sans-serif",
-          weight: "500",
+          weight: "normal",
         },
         color: "#6B7280",
         padding: 8,
       },
     },
     y: {
-      type: "linear" as const,
+      type: "linear",
       display: true,
-      position: "left" as const,
+      position: "left",
       grid: {
         color: "#F3F4F6",
         drawBorder: false,
       },
       border: {
-        dash: [5, 5],
+        dash: [5, 5] as number[],
       },
       ticks: {
         font: {
           size: 12,
           family: "'Inter', sans-serif",
-          weight: "500",
+          weight: "normal",
         },
         color: "#6B7280",
         padding: 8,
         maxTicksLimit: 6,
+        stepSize: 1,
       },
       title: {
         display: true,
@@ -410,32 +280,33 @@ const chartOptions = {
         font: {
           size: 13,
           family: "'Inter', sans-serif",
-          weight: "600",
+          weight: "bold",
         },
         color: "#374151",
         padding: { bottom: 10 },
       },
     },
     y1: {
-      type: "linear" as const,
+      type: "linear",
       display: true,
-      position: "right" as const,
+      position: "right",
       grid: {
         drawOnChartArea: false,
         drawBorder: false,
       },
       border: {
-        dash: [5, 5],
+        dash: [5, 5] as number[],
       },
       ticks: {
         font: {
           size: 12,
           family: "'Inter', sans-serif",
-          weight: "500",
+          weight: "normal",
         },
         color: "#6B7280",
         padding: 8,
         maxTicksLimit: 6,
+        stepSize: 1,
       },
       title: {
         display: true,
@@ -443,7 +314,7 @@ const chartOptions = {
         font: {
           size: 13,
           family: "'Inter', sans-serif",
-          weight: "600",
+          weight: "bold",
         },
         color: "#374151",
         padding: { bottom: 10 },
@@ -451,6 +322,94 @@ const chartOptions = {
     },
   },
 };
+
+// Create chart function
+const createChart = () => {
+  const ctx = document.getElementById("overview-chart") as HTMLCanvasElement;
+  if (!ctx) return;
+
+  // Destroy existing chart if it exists
+  if (chart.value) {
+    chart.value.destroy();
+  }
+
+  // Create gradients
+  const context = ctx.getContext("2d");
+  if (!context) return;
+
+  const bookingsGradient = context.createLinearGradient(0, 0, 0, 400);
+  bookingsGradient.addColorStop(0, "rgba(59, 130, 246, 0.2)");
+  bookingsGradient.addColorStop(1, "rgba(59, 130, 246, 0)");
+
+  const customersGradient = context.createLinearGradient(0, 0, 0, 400);
+  customersGradient.addColorStop(0, "rgba(99, 102, 241, 0.2)");
+  customersGradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+
+  // Create new chart
+  chart.value = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: selectedTimeSeriesData.value.labels,
+      datasets: [
+        {
+          label: "Bookings",
+          data: selectedTimeSeriesData.value.bookings,
+          borderColor: "#3B82F6",
+          backgroundColor: bookingsGradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointBackgroundColor: "white",
+          pointHoverBackgroundColor: "white",
+          pointBorderColor: "#3B82F6",
+          pointHoverBorderColor: "#3B82F6",
+          pointBorderWidth: 2,
+          pointHoverBorderWidth: 2,
+          yAxisID: "y",
+        },
+        {
+          label: "Customers",
+          data: selectedTimeSeriesData.value.customers,
+          borderColor: "#6366F1",
+          backgroundColor: customersGradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointBackgroundColor: "white",
+          pointHoverBackgroundColor: "white",
+          pointBorderColor: "#6366F1",
+          pointHoverBorderColor: "#6366F1",
+          pointBorderWidth: 2,
+          pointHoverBorderWidth: 2,
+          yAxisID: "y1",
+        },
+      ],
+    },
+    options: chartOptions,
+  });
+};
+
+// Initialize chart when component is mounted
+onMounted(() => {
+  if (dashboardData.value) {
+    nextTick(() => {
+      createChart();
+    });
+  }
+});
+
+// Watch for time range changes and update chart
+watch([timeRange, dashboardData], () => {
+  if (dashboardData.value) {
+    nextTick(() => {
+      createChart();
+    });
+  }
+});
 
 const getStatusColor = (status: number) => {
   switch (status) {
@@ -489,7 +448,14 @@ const getChangeColor = (type: string) => {
   <div class="space-y-8">
     <!-- Loading State -->
     <div v-if="pending" class="flex items-center justify-center h-96">
-      <el-skeleton :rows="3" animated />
+      <div class="w-full max-w-3xl space-y-4 p-4">
+        <div class="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
+        <div class="space-y-3">
+          <div class="h-3 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-3 bg-gray-200 rounded animate-pulse w-5/6"></div>
+          <div class="h-3 bg-gray-200 rounded animate-pulse w-4/6"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -518,96 +484,34 @@ const getChangeColor = (type: string) => {
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
         <div
           v-for="item in stats"
           :key="item.name"
-          class="relative bg-white rounded-xl overflow-hidden"
+          class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
         >
           <div class="p-6">
-            <!-- Icon and Title -->
-            <div class="flex items-center">
-              <div
-                class="flex items-center justify-center w-12 h-12 rounded-lg bg-[var(--color-bg-primary)]"
-              >
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-blue-600">{{ item.name }}</span>
+                <span class="mt-2 text-3xl font-bold text-blue-900">{{ item.stat }}</span>
+              </div>
+              <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
                 <svg
-                  class="w-6 h-6 text-[var(--color-primary)]"
                   xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
+                  class="w-6 h-6 text-blue-600"
                   viewBox="0 0 24 24"
-                  stroke-width="1.5"
+                  fill="none"
                   stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    :d="item.icon"
-                  />
+                  <path :d="item.icon" />
                 </svg>
               </div>
-              <p class="ml-4 text-sm font-medium text-gray-500">
-                {{ item.name }}
-              </p>
             </div>
-
-            <!-- Stats and Change -->
-            <div class="mt-4">
-              <div class="flex items-baseline">
-                <p class="text-2xl font-bold text-gray-900">{{ item.stat }}</p>
-                <span
-                  :class="[
-                    'ml-2 text-sm font-semibold flex items-center',
-                    getChangeColor(item.changeType),
-                  ]"
-                >
-                  <svg
-                    v-if="item.changeType === 'increase'"
-                    class="w-3 h-3 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                    />
-                  </svg>
-                  <svg
-                    v-else-if="item.changeType === 'decrease'"
-                    class="w-3 h-3 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-                    />
-                  </svg>
-                  {{ item.change }}
-                </span>
-              </div>
-              <p class="mt-1 text-sm text-gray-600">{{ item.description }}</p>
-            </div>
-
-            <!-- Progress Bar -->
-            <div
-              class="mt-4 w-full h-1 bg-gray-100 rounded-full overflow-hidden"
-            >
-              <div
-                class="h-full bg-[var(--color-primary)] rounded-full"
-                :style="{
-                  width:
-                    item.changeType === 'increase'
-                      ? `${Math.min(parseInt(item.change), 100)}%`
-                      : '20%',
-                }"
-              ></div>
-            </div>
+            <p class="mt-2 text-sm text-blue-600">{{ item.description }}</p>
           </div>
         </div>
       </div>
@@ -776,8 +680,4 @@ const getChangeColor = (type: string) => {
   </div>
 </template>
 
-<style scoped>
-.el-skeleton {
-  --el-skeleton-color: var(--color-bg-secondary);
-}
-</style>
+<style scoped></style>

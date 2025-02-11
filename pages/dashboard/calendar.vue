@@ -26,7 +26,8 @@ const calendar = ref(null);
 
 // New refs for filters
 const themeFilter = ref("all");
-const statusFilter = ref("all");
+const paymentStatusFilter = ref("all");
+const sessionStatusFilter = ref("all");
 
 // Stats computed properties
 const monthlyBookings = computed(() => {
@@ -103,15 +104,21 @@ const popularTheme = computed(() => {
   );
 });
 
-// Filter bookings based on theme and status
+// In the script section, add this computed property after other computed properties
+const themeOptions = computed(() => {
+  const themes = new Set(
+    bookings.value.map((booking) => booking.extendedProps.theme)
+  );
+  return Array.from(themes).filter((theme) => theme); // Filter out any undefined/null values
+});
+
+// Update the filteredBookings computed property
 const filteredBookings = computed(() => {
   return bookings.value.filter((booking) => {
-    const themeMatch =
-      themeFilter.value === "all" || booking.theme === themeFilter.value;
-    const statusMatch =
-      statusFilter.value === "all" ||
-      booking.status.toString() === statusFilter.value;
-    return themeMatch && statusMatch;
+    return (
+      themeFilter.value === "all" ||
+      booking.extendedProps.theme === themeFilter.value
+    );
   });
 });
 
@@ -136,24 +143,34 @@ const fetchBookings = async () => {
     const response = await $fetch("/api/booking/get-bookings");
     console.log("Fetched bookings:", response);
 
-    bookings.value = response.map((booking) => ({
-      id: booking.id,
-      title: `${booking.user_fullname} - ${booking.theme_title}`,
-      start: booking.session_date,
-      end: booking.session_date,
-      backgroundColor: getEventColor(booking.status),
-      borderColor: getEventColor(booking.status),
-      extendedProps: {
-        email: booking.user_email,
-        phone: booking.user_phoneno,
-        theme: booking.theme_title,
-        session_date: booking.session_date,
-        session_time: booking.session_time,
-        status: booking.status,
-        fullname: booking.user_fullname,
-        created_date: booking.created_date,
-      },
-    }));
+    bookings.value = response.map((booking) => {
+      // Create Date object for the session time
+      const sessionDate = new Date(booking.session_date);
+      const [hours, minutes] = booking.session_time.split(":");
+
+      // Set the correct hours and minutes for the time
+      const startTime = new Date(sessionDate);
+      startTime.setHours(parseInt(hours), parseInt(minutes), 0);
+
+      return {
+        id: booking.id,
+        title: `${booking.user_fullname} - ${booking.theme_title}`,
+        start: startTime.toISOString(),
+        allDay: false,
+        backgroundColor: getEventColor(booking.status),
+        borderColor: getEventColor(booking.status),
+        extendedProps: {
+          email: booking.user_email,
+          phone: booking.user_phoneno,
+          theme: booking.theme_title,
+          session_date: booking.session_date,
+          session_time: booking.session_time,
+          status: booking.status,
+          fullname: booking.user_fullname,
+          created_date: booking.created_date,
+        },
+      };
+    });
     console.log("Mapped bookings:", bookings.value);
 
     // Update calendar events if calendar is already initialized
@@ -168,8 +185,13 @@ const fetchBookings = async () => {
   }
 };
 
-// Watch for filter changes
-watch([themeFilter, statusFilter], () => {
+// Update the resetFilters function
+const resetFilters = () => {
+  themeFilter.value = "all";
+};
+
+// Update the watch section
+watch([themeFilter], () => {
   if (calendar.value) {
     calendar.value.removeAllEvents();
     calendar.value.addEventSource(filteredBookings.value);
@@ -181,7 +203,6 @@ const exportCalendar = () => {
   const events = bookings.value.map((booking) => ({
     Subject: `${booking.extendedProps.fullname} - ${booking.extendedProps.theme}`,
     Start: new Date(booking.start).toISOString(),
-    End: new Date(booking.end).toISOString(),
     Description: `Status: ${getStatusText(
       booking.extendedProps.status
     )}\nEmail: ${booking.extendedProps.email}\nPhone: ${
@@ -195,7 +216,7 @@ const exportCalendar = () => {
     events
       .map(
         (event) =>
-          `"${event.Subject}","${event.Start}","${event.End}","${event.Description}"`
+          `"${event.Subject}","${event.Start}","${event.Description}"`
       )
       .join("\n");
 
@@ -230,15 +251,11 @@ const initCalendar = () => {
     },
     events: bookings.value,
     eventClick: function (info) {
-      console.log("Event clicked:", info.event);
-      console.log("Event extended props:", info.event.extendedProps);
-
       const booking = {
         ...info.event.extendedProps,
         title: info.event.title,
         date: info.event.start,
       };
-      console.log("Booking to be set:", booking);
 
       selectedBooking.value = booking;
       console.log("Selected booking after set:", selectedBooking.value);
@@ -252,8 +269,8 @@ const initCalendar = () => {
     allDaySlot: false,
     slotDuration: "01:00:00",
     dayMaxEvents: true,
-    eventColor: "#785340",
-    eventTextColor: "#ffffff",
+    eventColor: "var(--color-bg-tertiary)",
+    eventTextColor: "var(--color-text-light)",
     eventTimeFormat: {
       hour: "2-digit",
       minute: "2-digit",
@@ -371,15 +388,15 @@ function formatDate(date) {
 
 function formatTime(timeString) {
   // Handle time string in format "HH:mm:ss"
-  const [hours, minutes] = timeString.split(':');
+  const [hours, minutes] = timeString.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10));
   date.setMinutes(parseInt(minutes, 10));
-  
+
   return date.toLocaleTimeString("en-MY", {
     timeZone: "Asia/Kuala_Lumpur",
     timeStyle: "short",
-    hour12: true // This will show time in 12-hour format with AM/PM
+    hour12: true, // This will show time in 12-hour format with AM/PM
   });
 }
 </script>
@@ -427,7 +444,7 @@ function formatTime(timeString) {
         <div class="flex gap-3">
           <button
             @click="exportCalendar"
-            class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-[#785340] rounded-lg shadow-sm text-sm font-medium text-[#785340] bg-white hover:bg-[#F5E6E0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340]"
+            class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-200 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             <svg
               class="h-4 w-4 mr-2"
@@ -450,140 +467,137 @@ function formatTime(timeString) {
       <!-- Stats Grid -->
       <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Total Monthly Bookings -->
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-          <div class="p-4 sm:p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
+        <div
+          class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+        >
+          <div class="p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-blue-600"
+                  >Monthly Bookings</span
+                >
+                <span class="mt-2 text-3xl font-bold text-blue-900">{{
+                  monthlyBookings
+                }}</span>
+              </div>
+              <div class="p-3 bg-blue-500 bg-opacity-10 rounded-lg">
                 <svg
-                  class="h-6 w-6 text-[#785340]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 text-blue-600"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-              </div>
-              <div class="ml-4 flex-1 min-w-0">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    Monthly Bookings
-                  </dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">
-                      {{ monthlyBookings }}
-                    </div>
-                  </dd>
-                </dl>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Upcoming Bookings -->
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-          <div class="p-4 sm:p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
+        <div
+          class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+        >
+          <div class="p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-amber-600"
+                  >Upcoming (7 Days)</span
+                >
+                <span class="mt-2 text-3xl font-bold text-amber-900">{{
+                  upcomingBookings
+                }}</span>
+              </div>
+              <div class="p-3 bg-amber-500 bg-opacity-10 rounded-lg">
                 <svg
-                  class="h-6 w-6 text-[#785340]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 text-amber-600"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-              </div>
-              <div class="ml-4 flex-1 min-w-0">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    Upcoming (7 Days)
-                  </dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">
-                      {{ upcomingBookings }}
-                    </div>
-                  </dd>
-                </dl>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Today's Bookings -->
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-          <div class="p-4 sm:p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
+        <div
+          class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+        >
+          <div class="p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-emerald-600"
+                  >Today's Bookings</span
+                >
+                <span class="mt-2 text-3xl font-bold text-emerald-900">{{
+                  todayBookings
+                }}</span>
+              </div>
+              <div class="p-3 bg-emerald-500 bg-opacity-10 rounded-lg">
                 <svg
-                  class="h-6 w-6 text-[#785340]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 text-emerald-600"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-              </div>
-              <div class="ml-4 flex-1 min-w-0">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    Today's Bookings
-                  </dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">
-                      {{ todayBookings }}
-                    </div>
-                  </dd>
-                </dl>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Popular Theme -->
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-          <div class="p-4 sm:p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
+        <div
+          class="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+        >
+          <div class="p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-violet-600"
+                  >Popular Theme</span
+                >
+                <span class="mt-2 text-3xl font-bold text-violet-900">{{
+                  popularTheme
+                }}</span>
+              </div>
+              <div class="p-3 bg-violet-500 bg-opacity-10 rounded-lg">
                 <svg
-                  class="h-6 w-6 text-[#785340]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 text-violet-600"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
                     d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
+                  ></path>
                 </svg>
-              </div>
-              <div class="ml-4 flex-1 min-w-0">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    Popular Theme
-                  </dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">
-                      {{ popularTheme }}
-                    </div>
-                  </dd>
-                </dl>
               </div>
             </div>
           </div>
@@ -591,25 +605,82 @@ function formatTime(timeString) {
       </div>
 
       <!-- Filter Buttons -->
-      <div class="mt-4 flex flex-col sm:flex-row gap-3">
-        <select
-          v-model="themeFilter"
-          class="w-full sm:w-auto rounded-lg border-gray-300 text-sm focus:ring-[#785340] focus:border-[#785340]"
-        >
-          <option value="all">All Themes</option>
-          <option value="Theme A">Theme A</option>
-          <option value="Theme B">Theme B</option>
-        </select>
+      <div
+        class="mt-4 flex items-center gap-4 p-4 bg-gray-50/50 rounded-lg border border-gray-100"
+      >
+        <span class="text-sm font-medium text-gray-500">Filter by Theme:</span>
 
-        <select
-          v-model="statusFilter"
-          class="w-full sm:w-auto rounded-lg border-gray-300 text-sm focus:ring-[#785340] focus:border-[#785340]"
+        <!-- Theme Filter -->
+        <div class="relative flex-1 sm:flex-none">
+          <select
+            v-model="themeFilter"
+            class="w-full sm:w-40 appearance-none pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+          >
+            <option value="all">All Themes</option>
+            <option v-for="theme in themeOptions" :key="theme" :value="theme">
+              {{ theme }}
+            </option>
+          </select>
+          <div class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+              ></path>
+              <line x1="4" y1="22" x2="4" y2="15"></line>
+            </svg>
+          </div>
+          <div
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="h-5 w-px bg-gray-200 hidden sm:block"></div>
+
+        <!-- Reset Button -->
+        <button
+          class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200"
+          @click="resetFilters"
         >
-          <option value="all">All Status</option>
-          <option value="1">Paid</option>
-          <option value="2">Pending</option>
-          <option value="3">Cancelled</option>
-        </select>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 mr-1.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <polyline points="23 20 23 14 17 14"></polyline>
+            <path
+              d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
+            ></path>
+          </svg>
+          Reset
+        </button>
       </div>
     </div>
 
@@ -671,7 +742,7 @@ function formatTime(timeString) {
             <div class="absolute right-0 top-0 hidden sm:block pr-4 pt-4">
               <button
                 type="button"
-                class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#785340] focus:ring-offset-2"
+                class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-bg-tertiary)] focus:ring-offset-2"
                 @click="closeModal"
               >
                 <span class="sr-only">Close</span>
@@ -810,7 +881,7 @@ function formatTime(timeString) {
             >
               <button
                 type="button"
-                class="w-full sm:w-auto inline-flex justify-center rounded-md bg-[#785340] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#5C4033] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340] sm:ml-3"
+                class="w-full sm:w-auto inline-flex justify-center rounded-md bg-[var(--color-bg-secondary)] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-bg-tertiary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-tertiary)] sm:ml-3"
                 @click="closeModal"
               >
                 Close
@@ -826,23 +897,23 @@ function formatTime(timeString) {
 <style>
 /* Calendar Theme Customization */
 .fc-theme-standard .fc-toolbar {
-  @apply px-4 py-3 border-b border-gray-200;
+  @apply px-4 py-3 border-b border-[var(--color-border-primary)];
 }
 
 .fc-theme-standard .fc-toolbar-title {
-  @apply text-lg font-medium text-gray-900;
+  @apply text-lg font-medium text-[var(--color-text-primary)];
 }
 
 .fc-theme-standard .fc-button {
-  @apply inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#785340];
+  @apply inline-flex items-center px-3 py-2 border border-[var(--color-border-primary)] shadow-sm text-sm font-medium rounded-md text-[var(--color-text-primary)] bg-[var(--color-bg-white)] hover:bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-bg-tertiary)];
 }
 
 .fc-theme-standard .fc-button-primary {
-  @apply bg-[#785340] border-[#785340] text-white hover:bg-[#5C4033] focus:ring-[#785340];
+  @apply bg-[var(--color-bg-tertiary)] border-[var(--color-bg-tertiary)] text-white hover:bg-[var(--color-bg-tertiary)] focus:ring-[var(--color-bg-tertiary)];
 }
 
 .fc-theme-standard .fc-button-active {
-  @apply bg-[#5C4033] border-[#5C4033];
+  @apply bg-[var(--color-bg-tertiary)] border-[var(--color-bg-tertiary)];
 }
 
 .fc-theme-standard td,
@@ -851,11 +922,11 @@ function formatTime(timeString) {
 }
 
 .fc-theme-standard .fc-day-today {
-  @apply bg-[#F5E6E0]/30;
+  @apply bg-[var(--color-bg-primary)];
 }
 
 .fc-theme-standard .fc-event {
-  @apply border-[#785340] rounded-md shadow-sm;
+  @apply border-[var(--color-bg-tertiary)] rounded-md shadow-sm;
 }
 
 .fc-theme-standard .fc-event-main {
