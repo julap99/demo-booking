@@ -119,33 +119,74 @@
             <div class="ml-3 relative">
               <div>
                 <button
+                  id="profile-button"
                   type="button"
                   @click="showProfileMenu = !showProfileMenu"
-                  class="max-w-xs bg-[var(--color-bg-secondary)] flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
+                  class="max-w-xs bg-[var(--color-bg-secondary)] flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] p-1 pr-2 hover:bg-[var(--color-bg-primary)] transition-colors duration-200"
                 >
                   <span class="sr-only">Open user menu</span>
                   <div
-                    class="h-8 w-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center"
+                    class="h-8 w-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center shadow-sm"
                   >
                     <span class="text-[var(--color-primary)] font-medium">{{
                       userInitial
                     }}</span>
                   </div>
+                  <span class="text-[var(--color-text-primary)] font-medium hidden md:block">{{ user?.name }}</span>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </div>
 
               <!-- Profile Dropdown -->
-              <div
-                v-if="showProfileMenu"
-                class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg py-1 bg-[var(--color-bg-secondary)] ring-1 ring-black ring-opacity-5 focus:outline-none"
+              <Transition
+                enter-active-class="transition ease-out duration-100"
+                enter-from-class="transform opacity-0 scale-95"
+                enter-to-class="transform opacity-100 scale-100"
+                leave-active-class="transition ease-in duration-75"
+                leave-from-class="transform opacity-100 scale-100"
+                leave-to-class="transform opacity-0 scale-95"
               >
-                <button
-                  @click="handleLogout"
-                  class="block w-full text-left px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors duration-200"
+                <div
+                  v-show="showProfileMenu"
+                  id="profile-menu"
+                  class="origin-top-right absolute right-0 mt-2 w-64 rounded-xl shadow-lg py-2 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 divide-y divide-gray-100"
                 >
-                  Sign out
-                </button>
-              </div>
+                  <!-- User Info Section -->
+                  <div class="px-4 py-3">
+                   Stich & Shutter Studio
+                  </div>
+
+                  <!-- Menu Items -->
+                  <div class="py-1">
+                    <NuxtLink
+                      to="/dashboard/settings"
+                      class="flex items-center px-4 py-2 text-sm  hover:bg-[var(--color-bg-primary)] transition-colors duration-200 gap-2"
+                      @click="showProfileMenu = false"
+                    >
+                      <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Settings
+                    </NuxtLink>
+                  </div>
+
+                  <!-- Logout Section -->
+                  <div class="py-1">
+                    <button
+                      @click="handleLogout"
+                      class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 gap-2"
+                    >
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              </Transition>
             </div>
           </div>
         </div>
@@ -249,6 +290,17 @@ const showMobileMenu = ref(false);
 // Initialize auth on component mount
 onMounted(async () => {
   await auth.fetchUser();
+  
+  // Add click outside handler for profile menu
+  document.addEventListener('click', (event) => {
+    const profileMenu = document.querySelector('#profile-menu');
+    const profileButton = document.querySelector('#profile-button');
+    
+    if (profileMenu && !profileMenu.contains(event.target) && 
+        profileButton && !profileButton.contains(event.target)) {
+      showProfileMenu.value = false;
+    }
+  });
 });
 
 const user = computed(() => auth.getUser);
