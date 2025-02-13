@@ -44,21 +44,22 @@
           <h2
             class="text-lg font-bold text-[var(--color-text-primary)] mt-6 mb-2"
           >
-            Error Loading Receipt
+            {{ paymentStatus ? 'Payment Error' : 'Error Loading Receipt' }}
           </h2>
           <p class="text-[var(--color-text-primary)]/70 mb-4">{{ error }}</p>
-          <NuxtLink
-            to="/book-a-session/test2"
-            class="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          <button
+            @click="paymentStatus ? initializePayment() : fetchReceiptData()"
+            class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
+            :disabled="isProcessingPayment"
           >
-            Return to Booking
-          </NuxtLink>
+            {{ paymentStatus ? 'Try Payment Again' : 'Retry Loading' }}
+          </button>
         </div>
       </div>
 
       <!-- Receipt Card -->
       <div
-        v-else-if="bookingData"
+        v-else-if="receiptData"
         class="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300"
       >
         <!-- Decorative Elements -->
@@ -112,10 +113,10 @@
             </h1>
             <div class="space-y-0.5">
               <p class="text-[var(--color-text-primary)]/70 text-base">
-                Receipt #{{ bookingData?.payment_ref_number || "N/A" }}
+                Receipt #{{ receiptData?.payment_ref_number || "N/A" }}
               </p>
               <p class="text-[var(--color-text-primary)]/70 text-sm">
-                {{ formatDatetime(bookingData?.created_date) }}
+                {{ formatDatetime(receiptData?.created_date) }}
               </p>
             </div>
           </div>
@@ -147,7 +148,7 @@
                 <p
                   class="text-base font-medium text-[var(--color-text-primary)] capitalize"
                 >
-                  {{ bookingData?.user_fullname || "N/A" }}
+                  {{ receiptData?.user_fullname || "N/A" }}
                 </p>
                 <div
                   class="flex items-center text-[var(--color-text-primary)]/70 text-sm"
@@ -165,7 +166,7 @@
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  {{ bookingData?.user_email || "N/A" }}
+                  {{ receiptData?.user_email || "N/A" }}
                 </div>
                 <div
                   class="flex items-center text-[var(--color-text-primary)]/70 text-sm"
@@ -183,7 +184,7 @@
                       d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
-                  {{ bookingData?.user_phoneno || "N/A" }}
+                  {{ receiptData?.user_phoneno || "N/A" }}
                 </div>
               </div>
             </div>
@@ -213,7 +214,7 @@
                 <p
                   class="text-base font-medium text-[var(--color-text-primary)]"
                 >
-                  {{ formatDate(bookingData?.session_date) }}
+                  {{ formatDate(receiptData?.session_date) }}
                 </p>
                 <p
                   class="text-[var(--color-text-primary)]/70 flex items-center text-sm"
@@ -231,10 +232,10 @@
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  {{ formatTime(bookingData?.session_time) || "N/A" }}
+                  {{ formatTime(receiptData?.session_time) || "N/A" }}
                 </p>
                 <p class="text-[var(--color-text-primary)]/70 text-sm">
-                  {{ bookingData?.title }}
+                  {{ receiptData?.title }}
                 </p>
               </div>
             </div>
@@ -257,26 +258,26 @@
                 <span
                   class="text-base font-medium text-[var(--color-text-primary)]"
                 >
-                  {{ formatPrice(bookingData?.price || 0) }}
+                  {{ formatPrice(receiptData?.price || 0) }}
                 </span>
               </div>
 
               <div
-                v-if="bookingData?.payment_extra_pax"
+                v-if="receiptData?.payment_extra_pax"
                 class="flex justify-between items-center py-1"
               >
                 <span class="text-[var(--color-text-primary)]/70 text-sm">
-                  Extra Person ({{ bookingData?.number_of_extra_pax }} pax)
+                  Extra Person ({{ receiptData?.number_of_extra_pax }} pax)
                 </span>
                 <span
                   class="text-base font-medium text-[var(--color-text-primary)]"
                 >
-                  {{ formatPrice(bookingData?.payment_extra_pax || 0) }}
+                  {{ formatPrice(receiptData?.payment_extra_pax || 0) }}
                 </span>
               </div>
 
               <div
-                v-if="bookingData?.addons?.length"
+                v-if="receiptData?.addons?.length"
                 class="flex flex-col space-y-2 py-1"
               >
                 <div class="flex justify-between items-center">
@@ -286,13 +287,13 @@
                   <span
                     class="text-base font-medium text-[var(--color-text-primary)]"
                   >
-                    {{ formatPrice(bookingData?.payment_addon_total || 0) }}
+                    {{ formatPrice(receiptData?.payment_addon_total || 0) }}
                   </span>
                 </div>
                 <!-- Addon Details -->
                 <div class="pl-2 border-l-2 border-[var(--color-primary)]/20">
                   <div
-                    v-for="(addon, index) in bookingData.addons"
+                    v-for="(addon, index) in receiptData.addons"
                     :key="index"
                     class="text-sm space-y-0.5"
                   >
@@ -312,6 +313,19 @@
                 </div>
               </div>
 
+              <!-- Transaction Fee -->
+              <div class="flex justify-between items-center py-1">
+                <span class="text-[var(--color-text-primary)]/70 text-sm">
+                  Transaction Fee
+                  <span class="text-xs">
+                    ({{ receiptData?.payment_method === 1 ? 'FPX' : 'Credit Card' }})
+                  </span>
+                </span>
+                <span class="text-base font-medium text-[var(--color-text-primary)]">
+                  {{ formatPrice(receiptData?.payment_transaction_fee || 0) }}
+                </span>
+              </div>
+
               <div
                 class="border-t border-dashed border-[var(--color-border-primary)] pt-3 mt-2"
               >
@@ -323,13 +337,13 @@
                   <span
                     class="text-lg font-semibold text-[var(--color-primary)]"
                   >
-                    {{ formatPrice(bookingData?.payment_amount) }}
+                    {{ formatPrice(receiptData?.payment_amount) }}
                   </span>
                 </div>
               </div>
 
               <div
-                v-if="bookingData?.payment_type == 2"
+                v-if="receiptData?.payment_type == 2"
                 class="bg-[var(--color-primary)]/5 p-3 rounded-lg mt-3"
               >
                 <div class="flex justify-between items-center mb-1.5">
@@ -339,7 +353,7 @@
                   <span
                     class="text-base font-medium text-[var(--color-primary)]"
                   >
-                    {{ formatPrice(bookingData?.payment_amount || 0) }}
+                    {{ formatPrice(receiptData?.payment_amount || 0) }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -351,7 +365,7 @@
                   >
                     {{
                       formatPrice(
-                        bookingData?.payment_total - bookingData?.payment_amount
+                        receiptData?.payment_total - receiptData?.payment_amount
                       )
                     }}
                   </span>
@@ -365,7 +379,7 @@
             class="space-y-3 text-xs text-[var(--color-text-primary)]/70 bg-[var(--color-bg-light)]/30 p-4 rounded-xl"
           >
             <div
-              v-if="bookingData?.payment_type == 2"
+              v-if="receiptData?.payment_type == 2"
               class="flex justify-center items-start space-x-2"
             >
               <svg
@@ -400,6 +414,30 @@
               <p class="text-center">
                 Please keep this receipt for your records.
               </p>
+            </div>
+          </div>
+
+          <!-- Payment Section -->
+          <div class="mt-6 border-t border-gray-200 pt-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Payment Required</h3>
+                <p class="text-[var(--color-text-primary)]/70">Total Amount: RM {{ formatPrice(receiptData?.payment_amount) }}</p>
+              </div>
+              <button
+                @click="initializePayment"
+                class="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors flex items-center space-x-2"
+                :disabled="isProcessingPayment"
+              >
+                <span>{{ isProcessingPayment ? 'Processing...' : 'Pay Now' }}</span>
+                <svg v-if="!isProcessingPayment" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+                <svg v-else class="w-5 h-5 animate-spin" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -457,20 +495,212 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 definePageMeta({
   layout: "empty",
 });
 
-const route = useRoute();
-const router = useRouter();
+interface ReceiptData {
+  payment_ref_number: string
+  created_date: string
+  user_fullname: string
+  user_email: string
+  user_phoneno: string
+  session_date: string
+  session_time: string
+  title: string
+  price: number
+  payment_extra_pax: number
+  number_of_extra_pax: number
+  payment_addon_total: number
+  addons: Array<{
+    name: string
+    price: number
+  }>
+  payment_amount: number
+  payment_total: number
+  payment_type: number
+  customer_email: string
+  customer_name: string
+  phone: string
+}
 
-// Add loading and error states
-const isLoading = ref(true);
-const error = ref(null);
+// Add type declaration for html2pdf
+declare module 'html2pdf.js' {
+  const html2pdf: any
+  export default html2pdf
+}
+
+const route = useRoute()
+const router = useRouter()
+
+const bookingId = route.query.booking_id as string
+const paymentStatus = route.query.status as string || null
+
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const receiptData = ref<ReceiptData | null>(null)
+const isProcessingPayment = ref(false)
+const paymentUrl = ref<string | null>(null)
+
+// Add these new refs and constants
+const POLLING_INTERVAL = 5000 // 5 seconds
+const MAX_POLLING_ATTEMPTS = 60 // 5 minutes total
+const purchaseId = ref<string | null>(null)
+const pollingCount = ref(0)
+const pollingTimer = ref<NodeJS.Timeout | null>(null)
+
+// Format functions
+function formatPrice(amount: number): string {
+  return amount.toFixed(2)
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+function formatDatetime(dateString: string): string {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric'
+  })
+}
+
+function formatTime(timeString: string): string {
+  if (!timeString) return 'N/A'
+  return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  })
+}
+
+// Fetch receipt data
+async function fetchReceiptData() {
+  try {
+    isLoading.value = true
+    const response = await fetch(`/api/booking/receipt-detail?booking_id=${bookingId}`)
+    if (!response.ok) throw new Error('Failed to load receipt data')
+    const data = await response.json()
+    receiptData.value = data
+  } catch (err: any) {
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Add payment status polling function
+async function checkPaymentStatus() {
+  if (!purchaseId.value || pollingCount.value >= MAX_POLLING_ATTEMPTS) {
+    stopPolling()
+    return
+  }
+
+  try {
+    const response = await fetch(`/api/booking/check-payment-status?purchase_id=${purchaseId.value}`)
+    if (!response.ok) throw new Error('Failed to check payment status')
+    
+    const data = await response.json()
+    pollingCount.value++
+
+    if (data.status === 'completed') {
+      // Payment successful
+      stopPolling()
+      await fetchReceiptData() // Refresh receipt data
+      window.location.href = `/book-a-session/receipt?booking_id=${bookingId}&status=success`
+    } else if (data.status === 'failed' || data.status === 'cancelled') {
+      // Payment failed or cancelled
+      stopPolling()
+      error.value = `Payment ${data.status}. Please try again.`
+    }
+  } catch (err: any) {
+    console.error('Error checking payment status:', err)
+    stopPolling()
+  }
+}
+
+// Start polling
+function startPolling(chipPurchaseId: string) {
+  purchaseId.value = chipPurchaseId
+  pollingCount.value = 0
+  
+  // Clear any existing polling
+  stopPolling()
+  
+  // Start new polling
+  pollingTimer.value = setInterval(checkPaymentStatus, POLLING_INTERVAL)
+}
+
+// Stop polling
+function stopPolling() {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value)
+    pollingTimer.value = null
+  }
+}
+
+// Update initialize payment function
+async function initializePayment() {
+  if (!receiptData.value) return
+
+  try {
+    isProcessingPayment.value = true
+    const response = await fetch('/api/booking/create-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: receiptData.value.payment_amount,
+        bookingId: bookingId,
+        customerEmail: receiptData.value.customer_email,
+        customerName: receiptData.value.customer_name,
+        phone: receiptData.value.phone,
+      }),
+    })
+
+    if (!response.ok) throw new Error('Failed to initialize payment')
+    
+    const data = await response.json()
+    paymentUrl.value = data.checkout_url
+
+    // Start polling for payment status
+    startPolling(data.id) // CHIP returns purchase ID in the response
+
+    // Redirect to CHIP payment page
+    window.location.href = data.checkout_url
+  } catch (err: any) {
+    error.value = err.message
+  } finally {
+    isProcessingPayment.value = false
+  }
+}
+
+// Watch for payment status changes
+watch(() => route.query.status, (newStatus) => {
+  if (newStatus === 'failed') {
+    error.value = 'Payment failed. Please try again.'
+  } else if (newStatus === 'cancelled') {
+    error.value = 'Payment was cancelled. Please try again.'
+  }
+})
+
+onMounted(() => {
+  fetchReceiptData()
+})
 
 // Add ref for html2pdf instance
 const html2pdf = ref(null);
@@ -537,54 +767,6 @@ const balanceAmount = computed(() =>
   sessionType.value ? sessionType.value.price - sessionType.value.deposit : 0
 );
 
-// Helper functions
-const formatPrice = (amount) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "MYR",
-  }).format(amount);
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-MY", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-
-const formatDatetime = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleString("en-MY", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
-const formatTime = (timeString) => {
-  if (!timeString) return "N/A";
-
-  // Split the time string into hours and minutes
-  const [hours, minutes] = timeString.split(":");
-
-  // Convert hours to number for 12-hour format calculation
-  let hour = parseInt(hours);
-  const ampm = hour >= 12 ? "PM" : "AM";
-
-  // Convert to 12-hour format
-  hour = hour % 12;
-  hour = hour ? hour : 12; // If hour is 0, make it 12
-
-  // Return formatted time
-  return `${hour.toString().padStart(2, "0")}:${minutes} ${ampm}`;
-};
-
 const downloadReceipt = async () => {
   if (!html2pdf.value) {
     console.error("html2pdf not loaded");
@@ -645,6 +827,11 @@ const calculateBalanceDue = computed(() => {
   if (!bookingData.value) return 0;
   return calculateTotal.value - (bookingData.value.theme_deposit || 0);
 });
+
+// Clean up on component unmount
+onUnmounted(() => {
+  stopPolling()
+})
 </script>
 
 <style>

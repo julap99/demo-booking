@@ -22,32 +22,32 @@ export default defineEventHandler(async (event) => {
   const url = getRequestURL(event);
   const path = url.pathname;
   
-  console.log("\n=== Auth Middleware ===");
-  console.log("Request path:", path);
-  console.log("Request method:", event.method);
+    // console.log("\n=== Auth Middleware ===");
+    // console.log("Request path:", path);
+    // console.log("Request method:", event.method);
 
   // Skip auth check for public routes
   const isPublicRoute = PUBLIC_ROUTES.some(route => path.startsWith(route));
   if (isPublicRoute) {
-    console.log("Public route detected, skipping auth");
+    // console.log("Public route detected, skipping auth");
     return;
   }
 
   // Skip auth for non-API routes
   if (!path.startsWith('/api/')) {
-    console.log("Non-API route detected, skipping auth");
+    // console.log("Non-API route detected, skipping auth");
     return;
   }
 
-  console.log("Protected route detected, checking authentication...");
+  // console.log("Protected route detected, checking authentication...");
 
   try {
     // Get token from Authorization header
     const authHeader = getHeader(event, "Authorization");
-    console.log("Authorization header:", authHeader ? "Present" : "Missing");
+    // console.log("Authorization header:", authHeader ? "Present" : "Missing");
 
     if (!authHeader?.startsWith("Bearer ")) {
-      console.log("No Bearer token found in Authorization header");
+      // console.log("No Bearer token found in Authorization header");
       throw createError({
         statusCode: 401,
         message: "Authentication required",
@@ -55,10 +55,10 @@ export default defineEventHandler(async (event) => {
     }
 
     const token = authHeader.split(" ")[1];
-    console.log("Token extracted from header");
+    // console.log("Token extracted from header");
     
     try {
-      console.log("Attempting to verify token with JWT_SECRET");
+      // console.log("Attempting to verify token with JWT_SECRET");
       // Verify token
       const decoded = jwt.verify(token, JWT_SECRET) as {
         userId: number;
@@ -66,12 +66,12 @@ export default defineEventHandler(async (event) => {
         type: string;
       };
 
-      console.log("Token successfully decoded for user:", decoded.username);
-      console.log("Token type:", decoded.type);
+      // console.log("Token successfully decoded for user:", decoded.username);
+      // console.log("Token type:", decoded.type);
 
       // Validate token type
       if (decoded.type !== "access") {
-        console.log("Invalid token type detected:", decoded.type);
+        // console.log("Invalid token type detected:", decoded.type);
         throw createError({
           statusCode: 401,
           message: "Invalid token type",
@@ -84,14 +84,14 @@ export default defineEventHandler(async (event) => {
         username: decoded.username,
       };
 
-      console.log("Authentication successful for user:", decoded.username);
-      console.log("=== End Auth Middleware ===\n");
+      // console.log("Authentication successful for user:", decoded.username);
+      // console.log("=== End Auth Middleware ===\n");
 
     } catch (jwtError) {
-      console.error("JWT verification failed:", jwtError);
+      // console.error("JWT verification failed:", jwtError);
       if (jwtError instanceof jwt.JsonWebTokenError) {
-        console.log("JWT Error type:", jwtError.name);
-        console.log("JWT Error message:", jwtError.message);
+        // console.log("JWT Error type:", jwtError.name);
+        // console.log("JWT Error message:", jwtError.message);
       }
       throw createError({
         statusCode: 401,
@@ -99,8 +99,8 @@ export default defineEventHandler(async (event) => {
       });
     }
   } catch (error: any) {
-    console.error("Auth middleware error:", error);
-    console.log("=== End Auth Middleware (with error) ===\n");
+    // console.error("Auth middleware error:", error);
+    // console.log("=== End Auth Middleware (with error) ===\n");
     throw createError({
       statusCode: error.statusCode || 500,
       message: error.message || "Authentication error",

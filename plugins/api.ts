@@ -31,15 +31,15 @@ export default defineNuxtPlugin(() => {
         // Add authorization header if we have a token and it's not a public route
         if (auth.token && !PUBLIC_ROUTES.includes(url)) {
           options.headers.Authorization = `Bearer ${auth.token}`;
-          console.log("Adding auth header for URL:", url);
-          console.log("Using token:", auth.token);
+          // console.log("Adding auth header for URL:", url);
+          // console.log("Using token:", auth.token);
         }
 
         try {
-          console.log("Making request to:", url, "with options:", {
-            ...options,
-            headers: options.headers
-          });
+          // console.log("Making request to:", url, "with options:", {
+          //   ...options,
+          //   headers: options.headers
+          // });
 
           const response = await $fetch(url, {
             ...options,

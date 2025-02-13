@@ -1,5 +1,5 @@
 <template>
-  <div class="py-4 sm:py-6">
+  <div class="">
     <!-- Status Modal -->
     <StatusModal
       :is-open="modalState.isOpen"

@@ -2276,14 +2276,11 @@ const formatToYYYYMMDD = (date) => {
 // Update the processPayment function
 const processPayment = async () => {
   if (!validateStep(5)) return;
-
   isProcessing.value = true;
 
   try {
     // Convert time to 24-hour format
     const time24h = convertTo24Hour(formData.value.timeSlot);
-
-    // Format date to YYYY-MM-DD
     const formattedDate = formatToYYYYMMDD(formData.value.date);
 
     // Get selected theme details
@@ -2292,10 +2289,7 @@ const processPayment = async () => {
     );
 
     // Calculate total number of persons
-    const totalPax =
-      formData.value.numberOfPax === "more"
-        ? 10 + (parseInt(formData.value.customNumberOfPax) || 0)
-        : parseInt(formData.value.numberOfPax);
+    const totalPax = parseInt(formData.value.numberOfPax);
 
     // Create booking data
     const bookingData = {
@@ -2304,51 +2298,41 @@ const processPayment = async () => {
       time: formData.value.timeSlot,
       theme: formData.value.sessionType,
       number_of_pax: totalPax,
-      add_ons: formData.value.addOns
-        ? formData.value.addOns.map((addon) => ({
-            id: addon.id,
-            quantity: addon.quantity,
-          }))
-        : [],
+      add_ons: formData.value.addOns.map((addon) => ({
+        id: addon.id,
+        quantity: addon.quantity,
+      })),
 
       // Customer Details
       name: formData.value.name,
       email: formData.value.email,
-      phone: formData.value.phone.replace(/\D/g, ""), // Remove non-digits
+      phone: formData.value.phone.replace(/\D/g, ""),
       source: formData.value.source,
 
       // Payment Details
       payment_type: formData.value.paymentType === "full" ? 1 : 2, // 1 = full, 2 = deposit
-      payment_method: 1, // 1 = fpx (only option available currently)
-
-      // Required by API
+      payment_method: 1, // 1 = fpx
+      payment_amount: formData.value.paymentType === "full" 
+        ? totalAmount.value 
+        : selectedType?.deposit || 0,
       termsAccepted: formData.value.termsAccepted,
     };
 
-    console.log("Booking Data:", bookingData);
-
-    // Call the API
+    // Call the proceed API which will now handle CHIP payment initialization
     const response = await $fetch("/api/booking/proceed", {
       method: "POST",
       body: bookingData,
     });
 
-    console.log("API Response:", response);
-
-    // // If successful, navigate to receipt page
-    if (response.status === "success") {
-      navigateTo({
-        path: "/book-a-session/receipt",
-        query: {
-          booking: response.data,
-        },
-      });
+    if (response.status === "success" && response.data.checkout_url) {
+      // Redirect to CHIP payment page
+      window.location.href = response.data.checkout_url;
+    } else {
+      throw new Error(response.message || "Failed to initialize payment");
     }
   } catch (error) {
     console.error("Booking error:", error);
-    alert(
-      error.data?.message || "An error occurred while processing your booking"
-    );
+    alert(error.data?.message || "An error occurred while processing your booking");
   } finally {
     isProcessing.value = false;
   }
