@@ -17,6 +17,8 @@ function verifySignature(payload: string, signature: string): boolean {
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
+    console.log("------- Payment callback received -------");
+
     const signature = event.headers.get("X-Signature");
     if (!signature) {
       throw createError({
@@ -27,6 +29,8 @@ export default defineEventHandler(async (event: H3Event) => {
 
     const body = await readBody(event);
     const rawBody = JSON.stringify(body);
+
+    console.log("Raw body:", rawBody);
 
     // Verify webhook signature
     if (!verifySignature(rawBody, signature)) {
