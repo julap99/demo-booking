@@ -653,7 +653,24 @@ watch(
 const html2pdf = ref<(() => Html2PdfWorker) | null>(null);
 const receiptContent = ref<HTMLElement | null>(null);
 
-// Load html2pdf only on client side
+// Add this new function after fetchReceiptData
+async function updateBookingStatus(status: string) {
+  try {
+    const response = await fetch(
+      `/api/booking/update-status?receiptNumber=${route.query.booking}&status=${status}`
+    );
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update booking status");
+    }
+    return await response.json();
+  } catch (err: any) {
+    console.error("Error updating booking status:", err);
+    throw err;
+  }
+}
+
+// Update the onMounted hook
 onMounted(async () => {
   try {
     isLoading.value = true;
@@ -666,6 +683,16 @@ onMounted(async () => {
     if (!route.query.booking) {
       error.value = "No booking reference found";
       return;
+    }
+
+    // If status parameter is present, update booking status
+    if (paymentStatus) {
+      try {
+        await updateBookingStatus(paymentStatus);
+      } catch (err: any) {
+        console.error("Failed to update booking status:", err);
+        // Continue loading the receipt even if status update fails
+      }
     }
 
     // Fetch receipt data
