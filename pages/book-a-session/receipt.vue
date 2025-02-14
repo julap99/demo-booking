@@ -578,7 +578,7 @@ function formatTime(timeString: string): string {
 async function fetchReceiptData() {
   try {
     isLoading.value = true;
-    const response = await fetch(`/api/booking/receipt-detail?booking_id=${bookingId}`);
+    const response = await fetch(`/api/booking/receipt-detail?receiptNumber=${route.query.booking}`);
     if (!response.ok) throw new Error("Failed to load receipt data");
     const data = await response.json();
     receiptData.value = data;
@@ -609,7 +609,7 @@ async function checkPaymentStatus() {
       // Payment successful
       stopPolling();
       await fetchReceiptData(); // Refresh receipt data
-      window.location.href = `/book-a-session/receipt?booking_id=${bookingId}&status=success`;
+      window.location.href = `/book-a-session/receipt?booking=${route.query.booking}&status=success`;
     } else if (data.status === "failed" || data.status === "cancelled") {
       // Payment failed or cancelled
       stopPolling();
@@ -710,7 +710,7 @@ onMounted(async () => {
       return;
     }
 
-    await getReceiptDetail();
+    await fetchReceiptData();
   } catch (err) {
     console.error("Failed to load html2pdf:", err);
     error.value = "Failed to initialize receipt generation";
@@ -720,14 +720,6 @@ onMounted(async () => {
 });
 
 // Get booking data from route query
-const bookingData = ref<{
-  sessionType: string;
-  price: number;
-  payment_extra_pax: number;
-  payment_addon_total: number;
-  theme_deposit: number;
-} | null>(null);
-
 const receiptNumber = computed(() => route.query.receipt || "");
 
 // Session types configuration (same as in booking page)
@@ -748,8 +740,8 @@ const sessionTypes = [
 
 // Computed values with null checks
 const sessionType = computed(() =>
-  bookingData.value && bookingData.value.sessionType
-    ? sessionTypes.find((type) => type.value === bookingData.value!.sessionType)
+  receiptData.value?.title
+    ? sessionTypes.find((type) => type.label === receiptData.value?.title)
     : null
 );
 
@@ -764,6 +756,21 @@ const depositAmount = computed(() =>
 const balanceAmount = computed(() =>
   sessionType.value ? sessionType.value.price - sessionType.value.deposit : 0
 );
+
+const calculateTotal = computed(() => {
+  if (!receiptData.value) return 0;
+  return (
+    (receiptData.value.price || 0) +
+    (receiptData.value.payment_extra_pax || 0) +
+    (receiptData.value.payment_addon_total || 0)
+  );
+});
+
+const calculateBalanceDue = computed(() => {
+  if (!receiptData.value) return 0;
+  const total = calculateTotal.value;
+  return total - (receiptData.value.payment_amount || 0);
+});
 
 const downloadReceipt = async () => {
   if (!html2pdf.value) {
@@ -789,50 +796,6 @@ const downloadReceipt = async () => {
     error.value = "Failed to generate PDF receipt";
   }
 };
-
-const getReceiptDetail = async () => {
-  try {
-    isLoading.value = true;
-    error.value = null;
-
-    const response = await $fetch<{
-      sessionType: string;
-      price: number;
-      payment_extra_pax: number;
-      payment_addon_total: number;
-      theme_deposit: number;
-    }>("/api/booking/receipt-detail", {
-      query: { receiptNumber: route.query.booking },
-    });
-
-    console.log("Response:", response);
-    if (!response) {
-      throw new Error("Invalid response from server");
-    }
-
-    bookingData.value = response;
-  } catch (err) {
-    console.error("Failed to fetch receipt detail:", err);
-    error.value = "Failed to load receipt details. Please try again later.";
-    bookingData.value = null;
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const calculateTotal = computed(() => {
-  if (!bookingData.value) return 0;
-  return (
-    (bookingData.value.price || 0) +
-    (bookingData.value.payment_extra_pax || 0) +
-    (bookingData.value.payment_addon_total || 0)
-  );
-});
-
-const calculateBalanceDue = computed(() => {
-  if (!bookingData.value) return 0;
-  return calculateTotal.value - (bookingData.value.theme_deposit || 0);
-});
 
 // Clean up on component unmount
 onUnmounted(() => {
