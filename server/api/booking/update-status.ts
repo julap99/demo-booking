@@ -29,6 +29,15 @@ export default defineEventHandler(async (event: H3Event) => {
       });
     }
 
+    // Skip if booking is already successful (status 2 or 3)
+    if (booking.status === 2 || booking.status === 3) {
+      return {
+        statusCode: 200,
+        status: "success",
+        message: "Booking already successful, skipping update",
+      };
+    }
+
     // Map status to booking status
     let paymentStatus;
     switch (status) {
