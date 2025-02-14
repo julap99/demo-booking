@@ -41,10 +41,8 @@
               </svg>
             </div>
           </div>
-          <h2
-            class="text-lg font-bold text-[var(--color-text-primary)] mt-6 mb-2"
-          >
-            {{ paymentStatus ? 'Payment Error' : 'Error Loading Receipt' }}
+          <h2 class="text-lg font-bold text-[var(--color-text-primary)] mt-6 mb-2">
+            {{ paymentStatus ? "Payment Error" : "Error Loading Receipt" }}
           </h2>
           <p class="text-[var(--color-text-primary)]/70 mb-4">{{ error }}</p>
           <button
@@ -52,7 +50,7 @@
             class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
             :disabled="isProcessingPayment"
           >
-            {{ paymentStatus ? 'Try Payment Again' : 'Retry Loading' }}
+            {{ paymentStatus ? "Try Payment Again" : "Retry Loading" }}
           </button>
         </div>
       </div>
@@ -94,12 +92,8 @@
                   />
                 </svg>
               </div>
-              <div
-                class="absolute -bottom-3 left-1/2 transform -translate-x-1/2"
-              >
-                <div
-                  class="px-3 py-0.5 bg-[var(--color-primary)]/10 rounded-full"
-                >
+              <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
+                <div class="px-3 py-0.5 bg-[var(--color-primary)]/10 rounded-full">
                   <span class="text-xs font-medium text-[var(--color-primary)]">
                     Payment Successful
                   </span>
@@ -211,14 +205,10 @@
                 Session Details
               </h3>
               <div class="space-y-2">
-                <p
-                  class="text-base font-medium text-[var(--color-text-primary)]"
-                >
+                <p class="text-base font-medium text-[var(--color-text-primary)]">
                   {{ formatDate(receiptData?.session_date) }}
                 </p>
-                <p
-                  class="text-[var(--color-text-primary)]/70 flex items-center text-sm"
-                >
+                <p class="text-[var(--color-text-primary)]/70 flex items-center text-sm">
                   <svg
                     class="w-3.5 h-3.5 mr-1.5"
                     fill="none"
@@ -242,9 +232,7 @@
           </div>
 
           <!-- Payment Summary -->
-          <div
-            class="bg-[var(--color-bg-light)]/50 backdrop-blur p-4 rounded-xl mb-6"
-          >
+          <div class="bg-[var(--color-bg-light)]/50 backdrop-blur p-4 rounded-xl mb-6">
             <h3
               class="text-sm font-medium text-[var(--color-text-primary)] mb-4 font-playfair"
             >
@@ -255,9 +243,7 @@
                 <span class="text-[var(--color-text-primary)]/70 text-sm"
                   >Package Price</span
                 >
-                <span
-                  class="text-base font-medium text-[var(--color-text-primary)]"
-                >
+                <span class="text-base font-medium text-[var(--color-text-primary)]">
                   {{ formatPrice(receiptData?.price || 0) }}
                 </span>
               </div>
@@ -269,9 +255,7 @@
                 <span class="text-[var(--color-text-primary)]/70 text-sm">
                   Extra Person ({{ receiptData?.number_of_extra_pax }} pax)
                 </span>
-                <span
-                  class="text-base font-medium text-[var(--color-text-primary)]"
-                >
+                <span class="text-base font-medium text-[var(--color-text-primary)]">
                   {{ formatPrice(receiptData?.payment_extra_pax || 0) }}
                 </span>
               </div>
@@ -284,9 +268,7 @@
                   <span class="text-[var(--color-text-primary)]/70 text-sm"
                     >Addon Charges</span
                   >
-                  <span
-                    class="text-base font-medium text-[var(--color-text-primary)]"
-                  >
+                  <span class="text-base font-medium text-[var(--color-text-primary)]">
                     {{ formatPrice(receiptData?.payment_addon_total || 0) }}
                   </span>
                 </div>
@@ -298,29 +280,19 @@
                     class="text-sm space-y-0.5"
                   >
                     <div class="flex justify-between items-center">
-                      <span
-                        class="text-[var(--color-text-primary)]/90 font-medium"
-                        >{{ addon.name }}</span
-                      >
+                      <span class="text-[var(--color-text-primary)]/90 font-medium">{{
+                        addon.name
+                      }}</span>
                       <span class="text-[var(--color-text-primary)]/70">{{
                         formatPrice(addon.price || 0)
                       }}</span>
                     </div>
-                    <p class="text-[var(--color-text-primary)]/60 text-xs">
-                      {{ addon.desc }}
-                    </p>
                   </div>
                 </div>
               </div>
 
               <!-- Transaction Fee -->
               <div class="flex justify-between items-center py-1">
-                <span class="text-[var(--color-text-primary)]/70 text-sm">
-                  Transaction Fee
-                  <span class="text-xs">
-                    ({{ receiptData?.payment_method === 1 ? 'FPX' : 'Credit Card' }})
-                  </span>
-                </span>
                 <span class="text-base font-medium text-[var(--color-text-primary)]">
                   {{ formatPrice(receiptData?.payment_transaction_fee || 0) }}
                 </span>
@@ -330,13 +302,10 @@
                 class="border-t border-dashed border-[var(--color-border-primary)] pt-3 mt-2"
               >
                 <div class="flex justify-between items-center">
-                  <span
-                    class="text-base font-medium text-[var(--color-text-primary)]"
+                  <span class="text-base font-medium text-[var(--color-text-primary)]"
                     >Total Amount</span
                   >
-                  <span
-                    class="text-lg font-semibold text-[var(--color-primary)]"
-                  >
+                  <span class="text-lg font-semibold text-[var(--color-primary)]">
                     {{ formatPrice(receiptData?.payment_amount) }}
                   </span>
                 </div>
@@ -350,9 +319,7 @@
                   <span class="text-[var(--color-text-primary)] text-sm"
                     >Deposit Paid</span
                   >
-                  <span
-                    class="text-base font-medium text-[var(--color-primary)]"
-                  >
+                  <span class="text-base font-medium text-[var(--color-primary)]">
                     {{ formatPrice(receiptData?.payment_amount || 0) }}
                   </span>
                 </div>
@@ -360,9 +327,7 @@
                   <span class="text-[var(--color-text-primary)] text-sm"
                     >Balance Due</span
                   >
-                  <span
-                    class="text-base font-medium text-[var(--color-text-primary)]"
-                  >
+                  <span class="text-base font-medium text-[var(--color-text-primary)]">
                     {{
                       formatPrice(
                         receiptData?.payment_total - receiptData?.payment_amount
@@ -411,9 +376,7 @@
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p class="text-center">
-                Please keep this receipt for your records.
-              </p>
+              <p class="text-center">Please keep this receipt for your records.</p>
             </div>
           </div>
 
@@ -421,21 +384,49 @@
           <div class="mt-6 border-t border-gray-200 pt-6">
             <div class="flex justify-between items-center">
               <div>
-                <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Payment Required</h3>
-                <p class="text-[var(--color-text-primary)]/70">Total Amount: RM {{ formatPrice(receiptData?.payment_amount) }}</p>
+                <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">
+                  Payment Required
+                </h3>
+                <p class="text-[var(--color-text-primary)]/70">
+                  Total Amount: RM
+                  {{ formatPrice(receiptData?.payment_amount) }}
+                </p>
               </div>
               <button
                 @click="initializePayment"
                 class="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors flex items-center space-x-2"
                 :disabled="isProcessingPayment"
               >
-                <span>{{ isProcessingPayment ? 'Processing...' : 'Pay Now' }}</span>
-                <svg v-if="!isProcessingPayment" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                <span>{{ isProcessingPayment ? "Processing..." : "Pay Now" }}</span>
+                <svg
+                  v-if="!isProcessingPayment"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
                 </svg>
                 <svg v-else class="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" />
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    fill="none"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
               </button>
             </div>
@@ -498,170 +489,168 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import type { Html2PdfWorker } from 'html2pdf.js';
 
 definePageMeta({
   layout: "empty",
 });
 
 interface ReceiptData {
-  payment_ref_number: string
-  created_date: string
-  user_fullname: string
-  user_email: string
-  user_phoneno: string
-  session_date: string
-  session_time: string
-  title: string
-  price: number
-  payment_extra_pax: number
-  number_of_extra_pax: number
-  payment_addon_total: number
+  payment_ref_number: string;
+  created_date: string;
+  user_fullname: string;
+  user_email: string;
+  user_phoneno: string;
+  session_date: string;
+  session_time: string;
+  title: string;
+  price: number;
+  payment_extra_pax: number;
+  number_of_extra_pax: number;
+  payment_addon_total: number;
+  payment_transaction_fee: number;
   addons: Array<{
-    name: string
-    price: number
-  }>
-  payment_amount: number
-  payment_total: number
-  payment_type: number
-  customer_email: string
-  customer_name: string
-  phone: string
+    name: string;
+    price: number;
+  }>;
+  payment_amount: number;
+  payment_total: number;
+  payment_type: number;
+  customer_email: string;
+  customer_name: string;
+  phone: string;
 }
 
-// Add type declaration for html2pdf
-declare module 'html2pdf.js' {
-  const html2pdf: any
-  export default html2pdf
-}
+const route = useRoute();
+const router = useRouter();
 
-const route = useRoute()
-const router = useRouter()
+const bookingId = route.query.booking_id as string;
+const paymentStatus = (route.query.status as string) || null;
 
-const bookingId = route.query.booking_id as string
-const paymentStatus = route.query.status as string || null
-
-const isLoading = ref(true)
-const error = ref<string | null>(null)
-const receiptData = ref<ReceiptData | null>(null)
-const isProcessingPayment = ref(false)
-const paymentUrl = ref<string | null>(null)
+const isLoading = ref(true);
+const error = ref<string | null>(null);
+const receiptData = ref<ReceiptData | null>(null);
+const isProcessingPayment = ref(false);
+const paymentUrl = ref<string | null>(null);
 
 // Add these new refs and constants
-const POLLING_INTERVAL = 5000 // 5 seconds
-const MAX_POLLING_ATTEMPTS = 60 // 5 minutes total
-const purchaseId = ref<string | null>(null)
-const pollingCount = ref(0)
-const pollingTimer = ref<NodeJS.Timeout | null>(null)
+const POLLING_INTERVAL = 5000; // 5 seconds
+const MAX_POLLING_ATTEMPTS = 60; // 5 minutes total
+const purchaseId = ref<string | null>(null);
+const pollingCount = ref(0);
+const pollingTimer = ref<NodeJS.Timeout | null>(null);
 
 // Format functions
 function formatPrice(amount: number): string {
-  return amount.toFixed(2)
+  return amount.toFixed(2);
 }
 
 function formatDate(dateString: string): string {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function formatDatetime(dateString: string): string {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  })
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
 }
 
 function formatTime(timeString: string): string {
-  if (!timeString) return 'N/A'
-  return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true
-  })
+  if (!timeString) return "N/A";
+  return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  });
 }
 
 // Fetch receipt data
 async function fetchReceiptData() {
   try {
-    isLoading.value = true
-    const response = await fetch(`/api/booking/receipt-detail?booking_id=${bookingId}`)
-    if (!response.ok) throw new Error('Failed to load receipt data')
-    const data = await response.json()
-    receiptData.value = data
+    isLoading.value = true;
+    const response = await fetch(`/api/booking/receipt-detail?booking_id=${bookingId}`);
+    if (!response.ok) throw new Error("Failed to load receipt data");
+    const data = await response.json();
+    receiptData.value = data;
   } catch (err: any) {
-    error.value = err.message
+    error.value = err.message;
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 // Add payment status polling function
 async function checkPaymentStatus() {
   if (!purchaseId.value || pollingCount.value >= MAX_POLLING_ATTEMPTS) {
-    stopPolling()
-    return
+    stopPolling();
+    return;
   }
 
   try {
-    const response = await fetch(`/api/booking/check-payment-status?purchase_id=${purchaseId.value}`)
-    if (!response.ok) throw new Error('Failed to check payment status')
-    
-    const data = await response.json()
-    pollingCount.value++
+    const response = await fetch(
+      `/api/booking/check-payment-status?purchase_id=${purchaseId.value}`
+    );
+    if (!response.ok) throw new Error("Failed to check payment status");
 
-    if (data.status === 'completed') {
+    const data = await response.json();
+    pollingCount.value++;
+
+    if (data.status === "completed") {
       // Payment successful
-      stopPolling()
-      await fetchReceiptData() // Refresh receipt data
-      window.location.href = `/book-a-session/receipt?booking_id=${bookingId}&status=success`
-    } else if (data.status === 'failed' || data.status === 'cancelled') {
+      stopPolling();
+      await fetchReceiptData(); // Refresh receipt data
+      window.location.href = `/book-a-session/receipt?booking_id=${bookingId}&status=success`;
+    } else if (data.status === "failed" || data.status === "cancelled") {
       // Payment failed or cancelled
-      stopPolling()
-      error.value = `Payment ${data.status}. Please try again.`
+      stopPolling();
+      error.value = `Payment ${data.status}. Please try again.`;
     }
   } catch (err: any) {
-    console.error('Error checking payment status:', err)
-    stopPolling()
+    console.error("Error checking payment status:", err);
+    stopPolling();
   }
 }
 
 // Start polling
 function startPolling(chipPurchaseId: string) {
-  purchaseId.value = chipPurchaseId
-  pollingCount.value = 0
-  
+  purchaseId.value = chipPurchaseId;
+  pollingCount.value = 0;
+
   // Clear any existing polling
-  stopPolling()
-  
+  stopPolling();
+
   // Start new polling
-  pollingTimer.value = setInterval(checkPaymentStatus, POLLING_INTERVAL)
+  pollingTimer.value = setInterval(checkPaymentStatus, POLLING_INTERVAL);
 }
 
 // Stop polling
 function stopPolling() {
   if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-    pollingTimer.value = null
+    clearInterval(pollingTimer.value);
+    pollingTimer.value = null;
   }
 }
 
 // Update initialize payment function
 async function initializePayment() {
-  if (!receiptData.value) return
+  if (!receiptData.value) return;
 
   try {
-    isProcessingPayment.value = true
-    const response = await fetch('/api/booking/create-payment', {
-      method: 'POST',
+    isProcessingPayment.value = true;
+    const response = await fetch("/api/booking/create-payment", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         amount: receiptData.value.payment_amount,
@@ -670,41 +659,44 @@ async function initializePayment() {
         customerName: receiptData.value.customer_name,
         phone: receiptData.value.phone,
       }),
-    })
+    });
 
-    if (!response.ok) throw new Error('Failed to initialize payment')
-    
-    const data = await response.json()
-    paymentUrl.value = data.checkout_url
+    if (!response.ok) throw new Error("Failed to initialize payment");
+
+    const data = await response.json();
+    paymentUrl.value = data.checkout_url;
 
     // Start polling for payment status
-    startPolling(data.id) // CHIP returns purchase ID in the response
+    startPolling(data.id); // CHIP returns purchase ID in the response
 
     // Redirect to CHIP payment page
-    window.location.href = data.checkout_url
+    window.location.href = data.checkout_url;
   } catch (err: any) {
-    error.value = err.message
+    error.value = err.message;
   } finally {
-    isProcessingPayment.value = false
+    isProcessingPayment.value = false;
   }
 }
 
 // Watch for payment status changes
-watch(() => route.query.status, (newStatus) => {
-  if (newStatus === 'failed') {
-    error.value = 'Payment failed. Please try again.'
-  } else if (newStatus === 'cancelled') {
-    error.value = 'Payment was cancelled. Please try again.'
+watch(
+  () => route.query.status,
+  (newStatus) => {
+    if (newStatus === "failed") {
+      error.value = "Payment failed. Please try again.";
+    } else if (newStatus === "cancelled") {
+      error.value = "Payment was cancelled. Please try again.";
+    }
   }
-})
+);
 
 onMounted(() => {
-  fetchReceiptData()
-})
+  fetchReceiptData();
+});
 
 // Add ref for html2pdf instance
-const html2pdf = ref(null);
-const receiptContent = ref(null);
+const html2pdf = ref<(() => Html2PdfWorker) | null>(null);
+const receiptContent = ref<HTMLElement | null>(null);
 
 // Load html2pdf only on client side
 onMounted(async () => {
@@ -728,7 +720,13 @@ onMounted(async () => {
 });
 
 // Get booking data from route query
-const bookingData = ref(null);
+const bookingData = ref<{
+  sessionType: string;
+  price: number;
+  payment_extra_pax: number;
+  payment_addon_total: number;
+  theme_deposit: number;
+} | null>(null);
 
 const receiptNumber = computed(() => route.query.receipt || "");
 
@@ -750,8 +748,8 @@ const sessionTypes = [
 
 // Computed values with null checks
 const sessionType = computed(() =>
-  bookingData.value?.sessionType
-    ? sessionTypes.find((type) => type.value === bookingData.value.sessionType)
+  bookingData.value && bookingData.value.sessionType
+    ? sessionTypes.find((type) => type.value === bookingData.value!.sessionType)
     : null
 );
 
@@ -774,6 +772,8 @@ const downloadReceipt = async () => {
   }
 
   const element = receiptContent.value;
+  if (!element) return;
+
   const opt = {
     margin: 1,
     filename: `booking-receipt-${receiptNumber.value}.pdf`,
@@ -795,16 +795,22 @@ const getReceiptDetail = async () => {
     isLoading.value = true;
     error.value = null;
 
-    const response = await $fetch("/api/booking/receipt-detail", {
+    const response = await $fetch<{
+      sessionType: string;
+      price: number;
+      payment_extra_pax: number;
+      payment_addon_total: number;
+      theme_deposit: number;
+    }>("/api/booking/receipt-detail", {
       query: { receiptNumber: route.query.booking },
     });
 
     console.log("Response:", response);
-    if (!response?.data) {
+    if (!response) {
       throw new Error("Invalid response from server");
     }
 
-    bookingData.value = response.data;
+    bookingData.value = response;
   } catch (err) {
     console.error("Failed to fetch receipt detail:", err);
     error.value = "Failed to load receipt details. Please try again later.";
@@ -830,8 +836,8 @@ const calculateBalanceDue = computed(() => {
 
 // Clean up on component unmount
 onUnmounted(() => {
-  stopPolling()
-})
+  stopPolling();
+});
 </script>
 
 <style>

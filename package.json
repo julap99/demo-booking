@@ -26,6 +26,7 @@
     "@types/jsonwebtoken": "^9.0.8",
     "@types/nodemailer": "^6.4.17",
     "@vueuse/core": "^12.5.0",
+    "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
