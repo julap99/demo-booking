@@ -244,7 +244,7 @@
                   >Package Price</span
                 >
                 <span class="text-base font-medium text-[var(--color-text-primary)]">
-                  {{ formatPrice(receiptData?.price || 0) }}
+                  {{ formatPrice(receiptData?.price) }}
                 </span>
               </div>
 
@@ -256,7 +256,7 @@
                   Extra Person ({{ receiptData?.number_of_extra_pax }} pax)
                 </span>
                 <span class="text-base font-medium text-[var(--color-text-primary)]">
-                  {{ formatPrice(receiptData?.payment_extra_pax || 0) }}
+                  {{ formatPrice(receiptData?.payment_extra_pax) }}
                 </span>
               </div>
 
@@ -269,7 +269,7 @@
                     >Addon Charges</span
                   >
                   <span class="text-base font-medium text-[var(--color-text-primary)]">
-                    {{ formatPrice(receiptData?.payment_addon_total || 0) }}
+                    {{ formatPrice(receiptData?.payment_addon_total) }}
                   </span>
                 </div>
                 <!-- Addon Details -->
@@ -284,7 +284,7 @@
                         addon.name
                       }}</span>
                       <span class="text-[var(--color-text-primary)]/70">{{
-                        formatPrice(addon.price || 0)
+                        formatPrice(addon.price)
                       }}</span>
                     </div>
                   </div>
@@ -293,8 +293,11 @@
 
               <!-- Transaction Fee -->
               <div class="flex justify-between items-center py-1">
+                <span class="text-[var(--color-text-primary)]/70 text-sm">
+                  Transaction Fee
+                </span>
                 <span class="text-base font-medium text-[var(--color-text-primary)]">
-                  {{ formatPrice(receiptData?.payment_transaction_fee || 0) }}
+                  {{ formatPrice(receiptData?.payment_transaction_fee) }}
                 </span>
               </div>
 
@@ -320,7 +323,7 @@
                     >Deposit Paid</span
                   >
                   <span class="text-base font-medium text-[var(--color-primary)]">
-                    {{ formatPrice(receiptData?.payment_amount || 0) }}
+                    {{ formatPrice(receiptData?.payment_amount) }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -328,11 +331,7 @@
                     >Balance Due</span
                   >
                   <span class="text-base font-medium text-[var(--color-text-primary)]">
-                    {{
-                      formatPrice(
-                        receiptData?.payment_total - receiptData?.payment_amount
-                      )
-                    }}
+                    {{ formatPrice(calculateBalanceDue) }}
                   </span>
                 </div>
               </div>
@@ -541,7 +540,8 @@ const pollingCount = ref(0);
 const pollingTimer = ref<NodeJS.Timeout | null>(null);
 
 // Format functions
-function formatPrice(amount: number): string {
+function formatPrice(amount: number | undefined | null): string {
+  if (amount === undefined || amount === null) return '0.00';
   return amount.toFixed(2);
 }
 
@@ -690,10 +690,6 @@ watch(
   }
 );
 
-onMounted(() => {
-  fetchReceiptData();
-});
-
 // Add ref for html2pdf instance
 const html2pdf = ref<(() => Html2PdfWorker) | null>(null);
 const receiptContent = ref<HTMLElement | null>(null);
@@ -746,30 +742,32 @@ const sessionType = computed(() =>
 );
 
 const sessionPrice = computed(() =>
-  sessionType.value ? formatPrice(sessionType.value.price) : "N/A"
+  sessionType.value?.price ? formatPrice(sessionType.value.price) : '0.00'
 );
 
 const depositAmount = computed(() =>
-  sessionType.value ? formatPrice(sessionType.value.deposit) : "N/A"
+  sessionType.value?.deposit ? formatPrice(sessionType.value.deposit) : '0.00'
 );
 
-const balanceAmount = computed(() =>
-  sessionType.value ? sessionType.value.price - sessionType.value.deposit : 0
-);
+const balanceAmount = computed(() => {
+  if (!sessionType.value?.price || !sessionType.value?.deposit) return 0;
+  return sessionType.value.price - sessionType.value.deposit;
+});
 
 const calculateTotal = computed(() => {
   if (!receiptData.value) return 0;
-  return (
-    (receiptData.value.price || 0) +
-    (receiptData.value.payment_extra_pax || 0) +
-    (receiptData.value.payment_addon_total || 0)
-  );
+  const price = receiptData.value.price ?? 0;
+  const extraPax = receiptData.value.payment_extra_pax ?? 0;
+  const addonTotal = receiptData.value.payment_addon_total ?? 0;
+  return price + extraPax + addonTotal;
 });
 
 const calculateBalanceDue = computed(() => {
   if (!receiptData.value) return 0;
   const total = calculateTotal.value;
-  return total - (receiptData.value.payment_amount || 0);
+  const paymentAmount = receiptData.value.payment_amount ?? 0;
+  const balance = total - paymentAmount;
+  return Math.max(0, balance); // Ensure we don't return negative values
 });
 
 const downloadReceipt = async () => {
